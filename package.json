@@ -1,0 +1,75 @@
+{
+  "name": "blocknet-litewallet",
+  "version": "0.1.0",
+  "description": "blocknet-litewallet",
+  "private": true,
+  "main": "./dist/app/index.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "npm run clear-build-directory && npm run copy-static-files && npm run scss && npm run js",
+    "watch": "npm run watch-static-files & npm run watch-scss & npm run watch-js",
+    "test": "mocha ./tests",
+    "js": "babel src/app --out-dir dist/app --verbose",
+    "watch-js": "babel src/app --out-dir dist/app --watch --verbose",
+    "scss": "node-sass --output-style expanded --source-map true --source-map-contents true --precision 6 src/scss/main.scss dist/css/main.css",
+    "watch-scss": "nodemon -w src/scss -e scss -x \"npm run scss\"",
+    "copy-static-files": "node ./build-scripts/copy-files.js",
+    "watch-static-files": "nodemon -w src -i app/* -i scss/* -e html,css,scss,js,ttf,ico,jpg,png,svg -x \"npm run copy-static-files\"",
+    "clear-build-directory": "node ./build-scripts/clear-build-dir.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blocknetdx/litewallet.git"
+  },
+  "author": "Blocknet <contact@blocknet.co>",
+  "contributors": [
+    {
+      "name": "Ryan Burgett",
+      "email": "ryan@burgettdev.net"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/blocknetdx/litewallet/issues"
+  },
+  "homepage": "https://github.com/blocknetdx/litewallet#readme",
+  "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
+    "@babel/plugin-transform-modules-commonjs": "^7.10.4",
+    "@babel/preset-react": "^7.10.4",
+    "babel-eslint": "^10.1.0",
+    "colors": "^1.4.0",
+    "electron": "^9.0.5",
+    "electron-builder": "^22.7.0",
+    "eslint": "^7.3.1",
+    "eslint-plugin-react": "^7.20.3",
+    "eslint-plugin-react-hooks": "^4.0.5",
+    "mocha": "^8.0.1",
+    "node-sass": "^4.14.1",
+    "nodemon": "^2.0.4",
+    "should": "^13.2.3"
+  },
+  "dependencies": {
+    "@babel/cli": "^7.10.4",
+    "@babel/core": "^7.10.4",
+    "electron-context-menu": "^2.0.1",
+    "electron-is-dev": "^1.2.0",
+    "electron-updater": "^4.3.1",
+    "fs-extra": "^9.0.1",
+    "immutable": "^4.0.0-rc.12",
+    "jquery": "^3.5.1",
+    "lodash": "^4.17.15",
+    "mathjs": "^7.0.2",
+    "moment": "^2.27.0",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-redux": "^7.2.0",
+    "redux": "^4.0.5",
+    "rmrf-promise": "^1.1.0",
+    "superagent": "^5.3.1",
+    "sweetalert": "^2.1.2",
+    "uuid": "^8.2.0",
+    "winston": "^3.3.3"
+  }
+}
