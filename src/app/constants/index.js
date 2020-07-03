@@ -3,7 +3,16 @@ import electron from 'electron';
 const app = electron.app ? electron.app : electron.remote.app;
 
 export const actions = {
-  SET_WINDOW_SIZE: 'SET_WINDOW_SIZE'
+  SET_WINDOW_SIZE: 'SET_WINDOW_SIZE',
+  SET_MANIFEST: 'SET_MANIFEST'
+};
+
+export const localStorageKeys = {
+  MANIFEST: 'MANIFEST',
+  MANIFEST_SHA: 'MANIFEST_SHA',
+  MANIFEST_DATA: 'MANIFEST_DATA',
+  WALLET_CONFS: 'WALLET_CONFS',
+  XBRIDGE_CONFS: 'XBRIDGE_CONFS'
 };
 
 export const storageKeys = {
@@ -33,3 +42,5 @@ export const ZOOM_MIN = .6;
 export const ZOOM_INCREMENT = .1;
 
 export const DATA_DIR = app.getPath('userData');
+
+export const HTTP_REQUEST_TIMEOUT = 10000;

@@ -21,6 +21,7 @@ export default class BrowserWindow {
       show: false,
       webPreferences: {
         nodeIntegration: true,
+        enableRemoteModule: true,
         ...webPreferences
       },
       ...windowOptions

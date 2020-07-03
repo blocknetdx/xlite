@@ -17,18 +17,32 @@ export const getLocaleData = locale => {
   return data;
 };
 
-// differential in code betwee the main and renderer processes
+// differentiate in code betwee the main and renderer processes
 export const isRenderer = () => process.type === 'renderer';
 
+// Some modules have DOM dependencies and can therefore only be run in the renderer process
+export const requireRenderer = () => {
+  if(!isRenderer()) throw new Error('This module can only be run from the renderer process.');
+};
+
+// A Winston logger instance for logging errors and other info
 export const logger = createLogger({
   format: format.combine(
     format.timestamp(),
     format.json()
   ),
   transports: [
-    new transports.File({ filename: path.join(DATA_DIR, isRenderer() ? 'renderer.log' : 'main.log') })
+    new transports.File({
+      filename: path.join(DATA_DIR, isRenderer() ? 'renderer.log' : 'main.log'),
+      maxsize: 1000000,
+      maxFiles: 5,
+      tailable: true
+    })
   ]
 });
+if(isDev) {
+  logger.add(new transports.Console());
+}
 
 export const handleError = err => {
   if(isDev) console.error(err);
