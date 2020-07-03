@@ -1,4 +1,6 @@
 import './modules/window-zoom-handlers';
+import fs from 'fs-extra';
+import path from 'path';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { combineReducers, createStore } from 'redux';
@@ -7,10 +9,11 @@ import isDev from 'electron-is-dev';
 import * as appActions from './actions/app-actions';
 import appReducer from './reducers/app-reducer';
 import App from './components/app';
-import { handleError, logger } from './util';
+import { convertManifestToMap, getCloudChainsDir, handleError, logger } from './util';
 import ConfController from './modules/conf-controller';
 import domStorage from './modules/dom-storage';
 import { localStorageKeys } from './constants';
+import WalletController from './modules/wallet-controller';
 
 // Handle any uncaught exceptions
 process.on('uncaughtException', err => {
@@ -38,29 +41,66 @@ window.addEventListener('resize', e => {
   store.dispatch(appActions.setWindowSize(innerWidth, innerHeight));
 });
 
-const confController = new ConfController();
-confController.getLatest()
-  .then(data => {
-    // Only returns data when there is updated data
-    if(!data) return;
-    const {
-      manifestData,
-      xbridgeConfs,
-      manifest,
-      walletConfs,
-      manifestSha
-    } = data;
-    domStorage.setItems({
-      [localStorageKeys.MANIFEST]: manifest,
-      [localStorageKeys.MANIFEST_DATA]: manifestData,
-      [localStorageKeys.XBRIDGE_CONFS]: xbridgeConfs,
-      [localStorageKeys.WALLET_CONFS]: walletConfs,
-      [localStorageKeys.MANIFEST_SHA]: manifestSha
-    });
+(async function() {
+  try {
+    const confController = new ConfController();
+    let data;
+    // We don't want to stop the app from loading if there is a problem fetching
+    // the new manifest data. So, we wrap it in its own try/catch
+    try {
+      data = await confController.getLatest();
+    } catch(err) {
+      handleError(err);
+    }
+    let manifestArr;
+    if(data) {
+      const {
+        manifestData,
+        xbridgeConfs,
+        manifest: newManifest,
+        walletConfs,
+        manifestSha
+      } = data;
+      domStorage.setItems({
+        [localStorageKeys.MANIFEST]: newManifest,
+        [localStorageKeys.MANIFEST_DATA]: manifestData,
+        [localStorageKeys.XBRIDGE_CONFS]: xbridgeConfs,
+        [localStorageKeys.WALLET_CONFS]: walletConfs,
+        [localStorageKeys.MANIFEST_SHA]: manifestSha
+      });
+      logger.info(`Downloaded updated manifest, wallet, and xbridge confs. Manifest SHA: ${manifestSha}`);
+      manifestArr = newManifest;
+    } else {
+      manifestArr = domStorage.getItem(localStorageKeys.MANIFEST);
+    }
+    const manifest = convertManifestToMap(manifestArr);
     store.dispatch(appActions.setManifest(manifest));
-    logger.info(`Downloaded updated manifest, wallet, and xbridge confs. Manifest SHA: ${manifestSha}`);
-  })
-  .catch(handleError);
+
+    const cloudChainsDir = getCloudChainsDir();
+    const cloudChainsSettingsDir = path.join(cloudChainsDir, 'settings');
+    const ccExists = await fs.exists(cloudChainsDir);
+    const ccSettingsExists = await fs.exists(cloudChainsSettingsDir);
+
+    if(!ccExists || !ccSettingsExists) throw new Error('Cannot find CloudChains settings folder');
+
+    const walletController = new WalletController(cloudChainsSettingsDir, manifest);
+    await walletController.initialize();
+
+    const allWallets = walletController.getWallets();
+    const enabledWallets = walletController.getEnabledWallets();
+
+    console.log('allWallets', allWallets);
+    console.log('enabledWallets', enabledWallets);
+
+    for(const w of enabledWallets) {
+      const res = await w.rpc.getInfo();
+      console.log(res);
+    }
+
+  } catch(err) {
+    handleError(err);
+  }
+})();
 
 ReactDOM.render(
   <Provider store={store}>

@@ -1,8 +1,11 @@
+import electron from 'electron';
 import fs from 'fs-extra';
 import isDev from 'electron-is-dev';
 import path from 'path';
 import { createLogger, format, transports } from 'winston';
 import { DATA_DIR, DEFAULT_LOCALE } from '../constants';
+import { Map } from 'immutable';
+
 
 export const getLocaleData = locale => {
   const localesPath = path.resolve(__dirname, '../../../locales');
@@ -48,3 +51,24 @@ export const handleError = err => {
   if(isDev) console.error(err);
   logger.error('', err);
 };
+
+/**
+ * @returns {string}
+ */
+export const getCloudChainsDir = () => {
+  const app = isRenderer() ? electron.remote.app : electron.app;
+  switch(process.platform) {
+    case 'win32':
+      return path.join(app.getPath('appData'), 'CloudChains');
+    case 'linux':
+      return path.join(app.getPath('home'), 'CloudChains');
+    default:
+      return path.join(app.getPath('appData'), 'CloudChains');
+  }
+};
+
+/**
+ * @param manifest {Object[]}
+ * @returns {Map}
+ */
+export const convertManifestToMap = manifest => manifest.reduce((map, obj) => map.set(obj.ticker, obj), Map());
