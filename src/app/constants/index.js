@@ -1,6 +1,6 @@
 import electron from 'electron';
 
-const app = electron.app ? electron.app : electron.remote.app;
+const app = electron.app ? electron.app : electron.remote ? electron.remote.app : null;
 
 export const actions = {
   SET_WINDOW_SIZE: 'SET_WINDOW_SIZE',
@@ -41,6 +41,6 @@ export const ZOOM_MAX = 1.5;
 export const ZOOM_MIN = .6;
 export const ZOOM_INCREMENT = .1;
 
-export const DATA_DIR = app.getPath('userData');
+export const DATA_DIR = app ? app.getPath('userData') : '';
 
 export const HTTP_REQUEST_TIMEOUT = 10000;
