@@ -1,4 +1,4 @@
-export default class RPCSignedRawTransaction {
+class RPCSignedRawTransaction {
 
   /**
    * @type {string}
@@ -18,3 +18,5 @@ export default class RPCSignedRawTransaction {
   }
 
 }
+
+export default RPCSignedRawTransaction;

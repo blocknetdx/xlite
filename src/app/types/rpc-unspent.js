@@ -1,4 +1,4 @@
-export default class RPCUnspent {
+class RPCUnspent {
 
   /**
    * @type {string}
@@ -43,3 +43,5 @@ export default class RPCUnspent {
   }
 
 }
+
+export default RPCUnspent;

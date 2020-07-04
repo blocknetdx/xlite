@@ -4,7 +4,7 @@ const throwFilePathError = () => {
   throw new Error('You must pass in a filePath parameter when creating a new BrowserWindow. e.g. "/home/users/myUser/myProject/myWindow.html"');
 };
 
-export default class BrowserWindow {
+class BrowserWindow {
 
   static _allWindows = [];
   static closeAllWindows = () => this._allWindows.forEach(w => w.close());
@@ -94,3 +94,5 @@ export default class BrowserWindow {
     }
   }
 }
+
+export default BrowserWindow;

@@ -1,4 +1,4 @@
-export default class RPCInfo {
+class RPCInfo {
 
   /**
    * @type {number}
@@ -68,3 +68,5 @@ export default class RPCInfo {
   }
 
 }
+
+export default RPCInfo;

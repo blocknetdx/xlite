@@ -1,4 +1,4 @@
-export default class RPCTransaction {
+class RPCTransaction {
 
   /**
    * @type {string}
@@ -31,12 +31,12 @@ export default class RPCTransaction {
   lockTime = 0;
 
   /**
-   * @type {{coinbase: string, sequence: number}[]}
+   * @type {Array<{coinbase: string, sequence: number}>}
    */
   vIn = [];
 
   /**
-   * @type {{value: number, n: number, scriptPubKey: {asm: string, hex: string, reqSigs: number, type: string, addresses: string[]}}[]}
+   * @type {Array<{value: number, n: number, scriptPubKey: {asm: string, hex: string, reqSigs: number, type: string, addresses: string[]}}>}
    */
   vOut = [];
 
@@ -73,3 +73,5 @@ export default class RPCTransaction {
   }
 
 }
+
+export default RPCTransaction;

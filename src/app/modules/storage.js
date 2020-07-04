@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import cloneDeep from 'lodash/cloneDeep';
 import omit from 'lodash/omit';
 
-export default class SimpleStorage {
+class SimpleStorage {
 
   constructor(dataFilePath) {
     this._dataFilePath = dataFilePath;
@@ -75,3 +75,5 @@ export default class SimpleStorage {
   }
 
 }
+
+export default SimpleStorage;

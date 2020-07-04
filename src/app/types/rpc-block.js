@@ -1,4 +1,4 @@
-export default class RPCBlock {
+class RPCBlock {
 
   /**
    * @type {string}
@@ -98,3 +98,5 @@ export default class RPCBlock {
   }
 
 }
+
+export default RPCBlock;

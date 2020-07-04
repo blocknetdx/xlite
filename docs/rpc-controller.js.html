@@ -1,4 +1,32 @@
-import request from 'superagent';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: rpc-controller.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: rpc-controller.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import request from 'superagent';
 import { HTTP_REQUEST_TIMEOUT } from '../constants';
 import RPCInfo from '../types/rpc-info';
 import RPCNetworkInfo from '../types/rpc-network-info';
@@ -88,7 +116,7 @@ class RPCController {
    * Get info about an unspent transaction output
    * @param txId {string}
    * @param vOut {number}
-   * @returns {Promise<RPCTransactionOutput>}
+   * @returns {Promise&lt;RPCTransactionOutput>}
    */
   async getTxOut(txId, vOut) {
     const res = await this._makeRequest('gettxout', [txId, vOut]);
@@ -102,7 +130,7 @@ class RPCController {
 
   /**
    * Get information such as balances, protocol version, and more
-   * @returns {Promise<RPCInfo>}
+   * @returns {Promise&lt;RPCInfo>}
    */
   async getInfo() {
     const res = await this._makeRequest('getinfo');
@@ -124,7 +152,7 @@ class RPCController {
 
   /**
    * Get network information
-   * @returns {Promise<RPCNetworkInfo>}
+   * @returns {Promise&lt;RPCNetworkInfo>}
    */
   async getNetworkInfo() {
     const res = await this._makeRequest('getnetworkinfo');
@@ -140,7 +168,7 @@ class RPCController {
 
   /**
    * Get raw mempool
-   * @returns {Promise<string[]>}
+   * @returns {Promise&lt;string[]>}
    */
   async getRawMempool() {
     const res = await this._makeRequest('getrawmempool');
@@ -149,7 +177,7 @@ class RPCController {
 
   /**
    * Get blockchain info
-   * @returns {Promise<RPCBlockchainInfo>}
+   * @returns {Promise&lt;RPCBlockchainInfo>}
    */
   async getBlockchainInfo() {
     const res = await this._makeRequest('getblockchaininfo');
@@ -167,7 +195,7 @@ class RPCController {
   /**
    * Get the hash of a block at a given height
    * @param height {number}
-   * @returns {Promise<string>}
+   * @returns {Promise&lt;string>}
    */
   async getBlockHash(height) {
     const res = await this._makeRequest('getblockhash', [height]);
@@ -177,7 +205,7 @@ class RPCController {
   /**
    * Get a block's JSON representation given its hash
    * @param hash {string}
-   * @returns {Promise<RPCBlock>}
+   * @returns {Promise&lt;RPCBlock>}
    */
   async getBlock(hash) {
     const res = await this._makeRequest('getblock', [hash]);
@@ -205,7 +233,7 @@ class RPCController {
 
   /**
    * Get all UTXOs in the wallet
-   * @returns {Promise<RPCUnspent[]>}
+   * @returns {Promise&lt;RPCUnspent[]>}
    */
   async listUnspent() {
     const res = await this._makeRequest('listunspent');
@@ -222,7 +250,7 @@ class RPCController {
 
   /**
    * Generate a new address
-   * @returns {Promise<string>}
+   * @returns {Promise&lt;string>}
    */
   async getNewAddress() {
     const res = await this._makeRequest('getnewaddress');
@@ -232,7 +260,7 @@ class RPCController {
   /**
    * Get a transaction given its TXID
    * @param txId {string}
-   * @returns {Promise<RPCTransaction>}
+   * @returns {Promise&lt;RPCTransaction>}
    */
   async getTransaction(txId) {
     const res = await this._makeRequest('gettransaction', [txId]);
@@ -256,7 +284,7 @@ class RPCController {
   /**
    * Get addresses belonging to a given account
    * @param account {string}
-   * @returns {Promise<string[]>}
+   * @returns {Promise&lt;string[]>}
    */
   async getAddressesByAccount(account = 'main') {
     const res = await this._makeRequest('getaddressesbyaccount', [account]);
@@ -266,7 +294,7 @@ class RPCController {
   /**
    * Import an address given it's privkey
    * @param privKey {string}
-   * @returns {Promise<string>}
+   * @returns {Promise&lt;string>}
    */
   async importPrivKey(privKey) {
     const res = await this._makeRequest('importprivkey', [privKey]);
@@ -276,7 +304,7 @@ class RPCController {
   /**
    * Dump an addresse's private key
    * @param address {string}
-   * @returns {Promise<string>}
+   * @returns {Promise&lt;string>}
    */
   async dumpPrivKey(address) {
     const res = await this._makeRequest('dumpprivkey', [address]);
@@ -287,7 +315,7 @@ class RPCController {
    * Sign a message with a given address' private key
    * @param address {string}
    * @param message {string}
-   * @returns {Promise<string>}
+   * @returns {Promise&lt;string>}
    */
   async signMessage(address, message) {
     const res = await this._makeRequest('signmessage', [address, message]);
@@ -299,7 +327,7 @@ class RPCController {
    * @param address {string}
    * @param signature {string}
    * @param message {string}
-   * @returns {Promise<boolean>}
+   * @returns {Promise&lt;boolean>}
    */
   async verifyMessage(address, signature, message) {
     const res = await this._makeRequest('verifymessage', [address, signature, message]);
@@ -310,7 +338,7 @@ class RPCController {
    * Create a raw transaction given inputs and outputs in JSON format
    * @param inputs {RPCUnspent[]}
    * @param outputs {Object}
-   * @returns {Promise<string>}
+   * @returns {Promise&lt;string>}
    */
   async createRawTransaction(inputs, outputs = {}) {
     const preppedInputs = inputs
@@ -328,7 +356,7 @@ class RPCController {
   /**
    * Decode a raw transaction
    * @param rawTx {string}
-   * @returns {Promise<RPCTransaction>}
+   * @returns {Promise&lt;RPCTransaction>}
    */
   async decodeRawTransaction(rawTx) {
     const res = await this._makeRequest('decoderawtransaction', [rawTx]);
@@ -344,7 +372,7 @@ class RPCController {
   /**
    * Sign a raw transaction
    * @param rawTx {string}
-   * @returns {Promise<RPCSignedRawTransaction>}
+   * @returns {Promise&lt;RPCSignedRawTransaction>}
    */
   async signRawTransaction(rawTx) {
     const res = await this._makeRequest('signrawtransaction', [rawTx]);
@@ -357,7 +385,7 @@ class RPCController {
   /**
    * Broadcast a signed raw transaction to the network
    * @param signedRawTransaction {RPCSignedRawTransaction}
-   * @returns {Promise<string>}
+   * @returns {Promise&lt;string>}
    */
   async sendRawTransaction(signedRawTransaction) {
     const { hex } = signedRawTransaction;
@@ -368,3 +396,26 @@ class RPCController {
 }
 
 export default RPCController;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ConfController.html">ConfController</a></li><li><a href="DOMStorage.html">DOMStorage</a></li><li><a href="RPCController.html">RPCController</a></li><li><a href="WalletController.html">WalletController</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Fri Jul 03 2020 23:58:13 GMT-0400 (Eastern Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

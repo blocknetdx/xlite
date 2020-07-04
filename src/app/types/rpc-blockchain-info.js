@@ -1,4 +1,4 @@
-export default class RPCBlockchainInfo {
+class RPCBlockchainInfo {
 
   /**
    * @type {string}
@@ -43,3 +43,5 @@ export default class RPCBlockchainInfo {
   }
 
 }
+
+export default RPCBlockchainInfo;

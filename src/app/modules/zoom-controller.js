@@ -10,7 +10,7 @@ import {
 } from '../constants';
 
 // This should only be used in the main process
-export default class ZoomController {
+class ZoomController {
 
   constructor(storage) {
     this._storage = storage;
@@ -57,3 +57,5 @@ export default class ZoomController {
   }
 
 }
+
+export default ZoomController;

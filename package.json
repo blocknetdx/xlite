@@ -8,14 +8,15 @@
     "start": "electron .",
     "build": "npm run clear-build-directory && npm run copy-static-files && npm run scss && npm run js",
     "watch": "npm run watch-static-files & npm run watch-scss & npm run watch-js",
-    "test": "mocha --require @babel/register ./tests/rpc-controller.js",
+    "test": "mocha --require @babel/register ./tests",
     "js": "babel src/app --out-dir dist/app --verbose",
     "watch-js": "babel src/app --out-dir dist/app --watch --verbose",
     "scss": "node-sass --output-style expanded --source-map true --source-map-contents true --precision 6 src/scss/main.scss dist/css/main.css",
     "watch-scss": "nodemon -w src/scss -e scss -x \"npm run scss\"",
     "copy-static-files": "node ./build-scripts/copy-files.js",
     "watch-static-files": "nodemon -w src -i app/* -i scss/* -e html,css,scss,js,ttf,ico,jpg,png,svg -x \"npm run copy-static-files\"",
-    "clear-build-directory": "node ./build-scripts/clear-build-dir.js"
+    "clear-build-directory": "node ./build-scripts/clear-build-dir.js",
+    "generate-docs": "jsdoc -r --destination docs ./src/app"
   },
   "repository": {
     "type": "git",
@@ -45,6 +46,7 @@
     "eslint": "^7.3.1",
     "eslint-plugin-react": "^7.20.3",
     "eslint-plugin-react-hooks": "^4.0.5",
+    "jsdoc": "^3.6.4",
     "mocha": "^8.0.1",
     "node-sass": "^4.14.1",
     "nodemon": "^2.0.4",

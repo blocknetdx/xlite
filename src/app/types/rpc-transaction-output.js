@@ -1,4 +1,4 @@
-export default class RPCTransactionOutput {
+class RPCTransactionOutput {
 
   /**
    * @type {number}
@@ -28,3 +28,5 @@ export default class RPCTransactionOutput {
   }
 
 }
+
+export default RPCTransactionOutput;

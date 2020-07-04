@@ -1,4 +1,4 @@
-export default class RPCNetworkInfo {
+class RPCNetworkInfo {
 
   /**
    * @type {number}
@@ -38,3 +38,5 @@ export default class RPCNetworkInfo {
   }
 
 }
+
+export default RPCNetworkInfo;
