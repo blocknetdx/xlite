@@ -23,3 +23,14 @@ export const setManifest = manifest => ({
     manifest
   }
 });
+
+/**
+ * @param activeView {string}
+ * @returns {{payload: {activeView: string}, type: string}}
+ */
+export const setActiveView = activeView => ({
+  type: actions.SET_ACTIVE_VIEW,
+  payload: {
+    activeView
+  }
+});

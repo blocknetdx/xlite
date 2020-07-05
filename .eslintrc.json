@@ -54,8 +54,5 @@
   "plugins": [
     "react-hooks"
   ],
-  "globals": {
-    "$": false,
-    "handleError": true
-  }
+  "globals": {}
 }

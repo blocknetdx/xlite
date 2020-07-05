@@ -1,4 +1,5 @@
 import './modules/window-zoom-handlers';
+import { ipcRenderer } from 'electron';
 import fs from 'fs-extra';
 import path from 'path';
 import React from 'react';
@@ -9,11 +10,12 @@ import isDev from 'electron-is-dev';
 import * as appActions from './actions/app-actions';
 import appReducer from './reducers/app-reducer';
 import App from './components/app';
-import { convertManifestToMap, getCloudChainsDir, handleError, logger } from './util';
+import { convertManifestToMap, getCloudChainsDir, getLocaleData, handleError, logger } from './util';
 import ConfController from './modules/conf-controller';
 import domStorage from './modules/dom-storage';
-import { localStorageKeys } from './constants';
+import { ipcMainListeners, localStorageKeys } from './constants';
 import WalletController from './modules/wallet-controller';
+import Localize from './components/shared/localize';
 
 // Handle any uncaught exceptions
 process.on('uncaughtException', err => {
@@ -39,6 +41,12 @@ if(isDev) {
 window.addEventListener('resize', e => {
   const { innerWidth, innerHeight } = e.target;
   store.dispatch(appActions.setWindowSize(innerWidth, innerHeight));
+});
+
+const locale = ipcRenderer.sendSync(ipcMainListeners.GET_USER_LOCALE);
+Localize.initialize({
+  locale,
+  localeData: getLocaleData(locale)
 });
 
 (async function() {

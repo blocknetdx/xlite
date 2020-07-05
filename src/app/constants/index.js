@@ -2,9 +2,14 @@ import electron from 'electron';
 
 const app = electron.app ? electron.app : electron.remote ? electron.remote.app : null;
 
+export const activeViews = {
+  LOGIN: 'LOGIN'
+};
+
 export const actions = {
   SET_WINDOW_SIZE: 'SET_WINDOW_SIZE',
-  SET_MANIFEST: 'SET_MANIFEST'
+  SET_MANIFEST: 'SET_MANIFEST',
+  SET_ACTIVE_VIEW: 'SET_ACTIVE_VIEW'
 };
 
 export const localStorageKeys = {
@@ -21,6 +26,7 @@ export const storageKeys = {
 };
 
 export const ipcMainListeners = {
+  GET_USER_LOCALE: 'GET_USER_LOCALE',
   ZOOM_IN: 'ZOOM_IN',
   ZOOM_OUT: 'ZOOM_OUT',
   ZOOM_RESET: 'ZOOM_RESET',

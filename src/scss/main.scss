@@ -2,3 +2,30 @@
 @import "./fontawesome/regular";
 @import "./fontawesome/solid";
 @import "./fontawesome/fontawesome";
+@import "./lw/login";
+
+$roboto-font-path:         "../fonts/roboto" !default;
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: normal;
+  src: url('#{$fa-font-path}/Roboto-Light.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: italic;
+  font-weight: normal;
+  src: url('#{$fa-font-path}/Roboto-LightItalic.ttf') format('truetype'),
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: bold;
+  src: url('#{$fa-font-path}/Roboto-Bold.ttf') format('truetype'),
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: italic;
+  font-weight: bold;
+  src: url('#{$fa-font-path}/Roboto-BoldItalic.ttf') format('truetype'),
+}

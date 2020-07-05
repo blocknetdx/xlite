@@ -3,7 +3,13 @@ import contextMenu from 'electron-context-menu';
 import path from 'path';
 import openAppWindow from './windows/app-window';
 import SimpleStorage from './modules/storage';
-import { DATA_DIR, DEFAULT_LOCALE, DEFAULT_ZOOM_FACTOR, ipcMainListeners, storageKeys } from './constants';
+import {
+  DATA_DIR,
+  DEFAULT_LOCALE,
+  DEFAULT_ZOOM_FACTOR,
+  ipcMainListeners,
+  storageKeys
+} from './constants';
 import windowMenu from './modules/window-menu';
 import Localize from './components/shared/localize';
 import { getLocaleData, handleError } from './util';
@@ -61,4 +67,8 @@ Menu.setApplicationMenu(appMenu);
 // Start the application
 app.on('ready', async function() {
   appWindow = openAppWindow(storage);
+});
+
+ipcMain.on(ipcMainListeners.GET_USER_LOCALE, e => {
+  e.returnValue = storage.getItem(storageKeys.LOCALE);
 });

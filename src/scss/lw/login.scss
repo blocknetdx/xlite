@@ -1,0 +1,107 @@
+$lw-login-background-color: #444444;
+$lw-login-input-border-color: #b4b4b4;
+$lw-login-input-border-color-active: #fff;
+$lw-login-input-border-width: 1px;
+$lw-login-input-total-height: 60px;
+$lw-login-text-color: #fff;
+
+.lw-login-container {
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: $lw-login-background-color;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .lw-login-inner-container {
+
+    width: 350px;
+    max-width: 100%;
+
+    .lw-login-image {
+      width: 100%;
+    }
+
+    .lw-login-input-container {
+
+      margin-top: 50px;
+      border-color: $lw-login-input-border-color;
+      border-style: solid;
+      border-width: $lw-login-input-border-width;
+      border-radius: 6px;
+      height: $lw-login-input-total-height + (2 * $lw-login-input-border-width);
+      padding: 0;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      box-sizing: border-box;
+
+      button {
+        color: $lw-login-text-color;
+        height: $lw-login-input-total-height;
+        line-height: $lw-login-input-total-height;
+        font-size: $lw-login-input-total-height / 3;
+        background-color: transparent;
+        display: block;
+        text-decoration: none;
+        outline: 0;
+        outline-offset: 0;
+        text-align: center;
+        box-shadow: none;
+        border: none;
+        padding-left: 10px;
+        padding-right: 10px;
+
+        &[type=submit] {
+          padding: 0;
+          width: $lw-login-input-total-height;
+        }
+
+        &:hover {
+          opacity: .6;
+        }
+      }
+
+      .lw-login-input-divider {
+        border-left-color: $lw-login-input-border-color;
+        border-left-width: $lw-login-input-border-width;
+        border-left-style: solid;
+        height: $lw-login-input-total-height;
+      }
+
+      input.lw-login-input {
+        border-style: none;
+        background-color: transparent;
+        color: $lw-login-text-color;
+        display: block;
+        padding: $lw-login-input-total-height / 3;
+        height: $lw-login-input-total-height;
+        line-height: $lw-login-input-total-height / 3;
+        font-size: $lw-login-input-total-height / 4;
+        width: 100%;
+        outline: none;
+        font-weight: normal;
+        flex: 1;
+      }
+
+      &.active {
+        border-color: $lw-login-input-border-color-active;
+
+        .lw-login-input-divider {
+          border-left-color: $lw-login-input-border-color-active;
+        }
+
+      }
+
+    }
+
+  }
+
+}
+
