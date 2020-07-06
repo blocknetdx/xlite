@@ -1,5 +1,4 @@
 import { ipcRenderer, webFrame } from 'electron';
-import $ from 'jquery';
 import * as uuid from 'uuid';
 import { ipcMainListeners, ipcRendererListeners, ZOOM_MAX, ZOOM_MIN } from '../constants';
 

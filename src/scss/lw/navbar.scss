@@ -1,0 +1,48 @@
+$lw-navbar-background: #d4d4d4;
+$lw-navbar-height: 50px;
+$lw-navbar-vert-padding: 8px;
+$lw-navbar-horiz-padding: 4px;
+$lw-navbar-inner-height: $lw-navbar-height - $lw-navbar-vert-padding - $lw-navbar-vert-padding;
+$lw-navbar-text-color: #444444;
+
+.lw-navbar-container {
+
+  background-color: $lw-navbar-background;
+  height: $lw-navbar-height;
+  min-height: $lw-navbar-height;
+  width: 100%;
+  padding-top: $lw-navbar-vert-padding;
+  padding-bottom: $lw-navbar-vert-padding;
+  padding-left: $lw-navbar-horiz-padding;
+  padding-right: $lw-navbar-horiz-padding;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+
+  .lw-navbar-text {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: $lw-navbar-horiz-padding;
+    padding-right: $lw-navbar-horiz-padding;
+    line-height: $lw-navbar-inner-height;
+    font-size: $lw-navbar-inner-height * .8;
+    color: $lw-navbar-text-color;
+  }
+
+  button.lw-button {
+    margin-left: $lw-navbar-horiz-padding;
+    margin-right: $lw-navbar-horiz-padding;
+    @media (max-width: 738px) {
+      min-width: 0;
+    }
+  }
+
+  .dropdown {
+    height: $lw-navbar-inner-height;
+    .lw-button {
+      height: 100%;
+    }
+  }
+
+}

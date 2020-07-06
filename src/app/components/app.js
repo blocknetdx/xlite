@@ -3,22 +3,37 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { activeViews } from '../constants';
 import Login from './login';
+import Dashboard from './dashboard';
+import { Navbar } from './shared/navbar';
 
-let App = ({ appView, windowWidth, windowHeight }) => {
+let App = ({ activeView, windowWidth, windowHeight }) => {
 
   const styles = {
     container: {
       position: 'relative',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
       width: windowWidth,
-      height: windowHeight
+      height: windowHeight,
+      minHeight: 0
+    },
+    bodyContainer: {
+      flexGrow: 1
     }
   };
 
   let body;
 
-  switch(appView) {
+  let showNavbar = true;
+
+  switch(activeView) {
     case activeViews.LOGIN:
       body = <Login />;
+      showNavbar = false;
+      break;
+    case activeViews.DASHBOARD:
+      body = <Dashboard />;
       break;
     default:
       body = <div />;
@@ -26,20 +41,23 @@ let App = ({ appView, windowWidth, windowHeight }) => {
 
   return (
     <div style={styles.container}>
-      {body}
+      {showNavbar ? <Navbar /> : null}
+      <div style={styles.bodyContainer}>
+        {body}
+      </div>
     </div>
   );
 };
 App.propTypes = {
   windowWidth: PropTypes.number,
   windowHeight: PropTypes.number,
-  appView: PropTypes.string
+  activeView: PropTypes.string
 };
 App = connect(
   ({ appState }) => ({
     windowWidth: appState.windowWidth,
     windowHeight: appState.windowHeight,
-    appView: appState.appView
+    activeView: appState.activeView
   })
 )(App);
 

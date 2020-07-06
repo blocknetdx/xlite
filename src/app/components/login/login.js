@@ -1,9 +1,10 @@
-import $ from 'jquery';
 import path from 'path';
+import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import Localize from '../shared/localize';
+import { activeViews } from '../../constants';
 
-const LoginInput = () => {
+const LoginInput = ({ onSubmit }) => {
 
   const [ focused, setFocused ] = useState(false);
   const [ hidden, setHidden ] = useState(true);
@@ -18,13 +19,13 @@ const LoginInput = () => {
     }, 0);
   };
 
-  const onSubmit = e => {
+  const submitHandler = e => {
     e.preventDefault();
-    console.log('Submit!');
+    onSubmit();
   };
 
   return (
-    <form className={`lw-login-input-container ${focused ? 'active' : ''}`} onSubmit={onSubmit}>
+    <form className={`lw-login-input-container ${focused ? 'active' : ''}`} onSubmit={submitHandler}>
       <input placeholder={Localize.text('Enter password to unlock')}
              id={'js-login-input'}
              className={'lw-login-input'}
@@ -46,19 +47,32 @@ const LoginInput = () => {
     </form>
   );
 };
+LoginInput.propTypes = {
+  onSubmit: PropTypes.func
+};
 
-const Login = () => {
+const Login = ({ setActiveView }) => {
+
+  const onSubmit = () => {
+
+    // ToDo add password verification functionality
+
+    setActiveView(activeViews.DASHBOARD);
+  };
+
   return (
     <div className={'lw-login-container'}>
       <div className={'lw-login-inner-container'}>
         <img className={'lw-login-image'}
              src={path.resolve(__dirname, '../../../images/xwallet-logo.png')}
              alt={Localize.text('Litewallet logo', 'login')} />
-        <LoginInput />
+        <LoginInput onSubmit={onSubmit} />
       </div>
     </div>
   );
 };
-Login.propTypes = {};
+Login.propTypes = {
+  setActiveView: PropTypes.func
+};
 
 export default Login;

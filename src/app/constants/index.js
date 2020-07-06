@@ -3,7 +3,8 @@ import electron from 'electron';
 const app = electron.app ? electron.app : electron.remote ? electron.remote.app : null;
 
 export const activeViews = {
-  LOGIN: 'LOGIN'
+  LOGIN: 'LOGIN',
+  DASHBOARD: 'DASHBOARD'
 };
 
 export const actions = {

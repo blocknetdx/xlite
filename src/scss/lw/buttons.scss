@@ -1,0 +1,64 @@
+$lw-button-background-color: #444444;
+$lw-button-text-color: #fff;
+$lw-button-transparent-text-color: #444444;
+$lw-button-border-radius: 0;
+
+.lw-button {
+  display: block;
+  text-decoration: none;
+  outline: 0;
+  outline-offset: 0;
+  text-align: center;
+  box-shadow: none;
+  border: none;
+  padding-left: 10px;
+  padding-right: 10px;
+  min-width: 150px;
+  border-radius: $lw-button-border-radius;
+  background-color: $lw-button-background-color;
+  color: $lw-button-text-color;
+  user-select: none;
+
+  &.lw-button-transparent {
+    background-color: transparent;
+    color: $lw-button-transparent-text-color;
+    min-width: 0;
+
+    &:disabled {
+      opacity: .55;
+      background-color: transparent;
+      &:hover {
+        opacity: .55;
+        background-color: transparent;
+      }
+    }
+    &:hover {
+      opacity: .8;
+      background-color: transparent;
+    }
+  }
+
+  &:disabled {
+    background-color: lighten($lw-button-background-color, 45%);
+    &:hover {
+      background-color: lighten($lw-button-background-color, 45%);
+    }
+  }
+  &:focus {
+    outline: 0;
+    outline-offset: 0;
+  }
+  &:hover {
+    background-color: lighten($lw-button-background-color, 20%);
+  }
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.multiple-children {
+    i {
+      margin-left: 8px;
+    }
+  }
+
+}

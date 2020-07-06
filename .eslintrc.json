@@ -54,5 +54,7 @@
   "plugins": [
     "react-hooks"
   ],
-  "globals": {}
+  "globals": {
+    "$": "readonly"
+  }
 }

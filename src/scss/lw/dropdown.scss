@@ -1,0 +1,21 @@
+$lw-dropdown-hover-color: #ddd;
+$lw-dropdown-text-color: #212529;
+
+.dropdown {
+  .dropdown-menu {
+    button.dropdown-item {
+
+      user-select: none;
+      color: $lw-dropdown-text-color;
+
+      &:hover, &:focus, &:active {
+        background-color: $lw-dropdown-hover-color;
+        outline: 0;
+        border: 0;
+      }
+      i {
+        margin-right: 8px;
+      }
+    }
+  }
+}
