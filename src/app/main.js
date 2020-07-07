@@ -16,6 +16,7 @@ import domStorage from './modules/dom-storage';
 import { ipcMainListeners, localStorageKeys } from './constants';
 import WalletController from './modules/wallet-controller';
 import Localize from './components/shared/localize';
+import Wallet from './types/wallet';
 
 // Handle any uncaught exceptions
 process.on('uncaughtException', err => {
@@ -94,16 +95,22 @@ Localize.initialize({
     const walletController = new WalletController(cloudChainsSettingsDir, manifest);
     await walletController.initialize();
 
-    const allWallets = walletController.getWallets();
-    const enabledWallets = walletController.getEnabledWallets();
+    const allWallets = walletController.getWallets()
+      .map(w => new Wallet(w))
+      .sort((a, b) => {
+        if(a.rpcEnabled && !b.rpcEnabled) {
+          return -1;
+        } else if(b.rpcEnabled && !a.rpcEnabled) {
+          return 1;
+        } else {
+          return Localize.compare(a.name, b.name);
+        }
+      });
 
-    console.log('allWallets', allWallets);
-    console.log('enabledWallets', enabledWallets);
+    await Promise.all(allWallets.map(w => w.downloadImage()));
 
-    for(const w of enabledWallets) {
-      const res = await w.rpc.getInfo();
-      console.log(res);
-    }
+    store.dispatch(appActions.setWallets(allWallets));
+    store.dispatch(appActions.setActiveWallet(allWallets[0].ticker));
 
   } catch(err) {
     handleError(err);

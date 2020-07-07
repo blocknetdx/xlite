@@ -2,10 +2,12 @@ import { actions, activeViews } from '../constants';
 import { Map } from 'immutable';
 
 const getInitialState = () => ({
-  activeView: activeViews.LOGIN,
+  activeView: activeViews.DASHBOARD,
   windowHeight: window.innerHeight,
   windowWidth: window.innerWidth,
-  manifest: Map()
+  manifest: Map(),
+  wallets: [],
+  activeWallet: ''
 });
 
 export default (state = getInitialState(), { type, payload }) => {
@@ -25,6 +27,16 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         activeView: payload.activeView
+      };
+    case actions.SET_WALLETS:
+      return {
+        ...state,
+        wallets: payload.wallets
+      };
+    case actions.SET_ACTIVE_WALLET:
+      return {
+        ...state,
+        activeWallet: payload.activeWallet
       };
     default:
       return state;

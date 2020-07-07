@@ -3,33 +3,32 @@
 @import "./fontawesome/solid";
 @import "./fontawesome/brands";
 @import "./fontawesome/fontawesome";
+@import "../../node_modules/react-perfect-scrollbar/dist/css/styles.css";
 @import "./lw/login";
 @import "./lw/navbar";
 @import "./lw/buttons";
 @import "./lw/dropdown";
+@import "./lw/sidebar";
+@import "./lw/inputs";
 
-//$roboto-font-path:         "../fonts/roboto" !default;
-//@font-face {
-//  font-family: 'Roboto';
-//  font-style: normal;
-//  font-weight: normal;
-//  src: url('#{$fa-font-path}/Roboto-Light.ttf') format('truetype');
+// In case we want to manually do scrollbars rather than use perfect scrollbar
+//$lw-scrollbar-color: #d4d4d4;
+//::-webkit-scrollbar {
+//  width: 14px;
 //}
-//@font-face {
-//  font-family: 'Roboto';
-//  font-style: italic;
-//  font-weight: normal;
-//  src: url('#{$fa-font-path}/Roboto-LightItalic.ttf') format('truetype'),
+//::-webkit-scrollbar-thumb {
+//  background-color: rgba(212, 212, 212, 0.5);
+//  border-color: transparent;
+//  border-style: solid;
+//  border-left-width: 4px;
+//  border-right-width: 4px;
+//  border-top-width: 0;
+//  border-bottom-width: 0;
+//  background-clip: padding-box;
+//  -webkit-border-radius: 7px;
 //}
-//@font-face {
-//  font-family: 'Roboto';
-//  font-style: normal;
-//  font-weight: bold;
-//  src: url('#{$fa-font-path}/Roboto-Bold.ttf') format('truetype'),
-//}
-//@font-face {
-//  font-family: 'Roboto';
-//  font-style: italic;
-//  font-weight: bold;
-//  src: url('#{$fa-font-path}/Roboto-BoldItalic.ttf') format('truetype'),
+//::-webkit-scrollbar-button {
+//  width: 0;
+//  height: 0;
+//  display: none;
 //}

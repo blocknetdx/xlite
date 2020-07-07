@@ -1,0 +1,28 @@
+$lw-icon-input-height: 50px;
+
+.lw-icon-input-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  height: $lw-icon-input-height;
+  line-height: $lw-icon-input-height;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #ddd;
+
+  i {
+    line-height: $lw-icon-input-height - 2;
+    width: 40px;
+    text-align: center;
+  }
+
+  input {
+    flex-grow: 1;
+    height: $lw-icon-input-height - 2;
+    line-height: $lw-icon-input-height - 2;
+    border: 0;
+    outline: 0;
+  }
+
+}

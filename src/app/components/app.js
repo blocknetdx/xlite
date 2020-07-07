@@ -5,6 +5,7 @@ import { activeViews } from '../constants';
 import Login from './login';
 import Dashboard from './dashboard';
 import { Navbar } from './shared/navbar';
+import Sidebar from './shared/sidebar';
 
 let App = ({ activeView, windowWidth, windowHeight }) => {
 
@@ -15,11 +16,23 @@ let App = ({ activeView, windowWidth, windowHeight }) => {
       flexDirection: 'column',
       justifyContent: 'flex-start',
       width: windowWidth,
+      maxWidth: windowWidth,
       height: windowHeight,
+      maxHeight: windowHeight,
       minHeight: 0
     },
     bodyContainer: {
-      flexGrow: 1
+      flexGrow: 1,
+      display: 'flex',
+      flexDirection: 'row',
+      flexWrap: 'nowrap',
+      justifyContent: 'flex-start',
+      minHeight: 0,
+      overflowY: 'hidden'
+    },
+    innerBodyContainer: {
+      flexGrow: 1,
+      minHeight: 0
     }
   };
 
@@ -43,7 +56,10 @@ let App = ({ activeView, windowWidth, windowHeight }) => {
     <div style={styles.container}>
       {showNavbar ? <Navbar /> : null}
       <div style={styles.bodyContainer}>
-        {body}
+        {showNavbar ? <Sidebar /> : null}
+        <div style={styles.innerBodyContainer}>
+          {body}
+        </div>
       </div>
     </div>
   );

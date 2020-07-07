@@ -34,3 +34,25 @@ export const setActiveView = activeView => ({
     activeView
   }
 });
+
+/**
+ * @param wallets {Object[]}
+ * @returns {{payload: {wallets: Object[]}, type: string}}
+ */
+export const setWallets = wallets => ({
+  type: actions.SET_WALLETS,
+  payload: {
+    wallets
+  }
+});
+
+/**
+ * @param activeWallet {string}
+ * @returns {{payload: {activeWallet: string}, type: string}}
+ */
+export const setActiveWallet = activeWallet => ({
+  type: actions.SET_ACTIVE_WALLET,
+  payload: {
+    activeWallet
+  }
+});

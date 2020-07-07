@@ -1,16 +1,21 @@
 import electron from 'electron';
+import path from 'path';
 
 const app = electron.app ? electron.app : electron.remote ? electron.remote.app : null;
 
 export const activeViews = {
   LOGIN: 'LOGIN',
-  DASHBOARD: 'DASHBOARD'
+  DASHBOARD: 'DASHBOARD',
+  PORTFOLIO: 'PORTFOLIO',
+  TRANSACTIONS: 'TRANSACTIONS'
 };
 
 export const actions = {
   SET_WINDOW_SIZE: 'SET_WINDOW_SIZE',
   SET_MANIFEST: 'SET_MANIFEST',
-  SET_ACTIVE_VIEW: 'SET_ACTIVE_VIEW'
+  SET_ACTIVE_VIEW: 'SET_ACTIVE_VIEW',
+  SET_WALLETS: 'SET_WALLETS',
+  SET_ACTIVE_WALLET: 'SET_ACTIVE_WALLET'
 };
 
 export const localStorageKeys = {
@@ -49,5 +54,6 @@ export const ZOOM_MIN = .6;
 export const ZOOM_INCREMENT = .1;
 
 export const DATA_DIR = app ? app.getPath('userData') : '';
+export const ICON_DIR = app ? path.join(app.getPath('userData'), 'icons') : '';
 
 export const HTTP_REQUEST_TIMEOUT = 10000;
