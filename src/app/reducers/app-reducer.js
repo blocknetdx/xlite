@@ -2,7 +2,7 @@ import { actions, activeViews } from '../constants';
 import { Map } from 'immutable';
 
 const getInitialState = () => ({
-  activeView: activeViews.DASHBOARD,
+  activeView: activeViews.LOGIN,
   windowHeight: window.innerHeight,
   windowWidth: window.innerWidth,
   manifest: Map(),

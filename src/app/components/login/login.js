@@ -2,7 +2,8 @@ import path from 'path';
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import Localize from '../shared/localize';
-import { activeViews } from '../../constants';
+import { activeViews, IMAGE_DIR } from '../../constants';
+import IconArrowRight from '../shared/icon-arrow-right';
 
 const LoginInput = ({ onSubmit }) => {
 
@@ -26,7 +27,7 @@ const LoginInput = ({ onSubmit }) => {
 
   return (
     <form className={`lw-login-input-container ${focused ? 'active' : ''}`} onSubmit={submitHandler}>
-      <input placeholder={Localize.text('Enter password to unlock')}
+      <input placeholder={Localize.text('Enter password to unlock', 'login')}
              id={'js-login-input'}
              className={'lw-login-input'}
              value={password}
@@ -38,11 +39,11 @@ const LoginInput = ({ onSubmit }) => {
              onBlur={() => setFocused(false)} />
       <button type={'button'} onClick={onHideShowClick}>
         <i className={`far ${hidden ? 'fa-eye' : 'fa-eye-slash'}`}
-           title={hidden ? Localize.text('Show password') : Localize.text('Hide password')} />
+           title={hidden ? Localize.text('Show password', 'login') : Localize.text('Hide password', 'login')} />
       </button>
       <div className={'lw-login-input-divider'} />
-      <button type={'submit'} style={{}}>
-        <i className={'fas fa-arrow-right'} />
+      <button type={'submit'} title={Localize.text('Submit', 'universal')}>
+        <IconArrowRight />
       </button>
     </form>
   );
@@ -63,9 +64,11 @@ const Login = ({ setActiveView }) => {
   return (
     <div className={'lw-login-container'}>
       <div className={'lw-login-inner-container'}>
-        <img className={'lw-login-image'}
-             src={path.resolve(__dirname, '../../../images/xwallet-logo.png')}
-             alt={Localize.text('Litewallet logo', 'login')} />
+        <div className={'lw-login-image-container'}>
+          <img className={'lw-login-image'}
+               srcSet={`${path.join(IMAGE_DIR, 'logo.png')}, ${path.join(IMAGE_DIR, 'logo@2x.png')} 2x, ${path.join(IMAGE_DIR, 'logo@3x.png')} 3x`}
+               alt={Localize.text('Litewallet logo', 'login')} />
+        </div>
         <LoginInput onSubmit={onSubmit} />
       </div>
     </div>

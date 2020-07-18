@@ -55,5 +55,6 @@ export const ZOOM_INCREMENT = .1;
 
 export const DATA_DIR = app ? app.getPath('userData') : '';
 export const ICON_DIR = app ? path.join(app.getPath('userData'), 'icons') : '';
+export const IMAGE_DIR = path.resolve(__dirname, '../../images');
 
 export const HTTP_REQUEST_TIMEOUT = 10000;
