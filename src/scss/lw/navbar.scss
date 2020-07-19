@@ -1,9 +1,11 @@
-$lw-navbar-background: #d4d4d4;
-$lw-navbar-height: 50px;
-$lw-navbar-vert-padding: 8px;
-$lw-navbar-horiz-padding: 4px;
+@import './variables';
+
+$lw-navbar-background: $lw-bg-6;
+$lw-navbar-height: 60px;
+$lw-navbar-vert-padding: 10px;
+$lw-navbar-horiz-padding: 20px;
 $lw-navbar-inner-height: $lw-navbar-height - $lw-navbar-vert-padding - $lw-navbar-vert-padding;
-$lw-navbar-text-color: #444444;
+$lw-navbar-text-color: $lw-text-primary;
 
 .lw-navbar-container {
 
@@ -20,22 +22,33 @@ $lw-navbar-text-color: #444444;
   flex-wrap: nowrap;
   justify-content: space-between;
 
-  .lw-navbar-text {
-    padding-top: 0;
-    padding-bottom: 0;
-    padding-left: $lw-navbar-horiz-padding;
-    padding-right: $lw-navbar-horiz-padding;
-    line-height: $lw-navbar-inner-height;
-    font-size: $lw-navbar-inner-height * .8;
-    color: $lw-navbar-text-color;
+  .lw-navbar-logo {
+    display: block;
+    height: $lw-navbar-inner-height - 10;
+    width: auto;
+    margin-top: 5px;
   }
 
   button.lw-button {
+    line-height: $lw-navbar-inner-height;
+    border-radius: 4px;
+    background-color: $lw-bg-2;
     margin-left: $lw-navbar-horiz-padding;
-    margin-right: $lw-navbar-horiz-padding;
+    margin-right: 0;
+    width: 140px;
+    font-size: 16px;
+    color: $lw-text-primary;
     @media (max-width: 738px) {
       min-width: 0;
     }
+    &:hover {
+      background-color: lighten($lw-bg-2, 10%);
+    }
+
+    svg {
+      margin-top: -3px;
+    }
+
   }
 
   .dropdown {

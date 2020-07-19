@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Localize from '../shared/localize';
 import { activeViews, IMAGE_DIR } from '../../constants';
 import IconArrowRight from '../shared/icon-arrow-right';
+import Logo from '../shared/logo';
 
 const LoginInput = ({ onSubmit }) => {
 
@@ -65,9 +66,7 @@ const Login = ({ setActiveView }) => {
     <div className={'lw-login-container'}>
       <div className={'lw-login-inner-container'}>
         <div className={'lw-login-image-container'}>
-          <img className={'lw-login-image'}
-               srcSet={`${path.join(IMAGE_DIR, 'logo.png')}, ${path.join(IMAGE_DIR, 'logo@2x.png')} 2x, ${path.join(IMAGE_DIR, 'logo@3x.png')} 3x`}
-               alt={Localize.text('Litewallet logo', 'login')} />
+          <Logo className={'lw-login-image'} />
         </div>
         <LoginInput onSubmit={onSubmit} />
       </div>
