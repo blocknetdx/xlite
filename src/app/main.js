@@ -107,8 +107,6 @@ Localize.initialize({
         }
       });
 
-    await Promise.all(allWallets.map(w => w.downloadImage()));
-
     store.dispatch(appActions.setWallets(allWallets));
     store.dispatch(appActions.setActiveWallet(allWallets[0].ticker));
 

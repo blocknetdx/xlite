@@ -1,6 +1,13 @@
+@import './variables';
+
 $lw-icon-input-height: 50px;
+$lw-input-border-radius: 4px;
 
 .lw-icon-input-container {
+
+  $lw-input-bg: $lw-bg-6;
+
+  background-color: $lw-input-bg;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -9,20 +16,28 @@ $lw-icon-input-height: 50px;
   line-height: $lw-icon-input-height;
   border-style: solid;
   border-width: 1px;
-  border-color: #ddd;
+  border-color: $lw-secondary-6;
+  border-radius: $lw-input-border-radius;
 
   i {
     line-height: $lw-icon-input-height - 2;
     width: 40px;
+    min-width: 40px;
     text-align: center;
+    opacity: .8;
   }
 
   input {
+    min-width: 10px;
+    color: $lw-text-primary;
+    background-color: $lw-input-bg;
     flex-grow: 1;
     height: $lw-icon-input-height - 2;
     line-height: $lw-icon-input-height - 2;
     border: 0;
     outline: 0;
+    border-top-right-radius: $lw-input-border-radius;
+    border-bottom-right-radius: $lw-input-border-radius;
   }
 
 }

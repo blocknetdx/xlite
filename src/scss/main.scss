@@ -4,12 +4,19 @@
 @import "./fontawesome/brands";
 @import "./fontawesome/fontawesome";
 @import "../../node_modules/react-perfect-scrollbar/dist/css/styles.css";
+@import "./lw/variables";
 @import "./lw/login";
 @import "./lw/navbar";
 @import "./lw/buttons";
 @import "./lw/dropdown";
 @import "./lw/sidebar";
 @import "./lw/inputs";
+
+body {
+  background-color: $lw-bg-4;
+  color: $lw-text-primary;
+}
+
 
 // In case we want to manually do scrollbars rather than use perfect scrollbar
 //$lw-scrollbar-color: #d4d4d4;

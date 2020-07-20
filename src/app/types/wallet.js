@@ -1,12 +1,32 @@
 import fs from 'fs-extra';
 import path from 'path';
-import request from 'superagent';
-import { HTTP_REQUEST_TIMEOUT, ICON_DIR } from '../constants';
+import { IMAGE_DIR } from '../constants';
 
 /**
  * Class representing a wallet
  */
 class Wallet {
+
+  /**
+   * Takes a ticker and returns the coin's image set or a default blank image
+   * @param ticker {string}
+   * @returns {string}
+   */
+  static getImage(ticker) {
+    const coinImageDir = path.join(IMAGE_DIR, 'coins');
+    const tickerLower = ticker.toLowerCase();
+    const imagePath1x = path.join(coinImageDir, `icon-${tickerLower}.png`);
+    const imagePath2x = path.join(coinImageDir, `icon-${tickerLower}@2x.png`);
+    const image1xExists = fs.existsSync(imagePath1x);
+    const image2xExists = fs.existsSync(imagePath2x);
+    if(image1xExists && image2xExists) {
+      return `${imagePath1x}, ${imagePath2x} 2x`;
+    } else if(image1xExists) {
+      return imagePath1x;
+    } else {
+      return path.join(IMAGE_DIR, 'blank_icon.png');
+    }
+  }
 
   /**
    * Coin name
@@ -40,6 +60,7 @@ class Wallet {
    */
   constructor(data) {
     Object.assign(this, data);
+    this.imagePath = Wallet.getImage(data.ticker);
   }
 
   /**
@@ -48,33 +69,6 @@ class Wallet {
    */
   set(data) {
     return new Wallet({...this, ...data});
-  }
-
-  /**
-   * Downloads coin logo image
-   * @returns {Promise<void>}
-   */
-  async downloadImage() {
-    try {
-      const ticker = this.ticker.toLowerCase();
-      await fs.ensureDir(ICON_DIR);
-      const localPath = path.join(ICON_DIR, `${ticker}.png`);
-      console.log(localPath);
-      const exists = await fs.exists(localPath);
-      if(exists) {
-        this.imagePath = localPath;
-        return;
-      }
-      const destination = `https://cryptoicons.org/api/icon/${ticker}/200`;
-      const { body } = await request
-        .get(destination)
-        .timeout(1000)
-        .responseType('blob');
-      await fs.writeFile(localPath, body);
-      this.imagePath = localPath;
-    } catch(err) {
-      this.imagePath = path.resolve(__dirname, '../../images/blank_icon.png');
-    }
   }
 
 }

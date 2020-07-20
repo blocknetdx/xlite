@@ -1,3 +1,4 @@
+import path from 'path';
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -5,7 +6,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import * as appActions from '../../actions/app-actions';
 import Localize from './localize';
-import { activeViews } from '../../constants';
+import { activeViews, IMAGE_DIR } from '../../constants';
 import { IconInput } from './inputs';
 import Wallet from '../../types/wallet';
 
@@ -14,15 +15,18 @@ const SidebarFilterableList = ({ placeholder, items, onClick = () => {} }) => {
   const [ filter, setFilter ] = useState('');
   const filterPatt = filter ? new RegExp(escapeRegExp(filter), 'i') : null;
 
+  const filteredItems = items
+    .filter(({ text }) => filterPatt ? filterPatt.test(text) : true);
+
   return (
     <div className={'lw-sidebar-filterable-list-container'}>
       <IconInput icon={'fas fa-search'} placeholder={placeholder} value={filter} onChange={setFilter} />
+      {items.length > 0 && filteredItems.length === 0 ? <div><Localize context={'sidebar'}>No matches found.</Localize></div> : null}
       <PerfectScrollbar>
-        {items
-          .filter(({ text }) => filterPatt ? filterPatt.test(text) : true)
+        {filteredItems
           .map(({ id, text, image }) => {
             return (
-              <button className={'lw-sidebar-filterable-list-item'} key={id} onClick={() => onClick(id)}><img alt={Localize.text('Coin logo', 'sidebar')} src={image} />{text}</button>
+              <button className={'lw-sidebar-filterable-list-item'} key={id} onClick={() => onClick(id)}><img alt={Localize.text('Coin logo', 'sidebar')} srcSet={image} />{text}</button>
             );
           })}
       </PerfectScrollbar>
@@ -52,16 +56,20 @@ SidebarButton.propTypes = {
   onClick: PropTypes.func
 };
 
+const iconsDir = path.join(IMAGE_DIR, 'icons');
+
 let Sidebar = ({ activeView, wallets, setActiveView, setActiveWallet }) => {
   return (
     <div className={'lw-sidebar-container'} style={{overflowY: 'hidden', flexWrap: 'nowrap', maxHeight: '100%'}}>
-      <SidebarButton active={activeView === activeViews.DASHBOARD} onClick={() => activeView !== activeViews.DASHBOARD ? setActiveView(activeViews.DASHBOARD) : null}><i className={'fas fa-home'} /> <Localize context={'sidebar'}>Dashboard</Localize></SidebarButton>
-      <SidebarButton active={activeView === activeViews.PORTFOLIO} onClick={() => activeView !== activeViews.PORTFOLIO ? setActiveView(activeViews.PORTFOLIO) : null}><i className={'fas fa-dollar-sign'} /> <Localize context={'sidebar'}>Portfolio</Localize></SidebarButton>
-      <SidebarButton active={activeView === activeViews.TRANSACTIONS} onClick={() => activeView !== activeViews.TRANSACTIONS ? setActiveView(activeViews.TRANSACTIONS) : null}><i className={'fas fa-history'} /> <Localize context={'sidebar'}>Transactions</Localize></SidebarButton>
+      <SidebarButton active={activeView === activeViews.DASHBOARD} onClick={() => activeView !== activeViews.DASHBOARD ? setActiveView(activeViews.DASHBOARD) : null}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-home.png')}, ${path.join(iconsDir, 'icon-home@2x.png')} 2x`} /> <Localize context={'sidebar'}>Dashboard</Localize></SidebarButton>
+      <SidebarButton active={activeView === activeViews.PORTFOLIO} onClick={() => activeView !== activeViews.PORTFOLIO ? setActiveView(activeViews.PORTFOLIO) : null}><img alt={Localize.text('Portfolio icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-wallet.png')}, ${path.join(iconsDir, 'icon-wallet@2x.png')} 2x`} /> <Localize context={'sidebar'}>Portfolio</Localize></SidebarButton>
+      <SidebarButton active={activeView === activeViews.TRANSACTIONS} onClick={() => activeView !== activeViews.TRANSACTIONS ? setActiveView(activeViews.TRANSACTIONS) : null}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-history.png')}, ${path.join(iconsDir, 'icon-history@2x.png')} 2x`} /> <Localize context={'sidebar'}>Transactions</Localize></SidebarButton>
+      <SidebarButton><img alt={Localize.text('Settings icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-settings.png')}, ${path.join(iconsDir, 'icon-settings@2x.png')} 2x`} /> <Localize context={'sidebar'}>Settings</Localize></SidebarButton>
+      <SidebarButton onClick={() => setActiveView(activeViews.LOGIN)}><img alt={Localize.text('Lock icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-lock-closed.png')}, ${path.join(iconsDir, 'icon-lock-closed@2x.png')} 2x`} /> <Localize context={'sidebar'}>Lock Wallet</Localize></SidebarButton>
       <SidebarDivider />
       <SidebarFilterableList
         placeholder={Localize.text('Search assets', 'sidebar')}
-        items={wallets.map(w => ({id: w.ticker, text: `${w.name} (${w.ticker})`, image: w.imagePath}))}
+        items={wallets.map(w => ({id: w.ticker, text: w.name, image: w.imagePath}))}
         onClick={ticker => setActiveWallet(ticker)} />
     </div>
   );

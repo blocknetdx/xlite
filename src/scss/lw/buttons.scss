@@ -1,7 +1,12 @@
+@import './variables';
+
 $lw-button-background-color: #444444;
 $lw-button-text-color: #fff;
 $lw-button-transparent-text-color: #444444;
-$lw-button-border-radius: 0;
+
+button {
+  border-radius: $lw-button-border-radius;
+}
 
 .lw-button {
   display: block;
