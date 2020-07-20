@@ -1,6 +1,14 @@
 import fs from 'fs-extra';
+import { create, all } from 'mathjs';
 import path from 'path';
 import { IMAGE_DIR } from '../constants';
+
+const math = create(all, {
+  number: 'BigNumber',
+  precision: 64
+});
+
+const { bignumber } = math;
 
 /**
  * Class representing a wallet
@@ -69,6 +77,30 @@ class Wallet {
    */
   set(data) {
     return new Wallet({...this, ...data});
+  }
+
+  async getBalance() {
+    console.log(this.ticker);
+    const { rpc } = this;
+    if(!this.rpcEnabled) return ['0', '0'];
+    let unspent;
+
+    // ToDo properly handle rpc errors here at some point
+
+    try {
+      unspent = await rpc.listUnspent();
+    } catch(err) {
+      // console.error(err);
+      unspent = [];
+    }
+    let total = bignumber(0);
+    let spendable = bignumber(0);
+    for(let { amount, spendable: isSpendable } of unspent) {
+      amount = bignumber(amount);
+      if(isSpendable) spendable = math.add(spendable, amount);
+      total = math.add(total, amount);
+    }
+    return [total.toNumber().toFixed(10), spendable.toNumber().toFixed(10)];
   }
 
 }

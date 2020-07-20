@@ -56,3 +56,14 @@ export const setActiveWallet = activeWallet => ({
     activeWallet
   }
 });
+
+/**
+ * @param balances {Map}
+ * @returns {{payload: {balances: Map}, type: string}}
+ */
+export const setBalances = balances => ({
+  type: actions.SET_BALANCES,
+  payload: {
+    balances
+  }
+});

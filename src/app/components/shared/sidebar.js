@@ -1,3 +1,4 @@
+import { Map } from 'immutable';
 import path from 'path';
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
@@ -58,7 +59,7 @@ SidebarButton.propTypes = {
 
 const iconsDir = path.join(IMAGE_DIR, 'icons');
 
-let Sidebar = ({ activeView, wallets, setActiveView, setActiveWallet }) => {
+let Sidebar = ({ activeView, wallets, balances, setActiveView, setActiveWallet }) => {
   return (
     <div className={'lw-sidebar-container'} style={{overflowY: 'hidden', flexWrap: 'nowrap', maxHeight: '100%'}}>
       <SidebarButton active={activeView === activeViews.DASHBOARD} onClick={() => activeView !== activeViews.DASHBOARD ? setActiveView(activeViews.DASHBOARD) : null}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-home.png')}, ${path.join(iconsDir, 'icon-home@2x.png')} 2x`} /> <Localize context={'sidebar'}>Dashboard</Localize></SidebarButton>
@@ -69,7 +70,24 @@ let Sidebar = ({ activeView, wallets, setActiveView, setActiveWallet }) => {
       <SidebarDivider />
       <SidebarFilterableList
         placeholder={Localize.text('Search assets', 'sidebar')}
-        items={wallets.map(w => ({id: w.ticker, text: w.name, image: w.imagePath}))}
+        items={[...wallets]
+          .sort((a, b) => {
+            const { ticker: tickerA, name: nameA, rpcEnabled: rpcEnabledA } = a;
+            const [ totalA ] = balances.get(tickerA);
+            const { ticker: tickerB, name: nameB, rpcEnabled: rpcEnabledB } = b;
+            const [ totalB ] = balances.get(tickerB);
+            if(rpcEnabledA === rpcEnabledB) {
+              if(totalA === totalB) {
+                return Localize.compare(nameA, nameB);
+              } else {
+                return totalA > totalB ? -1 : 1;
+              }
+            } else {
+              return rpcEnabledA ? -1 : 1;
+            }
+          })
+          .map(w => ({id: w.ticker, text: w.name, image: w.imagePath}))
+        }
         onClick={ticker => setActiveWallet(ticker)} />
     </div>
   );
@@ -77,13 +95,15 @@ let Sidebar = ({ activeView, wallets, setActiveView, setActiveWallet }) => {
 Sidebar.propTypes = {
   activeView: PropTypes.string,
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
+  balances: PropTypes.instanceOf(Map),
   setActiveView: PropTypes.func,
   setActiveWallet: PropTypes.func
 };
 Sidebar = connect(
   ({ appState }) => ({
     activeView: appState.activeView,
-    wallets: appState.wallets
+    wallets: appState.wallets,
+    balances: appState.balances
   }),
   dispatch => ({
     setActiveView: activeView => dispatch(appActions.setActiveView(activeView)),

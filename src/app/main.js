@@ -1,6 +1,7 @@
 import './modules/window-zoom-handlers';
 import { ipcRenderer } from 'electron';
 import fs from 'fs-extra';
+import { Map } from 'immutable';
 import path from 'path';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -96,17 +97,26 @@ Localize.initialize({
     await walletController.initialize();
 
     const allWallets = walletController.getWallets()
-      .map(w => new Wallet(w))
-      .sort((a, b) => {
-        if(a.rpcEnabled && !b.rpcEnabled) {
-          return -1;
-        } else if(b.rpcEnabled && !a.rpcEnabled) {
-          return 1;
-        } else {
-          return Localize.compare(a.name, b.name);
-        }
-      });
+      .map(w => new Wallet(w));
 
+    let balances = Map();
+    for(const wallet of allWallets) {
+      const [ total, spendable ] = await wallet.getBalance();
+      balances = balances.set(wallet.ticker, [total, spendable]);
+    }
+
+    setInterval(async function() {
+      for(const wallet of allWallets) {
+        const [ total, spendable ] = await wallet.getBalance();
+        const prevBalances = store.getState().appState.balances;
+        const [ prevTotal, prevSpendable ] = prevBalances.get(wallet.ticker);
+        if(prevTotal !== total || prevSpendable !== spendable) {
+          store.dispatch(appActions.setBalances(prevBalances.set(wallet.ticker, [total, spendable])));
+        }
+      }
+    }, 30000);
+
+    store.dispatch(appActions.setBalances(balances));
     store.dispatch(appActions.setWallets(allWallets));
     store.dispatch(appActions.setActiveWallet(allWallets[0].ticker));
 
