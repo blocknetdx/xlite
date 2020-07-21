@@ -5,6 +5,7 @@ import path from 'path';
 import { createLogger, format, transports } from 'winston';
 import { DATA_DIR, DEFAULT_LOCALE } from '../constants';
 import { Map } from 'immutable';
+import Localize from '../components/shared/localize';
 
 
 export const getLocaleData = locale => {
@@ -72,3 +73,22 @@ export const getCloudChainsDir = () => {
  * @returns {Map}
  */
 export const convertManifestToMap = manifest => manifest.reduce((map, obj) => map.set(obj.ticker, obj), Map());
+
+/**
+ * Wallets array sorting function
+ */
+export const walletSorter = balances => (a, b) =>  {
+  const { ticker: tickerA, name: nameA, rpcEnabled: rpcEnabledA } = a;
+  const [ totalA ] = balances.get(tickerA);
+  const { ticker: tickerB, name: nameB, rpcEnabled: rpcEnabledB } = b;
+  const [ totalB ] = balances.get(tickerB);
+  if(rpcEnabledA === rpcEnabledB) {
+    if(totalA === totalB) {
+      return Localize.compare(nameA, nameB);
+    } else {
+      return totalA > totalB ? -1 : 1;
+    }
+  } else {
+    return rpcEnabledA ? -1 : 1;
+  }
+};

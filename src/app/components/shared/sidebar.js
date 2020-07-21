@@ -10,6 +10,7 @@ import Localize from './localize';
 import { activeViews, IMAGE_DIR } from '../../constants';
 import { IconInput } from './inputs';
 import Wallet from '../../types/wallet';
+import { walletSorter } from '../../util';
 
 const SidebarFilterableList = ({ placeholder, items, onClick = () => {} }) => {
 
@@ -71,21 +72,7 @@ let Sidebar = ({ activeView, wallets, balances, setActiveView, setActiveWallet }
       <SidebarFilterableList
         placeholder={Localize.text('Search assets', 'sidebar')}
         items={[...wallets]
-          .sort((a, b) => {
-            const { ticker: tickerA, name: nameA, rpcEnabled: rpcEnabledA } = a;
-            const [ totalA ] = balances.get(tickerA);
-            const { ticker: tickerB, name: nameB, rpcEnabled: rpcEnabledB } = b;
-            const [ totalB ] = balances.get(tickerB);
-            if(rpcEnabledA === rpcEnabledB) {
-              if(totalA === totalB) {
-                return Localize.compare(nameA, nameB);
-              } else {
-                return totalA > totalB ? -1 : 1;
-              }
-            } else {
-              return rpcEnabledA ? -1 : 1;
-            }
-          })
+          .sort(walletSorter(balances))
           .map(w => ({id: w.ticker, text: w.name, image: w.imagePath}))
         }
         onClick={ticker => setActiveWallet(ticker)} />

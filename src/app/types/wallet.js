@@ -100,7 +100,7 @@ class Wallet {
       if(isSpendable) spendable = math.add(spendable, amount);
       total = math.add(total, amount);
     }
-    return [total.toNumber().toFixed(10), spendable.toNumber().toFixed(10)];
+    return [total.toNumber().toFixed(8), spendable.toNumber().toFixed(8)];
   }
 
 }

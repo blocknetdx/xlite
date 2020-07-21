@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Wallet from '../../types/wallet';
+import Balance from '../shared/balance';
 
 const Dashboard = ({ activeWallet }) => {
 
@@ -8,7 +9,7 @@ const Dashboard = ({ activeWallet }) => {
 
   return (
     <div className={'lw-dashboard-container'}>
-      <h1>{activeWallet} Dashboard</h1>
+      <Balance />
     </div>
   );
 };

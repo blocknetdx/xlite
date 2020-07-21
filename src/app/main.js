@@ -11,7 +11,7 @@ import isDev from 'electron-is-dev';
 import * as appActions from './actions/app-actions';
 import appReducer from './reducers/app-reducer';
 import App from './components/app';
-import { convertManifestToMap, getCloudChainsDir, getLocaleData, handleError, logger } from './util';
+import { convertManifestToMap, getCloudChainsDir, getLocaleData, handleError, logger, walletSorter } from './util';
 import ConfController from './modules/conf-controller';
 import domStorage from './modules/dom-storage';
 import { ipcMainListeners, localStorageKeys } from './constants';
@@ -117,8 +117,12 @@ Localize.initialize({
     }, 30000);
 
     store.dispatch(appActions.setBalances(balances));
-    store.dispatch(appActions.setWallets(allWallets));
-    store.dispatch(appActions.setActiveWallet(allWallets[0].ticker));
+
+    const sortedWallets = allWallets
+      .sort(walletSorter(balances));
+
+    store.dispatch(appActions.setWallets(sortedWallets));
+    store.dispatch(appActions.setActiveWallet(sortedWallets[0].ticker));
 
   } catch(err) {
     handleError(err);

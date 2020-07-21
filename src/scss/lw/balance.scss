@@ -1,0 +1,31 @@
+@import './variables';
+
+.lw-balance-outer-container {
+
+  height: 100px;
+  padding-left: 25px;
+  padding-top: 25px;
+
+  .lw-balance-note {
+    font-size: 13px;
+    color: $lw-secondary-2;
+  }
+
+  .lw-balance-container {
+
+    margin-top: 5px;
+
+    h2 {
+      display: inline-block;
+      font-size: 24px;
+    }
+    h4 {
+      color: $lw-secondary-2;
+      font-size: 16px;
+      margin-left: 10px;
+      display: inline-block;
+    }
+
+  }
+
+}
