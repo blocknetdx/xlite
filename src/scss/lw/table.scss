@@ -1,0 +1,46 @@
+@import './variables';
+
+.lw-table-container {
+
+  $row-height: 50px;
+  $text-size: 13px;
+
+  .lw-table-header {
+    height: $row-height;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: $lw-bg-6;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+
+    .lw-table-column-heading {
+      color: $lw-secondary-2;
+      text-align: center;
+      line-height: $row-height;
+      font-size: $text-size;
+    }
+
+  }
+
+  .lw-table-row {
+    height: $row-height;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: $lw-bg-6;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+
+    div {
+      font-size: 13px;
+    }
+
+    &:last-child {
+      border-bottom-style: none;
+    }
+  }
+
+}

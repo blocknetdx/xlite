@@ -100,22 +100,31 @@ Localize.initialize({
       .map(w => new Wallet(w));
 
     let balances = Map();
+    let transactions = Map();
     for(const wallet of allWallets) {
+      const { ticker } = wallet;
       const [ total, spendable ] = await wallet.getBalance();
-      balances = balances.set(wallet.ticker, [total, spendable]);
+      balances = balances.set(ticker, [total, spendable]);
+      const txs = await wallet.getTransactions();
+      transactions = transactions.set(ticker, txs);
     }
 
     setInterval(async function() {
       for(const wallet of allWallets) {
+        const { ticker } = wallet;
         const [ total, spendable ] = await wallet.getBalance();
         const prevBalances = store.getState().appState.balances;
         const [ prevTotal, prevSpendable ] = prevBalances.get(wallet.ticker);
         if(prevTotal !== total || prevSpendable !== spendable) {
-          store.dispatch(appActions.setBalances(prevBalances.set(wallet.ticker, [total, spendable])));
+          store.dispatch(appActions.setBalances(prevBalances.set(ticker, [total, spendable])));
         }
+        const txs = await wallet.getTransactions();
+        const prevTransactions = store.getState().appState.transactions;
+        store.dispatch(appActions.setTransactions(prevTransactions.set(ticker, txs)));
       }
     }, 30000);
 
+    store.dispatch(appActions.setTransactions(transactions));
     store.dispatch(appActions.setBalances(balances));
 
     const sortedWallets = allWallets

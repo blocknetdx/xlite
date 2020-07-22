@@ -67,3 +67,14 @@ export const setBalances = balances => ({
     balances
   }
 });
+
+/**
+ * @param transactions {Map}
+ * @returns {{payload: {transactions: Map}, type: string}}
+ */
+export const setTransactions = transactions => ({
+  type: actions.SET_TRANSACTIONS,
+  payload: {
+    transactions
+  }
+});

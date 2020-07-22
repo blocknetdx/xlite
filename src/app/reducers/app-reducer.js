@@ -8,7 +8,8 @@ const getInitialState = () => ({
   manifest: Map(),
   wallets: [],
   activeWallet: '',
-  balances: Map()
+  balances: Map(),
+  transactions: Map()
 });
 
 export default (state = getInitialState(), { type, payload }) => {
@@ -43,6 +44,11 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         balances: payload.balances
+      };
+    case actions.SET_TRANSACTIONS:
+      return {
+        ...state,
+        transactions: payload.transactions
       };
     default:
       return state;

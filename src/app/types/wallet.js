@@ -103,6 +103,21 @@ class Wallet {
     return [total.toNumber().toFixed(8), spendable.toNumber().toFixed(8)];
   }
 
+  async getTransactions() {
+    const { rpc } = this;
+    if(!this.rpcEnabled) return [];
+
+    // ToDo properly handle RPC errors
+
+    try {
+      const unspent = await rpc.listUnspent();
+      const transactions = await Promise.all(unspent.map(({ txId }) => rpc.getTransaction(txId)));
+      return transactions;
+    } catch(err) {
+      return [];
+    }
+  }
+
 }
 
 export default Wallet;
