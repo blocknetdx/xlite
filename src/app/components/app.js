@@ -6,6 +6,7 @@ import Login from './login';
 import Dashboard from './dashboard';
 import { Navbar } from './shared/navbar';
 import Sidebar from './shared/sidebar';
+import Transactions from './transactions';
 
 let App = ({ activeView, windowWidth, windowHeight }) => {
 
@@ -32,7 +33,8 @@ let App = ({ activeView, windowWidth, windowHeight }) => {
     },
     innerBodyContainer: {
       flexGrow: 1,
-      minHeight: 0
+      minHeight: 0,
+      position: 'relative'
     }
   };
 
@@ -47,6 +49,9 @@ let App = ({ activeView, windowWidth, windowHeight }) => {
       break;
     case activeViews.DASHBOARD:
       body = <Dashboard />;
+      break;
+    case activeViews.TRANSACTIONS:
+      body = <Transactions />;
       break;
     default:
       body = <div />;

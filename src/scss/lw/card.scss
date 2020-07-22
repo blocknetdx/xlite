@@ -1,0 +1,77 @@
+@import './variables';
+
+.lw-card-container {
+
+  $header-background-color: $lw-bg-6;
+  $header-height: 50px;
+  $header-top-bottom-padding: 10px;
+
+  width: 100%;
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  justify-content: flex-start;
+  border-style: solid;
+  border-width: 1px;
+  border-color: $header-background-color;
+
+  .lw-card-header {
+    background-color: $header-background-color;
+    height: 50px;
+    padding-top: $header-top-bottom-padding;
+    padding-bottom: $header-top-bottom-padding;
+    padding-left: 20px;
+    padding-right: 20px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+
+    h1, h2, h3, h4, h5 {
+      color: $lw-text-primary;
+      line-height: 30px;
+      font-size: 16px;
+      flex-grow: 1;
+    }
+
+  }
+
+  .lw-card-body {
+    background-color: $lw-bg-5;
+    width: 100%;
+    flex-grow: 1;
+  }
+
+  .lw-card-footer {
+    $footer-height: 30px;
+    background-color: $header-background-color;
+    height: $footer-height;
+    line-height: $footer-height;
+    width: 100%;
+    font-size: 13px;
+    text-align: center;
+
+    a {
+      color: $lw-text-primary;
+      font-size: 13px;
+      line-height: $footer-height;
+      text-decoration: none;
+
+      i {
+        margin-left: 5px;
+      }
+
+      &:hover {
+        color: darken($lw-text-primary, 15%);
+        text-decoration: none;
+      }
+
+      &:active, &:focus {
+        color: $lw-text-primary;
+        text-decoration: none;
+      }
+    }
+
+  }
+
+}
