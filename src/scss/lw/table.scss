@@ -35,7 +35,12 @@
     justify-content: flex-start;
 
     div {
+      $line-height: 16px;
+      $padding: ($row-height - $line-height) / 2;
       font-size: 13px;
+      line-height: $line-height;
+      padding-top: $padding;
+      padding-bottom: $padding;
     }
 
     &:last-child {

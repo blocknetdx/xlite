@@ -28,7 +28,7 @@ export const Table = ({ columns = [], rows = [], children }) => {
             {r.map((item, ii) => {
               const width = columns[ii][1];
               return (
-                <div key={`row-${i}-col-${ii}`} style={{flexGrow: width, flexBasis: 1}}>
+                <div key={`row-${i}-col-${ii}`} className={'lw-table-data-container'} style={{flexGrow: width, flexBasis: 1}}>
                   {item}
                 </div>
               );

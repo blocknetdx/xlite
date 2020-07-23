@@ -7,9 +7,8 @@ import Localize from '../shared/localize';
 import { Card, CardBody, CardFooter, CardHeader } from '../shared/card';
 import { Table, TableRow } from '../shared/table';
 
-const Transactions = ({ activeWallet, transactions: transactionsMap }) => {
+const Transactions = ({ activeWallet, transactions }) => {
 
-  const transactions = transactionsMap.get(activeWallet) || [];
 
   return (
     <div className={'lw-transactions-container'}>
@@ -28,15 +27,25 @@ const Transactions = ({ activeWallet, transactions: transactionsMap }) => {
               [Localize.text('Value', 'transactions'), 3]
             ]}
             rows={
-              transactions.map((t, i) => {
-                return [
-                  <div key={t.txId}>{moment(new Date(t.time * 1000)).format('MMM D YYYY')}</div>,
-                  <div key={`${t.txId}-${i}`} />,
-                  <div key={`${t.txId}-${i}`} />,
-                  <div key={`${t.txId}-${i}`} />,
-                  <div key={`${t.txId}-${i}`} />
-                ];
-              })
+              [...transactions.entries()]
+                .reduce((arr, [ ticker, txs]) => {
+                  return arr.concat(txs.map(tx => [ticker, tx]));
+                }, [])
+                .map(([ticker, t], i) => {
+                  console.log(t);
+
+                  // ToDo replace with real transactions not just transactions from listunspent
+
+                  const { value } = t.vOut[0];
+                  const [ address ] = t.vOut[0].scriptPubKey.addresses;
+                  return [
+                    <div key={t.txId}>{moment(new Date(t.time * 1000)).format('MMM D YYYY')}</div>,
+                    <div key={`${t.txId}-${i}`}>{ticker}</div>,
+                    <div key={`${t.txId}-${i}`}>{address}</div>,
+                    <div key={`${t.txId}-${i}`}>{value}</div>,
+                    <div key={`${t.txId}-${i}`}></div>
+                  ];
+                })
             }
           >
           </Table>
