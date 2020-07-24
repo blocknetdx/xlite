@@ -79,6 +79,7 @@
     "moment": "^2.27.0",
     "popper.js": "^1.16.1",
     "prop-types": "^15.7.2",
+    "qrcode": "^1.4.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-perfect-scrollbar": "^1.5.8",

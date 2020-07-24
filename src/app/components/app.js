@@ -7,8 +7,10 @@ import Dashboard from './dashboard';
 import { Navbar } from './shared/navbar';
 import Sidebar from './shared/sidebar';
 import Transactions from './transactions';
+import ReceiveModal from './shared/modal-receive';
+import Wallet from '../types/wallet';
 
-let App = ({ activeView, windowWidth, windowHeight }) => {
+let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendModal, activeWallet, wallets }) => {
 
   const styles = {
     container: {
@@ -66,19 +68,28 @@ let App = ({ activeView, windowWidth, windowHeight }) => {
           {body}
         </div>
       </div>
+      {showReceiveModal ? <ReceiveModal /> : null}
     </div>
   );
 };
 App.propTypes = {
+  activeWallet: PropTypes.string,
+  showReceiveModal: PropTypes.bool,
+  showSendModal: PropTypes.bool,
+  wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   windowWidth: PropTypes.number,
   windowHeight: PropTypes.number,
   activeView: PropTypes.string
 };
 App = connect(
   ({ appState }) => ({
+    activeWallet: appState.activeWallet,
+    wallets: appState.wallets,
     windowWidth: appState.windowWidth,
     windowHeight: appState.windowHeight,
-    activeView: appState.activeView
+    activeView: appState.activeView,
+    showReceiveModal: appState.showReceiveModal,
+    showSendModal: appState.showSendModal,
   })
 )(App);
 

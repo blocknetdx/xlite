@@ -32,7 +32,6 @@ const Transactions = ({ activeWallet, transactions }) => {
                   return arr.concat(txs.map(tx => [ticker, tx]));
                 }, [])
                 .map(([ticker, t], i) => {
-                  console.log(t);
 
                   // ToDo replace with real transactions not just transactions from listunspent
 

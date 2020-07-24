@@ -7,7 +7,6 @@ import { DATA_DIR, DEFAULT_LOCALE } from '../constants';
 import { Map } from 'immutable';
 import Localize from '../components/shared/localize';
 
-
 export const getLocaleData = locale => {
   const localesPath = path.resolve(__dirname, '../../../locales');
   const files = fs.readdirSync(localesPath);

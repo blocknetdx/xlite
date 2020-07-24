@@ -14,13 +14,145 @@
 @import "./lw/balance";
 @import "./lw/transactions";
 @import "./lw/card";
-@import "./lw/table.scss";
+@import "./lw/table";
+@import "./lw/modal";
+@import "./lw/modal-receive";
 
 body {
   background-color: $lw-bg-4;
   color: $lw-text-primary;
 }
 
+.lw-coin-select {
+  color: #444444;
+  font-size: 16px;
+  height: 56px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: center;
+  text-decoration: none;
+  border-color: $lw-secondary-2;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: $lw-button-border-radius;
+  margin-top: 5px;
+  margin-bottom: 30px;
+  padding-left: 20px;
+  padding-right: 20px;
+
+  &:hover, &:focus, &:active {
+    text-decoration: none;
+  }
+
+  img {
+    width: 32px;
+    height: 32px;
+    margin-right: 15px;
+  }
+
+  div {
+    flex-grow: 1;
+    font-weight: 500
+  }
+
+}
+
+.lw-coin-select-item {
+  color: #444444;
+  font-size: 16px;
+  height: 56px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: center;
+  text-decoration: none;
+
+  img {
+    width: 32px;
+    height: 32px;
+    margin-right: 15px;
+  }
+
+  div {
+    flex-grow: 1;
+    font-weight: 500;
+  }
+
+}
+
+.lw-address-input-container {
+
+  $border-color: #444444;
+
+  color: $border-color;
+  font-size: 16px;
+  height: 56px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: center;
+  text-decoration: none;
+  border-color: $lw-secondary-2;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: $lw-button-border-radius;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding-left: 20px;
+  padding-right: 0;
+
+  input {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-style: none;
+    font-size: 16px;
+    line-height: 54px;
+    flex-grow: 1;
+    outline: none;
+    &:focus {
+      outline: none;
+    }
+  }
+
+  a {
+    height: 54px;
+    line-height: 54px;
+    border-left-style: solid;
+    border-left-width: 1px;
+    border-left-color: $lw-secondary-2;
+    border-radius-topright: $lw-button-border-radius;
+    border-radius-bottomright: $lw-button-border-radius;
+  }
+
+}
+
+a.lw-color-secondary-6 {
+  color: $lw-secondary-6;
+  &:hover, &:focus, &:active {
+    color: $lw-secondary-6;
+  }
+}
+
+.dropdown-menu {
+
+  width: 100%;
+
+  button.dropdown-item {
+    border-radius: 0;
+  }
+}
 
 // In case we want to manually do scrollbars rather than use perfect scrollbar
 //$lw-scrollbar-color: #d4d4d4;

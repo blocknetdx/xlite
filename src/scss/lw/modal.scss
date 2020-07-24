@@ -1,0 +1,82 @@
+@import './variables';
+
+.lw-modal-overlay {
+  z-index: 10000;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+
+  .lw-modal-container {
+
+    $lw-modal-default-text-color: #2f3943;
+    //$lw-modal-height: 600px;
+    $lw-modal-width: 440px;
+
+    $lw-modal-header-padding: 30px;
+    $lw-modal-line-height: 28px;
+    $lw-modal-header-height: (2 * $lw-modal-header-padding) + $lw-modal-line-height;
+
+    width: $lw-modal-width;
+    //height: $lw-modal-height;
+    background-color: #fff;
+    position: relative;
+
+    a.lw-close-btn {
+      display: block;
+      text-decoration: none;
+      color: $lw-secondary-6;
+      width: 18px;
+      height: 18px;
+      position: absolute;
+      right: 10px;
+      top: 10px;
+
+      &:hover, &:active, &:focus {
+        text-decoration: none;
+        color: darken($lw-secondary-6, 15%);
+      }
+
+    }
+
+    .lw-modal-header-container {
+
+      h4 {
+        height: $lw-modal-header-height;
+        line-height: $lw-modal-line-height;
+        font-size: 24px;
+        font-weight: 600;
+        text-align: center;
+        padding-top: $lw-modal-header-padding;
+        padding-bottom: $lw-modal-header-padding;
+        color: $lw-modal-default-text-color;
+        margin-bottom: 0;
+      }
+
+    }
+
+    .lw-modal-body-container {
+      box-sizing: border-box;
+      //height: $lw-modal-height - $lw-modal-header-height;
+      padding-left: 10px;
+      padding-right: 10px;
+      padding-bottom: 10px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      color: $lw-modal-default-text-color;
+      font-size: 13px;
+    }
+
+  }
+
+}

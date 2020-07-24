@@ -78,3 +78,25 @@ export const setTransactions = transactions => ({
     transactions
   }
 });
+
+/**
+ * @param show {boolean}
+ * @returns {{payload: {show: boolean}, type: string}}
+ */
+export const setShowReceiveModal = show => ({
+  type: actions.SET_SHOW_RECEIVE_MODAL,
+  payload: {
+    show
+  }
+});
+
+/**
+ * @param show {boolean}
+ * @returns {{payload: {show: boolean}, type: string}}
+ */
+export const setShowSendModal = show => ({
+  type: actions.SET_SHOW_SEND_MODAL,
+  payload: {
+    show
+  }
+});

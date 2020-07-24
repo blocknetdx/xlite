@@ -6,6 +6,7 @@ import Localize from './localize';
 import Logo from './logo';
 import IconSend from './icon-send';
 import IconReceive from './icon-receive';
+import * as appActions from '../../actions/app-actions';
 
 const Spacer = () => {
   return (
@@ -13,7 +14,7 @@ const Spacer = () => {
   );
 };
 
-let Navbar = ({ windowWidth }) => {
+let Navbar = ({ windowWidth, showReceiveModal, showSendModal }) => {
 
   const showButtonText = windowWidth > 738;
 
@@ -21,17 +22,23 @@ let Navbar = ({ windowWidth }) => {
     <div className={'lw-navbar-container'}>
       <Logo className={'lw-navbar-logo'} />
       <Spacer />
-      <Button title={Localize.text('Send', 'navbar')}>{showButtonText ? Localize.text('Send', 'navbar') + ' ' : null}<IconSend className={'navbar-button-svg-icon'} /></Button>
-      <Button title={Localize.text('Receive', 'navbar')}>{showButtonText ? Localize.text('Receive', 'navbar') + ' ' : null}<IconReceive className={'navbar-button-svg-icon'} /></Button>
+      <Button title={Localize.text('Send', 'navbar')} onClick={showSendModal}>{showButtonText ? Localize.text('Send', 'navbar') + ' ' : null}<IconSend className={'navbar-button-svg-icon'} /></Button>
+      <Button title={Localize.text('Receive', 'navbar')} onClick={showReceiveModal}>{showButtonText ? Localize.text('Receive', 'navbar') + ' ' : null}<IconReceive className={'navbar-button-svg-icon'} /></Button>
     </div>
   );
 };
 Navbar.propTypes = {
-  windowWidth: PropTypes.number
+  windowWidth: PropTypes.number,
+  showReceiveModal: PropTypes.func,
+  showSendModal: PropTypes.func
 };
 Navbar = connect(
   ({ appState }) => ({
     windowWidth: appState.windowWidth
+  }),
+  dispatch => ({
+    showReceiveModal: () => dispatch(appActions.setShowReceiveModal(true)),
+    showSendModal: () => dispatch(appActions.setShowSendModal(true)),
   })
 )(Navbar);
 

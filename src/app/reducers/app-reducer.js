@@ -9,7 +9,9 @@ const getInitialState = () => ({
   wallets: [],
   activeWallet: '',
   balances: Map(),
-  transactions: Map()
+  transactions: Map(),
+  showReceiveModal: false,
+  showSendModal: false
 });
 
 export default (state = getInitialState(), { type, payload }) => {
@@ -49,6 +51,16 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         transactions: payload.transactions
+      };
+    case actions.SET_SHOW_RECEIVE_MODAL:
+      return {
+        ...state,
+        showReceiveModal: payload.show
+      };
+    case actions.SET_SHOW_SEND_MODAL:
+      return {
+        ...state,
+        showSendModal: payload.show
       };
     default:
       return state;

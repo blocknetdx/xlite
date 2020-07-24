@@ -1,7 +1,8 @@
 @import './variables';
 
-$lw-button-background-color: #444444;
-$lw-button-text-color: #fff;
+$lw-button-background-color: $lw-bg-1;
+$lw-button-background-hover-color: lighten($lw-button-background-color, 15%);
+$lw-button-text-color: $lw-text-primary;
 $lw-button-transparent-text-color: #444444;
 
 button {
@@ -19,6 +20,8 @@ button {
   padding-left: 10px;
   padding-right: 10px;
   min-width: 150px;
+  height: 40px;
+  font-size: 16px;
   border-radius: $lw-button-border-radius;
   background-color: $lw-button-background-color;
   color: $lw-button-text-color;
@@ -54,8 +57,13 @@ button {
     outline-offset: 0;
   }
   &:hover {
-    background-color: lighten($lw-button-background-color, 20%);
+    background-color: darken($lw-button-background-color, 10%);
   }
+  //&.light-hover {
+  //  &:hover {
+  //    background-color: lighten($lw-button-background-color, 20%);
+  //  }
+  //}
   &:active {
     transform: scale(0.98);
   }

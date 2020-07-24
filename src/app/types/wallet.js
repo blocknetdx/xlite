@@ -118,6 +118,20 @@ class Wallet {
     }
   }
 
+  async getAddresses() {
+    const { rpc } = this;
+    if(!this.rpcEnabled) return [];
+    const addresses = await rpc.getAddressesByAccount();
+    return addresses;
+  }
+
+  async generateNewAddress() {
+    const { rpc } = this;
+    if(!this.rpcEnabled) return '';
+    const address = await rpc.getNewAddress();
+    return address;
+  }
+
 }
 
 export default Wallet;
