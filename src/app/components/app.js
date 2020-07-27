@@ -9,6 +9,7 @@ import Sidebar from './shared/sidebar';
 import Transactions from './transactions';
 import ReceiveModal from './shared/modal-receive';
 import Wallet from '../types/wallet';
+import SendModal from './shared/modal-send';
 
 let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendModal, activeWallet, wallets }) => {
 
@@ -59,6 +60,8 @@ let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendMo
       body = <div />;
   }
 
+  console.log('showSendModal', showSendModal);
+
   return (
     <div style={styles.container}>
       {showNavbar ? <Navbar /> : null}
@@ -69,6 +72,7 @@ let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendMo
         </div>
       </div>
       {showReceiveModal ? <ReceiveModal /> : null}
+      {showSendModal ? <SendModal /> : null}
     </div>
   );
 };

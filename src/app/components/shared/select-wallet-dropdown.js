@@ -7,12 +7,12 @@ import { walletSorter } from '../../util';
 import Wallet from '../../types/wallet';
 import { connect } from 'react-redux';
 
-let SelectWalletDropdown = ({ selected = '', showAll = false, wallets, balances, onSelect }) => {
+let SelectWalletDropdown = ({ selected = '', style = {}, showAll = false, wallets, balances, onSelect }) => {
 
   const wallet = wallets.find(w => w.ticker === selected) || {};
 
   return (
-    <div className={'dropdown'}>
+    <div className={'dropdown'} style={style}>
       <a href={'#'} ref={node => node ? $(node).dropdown() : null} className={'lw-coin-select'} data-toggle={'dropdown'}>
         <img alt={Localize.text('Coin icon', 'receive-modal')} srcSet={wallet.imagePath} />
         <div><Localize context={'receive-modal'}>{wallet.name || ''}</Localize></div>
@@ -44,6 +44,7 @@ SelectWalletDropdown.propTypes = {
   showAll: PropTypes.bool,
   balances: PropTypes.instanceOf(Map),
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
+  style: PropTypes.object,
   onSelect: PropTypes.func
 };
 SelectWalletDropdown = connect(

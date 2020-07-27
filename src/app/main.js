@@ -14,10 +14,11 @@ import App from './components/app';
 import { convertManifestToMap, getCloudChainsDir, getLocaleData, handleError, logger, walletSorter } from './util';
 import ConfController from './modules/conf-controller';
 import domStorage from './modules/dom-storage';
-import { ipcMainListeners, localStorageKeys } from './constants';
+import { altCurrencies, ipcMainListeners, localStorageKeys } from './constants';
 import WalletController from './modules/wallet-controller';
 import Localize from './components/shared/localize';
 import Wallet from './types/wallet';
+import request from 'superagent';
 
 // Handle any uncaught exceptions
 process.on('uncaughtException', err => {
@@ -123,6 +124,53 @@ Localize.initialize({
         store.dispatch(appActions.setTransactions(prevTransactions.set(ticker, txs)));
       }
     }, 30000);
+
+    const updateAltCurrencies = async function() {
+
+      const multipliers = {};
+
+      const innerAllWallets = [...allWallets];
+
+      for(let i = 0; i < innerAllWallets.length; i++) {
+
+        const wallet = innerAllWallets[i];
+        const { ticker } = wallet;
+
+        const conversionCurrencies = Object.keys(altCurrencies);
+
+        const { body } = await request
+          .get(`https://min-api.cryptocompare.com/data/price?fsym=${ticker}&tsyms=${conversionCurrencies.join(',')}`);
+
+        for(const conversionCurrency of Object.keys(body)) {
+          const multiplier = body[conversionCurrency];
+          multipliers[ticker] = multipliers[ticker] || {};
+          multipliers[ticker][conversionCurrency] = multiplier;
+        }
+
+      }
+      domStorage.setItem(localStorageKeys.ALT_CURRENCY_MULTIPLIERS, JSON.stringify(multipliers));
+      store.dispatch(appActions.setCurrencyMultipliers(multipliers));
+    };
+
+    setInterval(async function() {
+      try {
+        await updateAltCurrencies();
+      } catch(err) {
+        handleError(err);
+      }
+    }, 300000);
+
+    {
+      const currencyMultipliersJson = domStorage.getItem(localStorageKeys.ALT_CURRENCY_MULTIPLIERS);
+      if(currencyMultipliersJson) {
+        const currencyMultipliers = JSON.parse(currencyMultipliersJson);
+        store.dispatch(appActions.setCurrencyMultipliers(currencyMultipliers));
+        updateAltCurrencies()
+          .catch(handleError);
+      } else {
+        await updateAltCurrencies();
+      }
+    }
 
     store.dispatch(appActions.setTransactions(transactions));
     store.dispatch(appActions.setBalances(balances));

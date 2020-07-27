@@ -17,6 +17,28 @@
 @import "./lw/table";
 @import "./lw/modal";
 @import "./lw/modal-receive";
+@import "./lw/modal-send";
+
+.color-negative {
+  color: $lw-negative-1;
+}
+
+.lw-color-positive-1 {
+  color: $lw-positive-1;
+}
+
+.lw-color-secondary-6 {
+  color: $lw-secondary-6;
+}
+.lw-color-secondary-10 {
+  color: $lw-secondary-10;
+}
+.lw-bg-secondary-2 {
+  background-color: $lw-secondary-2;
+}
+.lw-bg-secondary-6 {
+  background-color: $lw-secondary-6;
+}
 
 body {
   background-color: $lw-bg-4;
@@ -40,7 +62,6 @@ body {
   border-style: solid;
   border-radius: $lw-button-border-radius;
   margin-top: 5px;
-  margin-bottom: 30px;
   padding-left: 20px;
   padding-right: 20px;
 
@@ -87,11 +108,11 @@ body {
 
 }
 
+$lw-input-text-color: #444444;
+
 .lw-address-input-container {
 
-  $border-color: #444444;
-
-  color: $border-color;
+  color: $lw-input-text-color;
   font-size: 16px;
   height: 56px;
   width: 100%;
@@ -138,6 +159,25 @@ body {
 
 }
 
+textarea.lw-textarea {
+  color: $lw-input-text-color;
+  font-size: 16px;
+  width: 100%;
+  border-color: $lw-secondary-2;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: $lw-button-border-radius;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  padding-left: 20px;
+  padding-right: 20px;
+  outline: none;
+  resize: none;
+  &:focus {
+    outline: none;
+  }
+}
+
 a.lw-color-secondary-6 {
   color: $lw-secondary-6;
   &:hover, &:focus, &:active {
@@ -151,6 +191,14 @@ a.lw-color-secondary-6 {
 
   button.dropdown-item {
     border-radius: 0;
+  }
+}
+
+a.lw-send-max-toggle {
+  color: $lw-secondary-6;
+  &:hover, &:focus, &:active {
+    color: darken($lw-secondary-6, 20%);
+    text-decoration: none;
   }
 }
 

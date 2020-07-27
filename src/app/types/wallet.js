@@ -80,7 +80,6 @@ class Wallet {
   }
 
   async getBalance() {
-    console.log(this.ticker);
     const { rpc } = this;
     if(!this.rpcEnabled) return ['0', '0'];
     let unspent;

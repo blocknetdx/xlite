@@ -1,13 +1,15 @@
-import { actions, activeViews } from '../constants';
+import { actions, activeViews, altCurrencies } from '../constants';
 import { Map } from 'immutable';
 
 const getInitialState = () => ({
   activeView: activeViews.TRANSACTIONS,
+  currencyMultipliers: {},
   windowHeight: window.innerHeight,
   windowWidth: window.innerWidth,
   manifest: Map(),
   wallets: [],
   activeWallet: '',
+  altCurrency: altCurrencies.USD,
   balances: Map(),
   transactions: Map(),
   showReceiveModal: false,
@@ -61,6 +63,11 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         showSendModal: payload.show
+      };
+    case actions.SET_CURRENCY_MULTIPLIERS:
+      return {
+        ...state,
+        currencyMultipliers: payload.multipliers
       };
     default:
       return state;

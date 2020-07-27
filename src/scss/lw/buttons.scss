@@ -47,9 +47,9 @@ button {
   }
 
   &:disabled {
-    background-color: lighten($lw-button-background-color, 45%);
+    background-color: lighten($lw-button-background-color, 15%);
     &:hover {
-      background-color: lighten($lw-button-background-color, 45%);
+      background-color: lighten($lw-button-background-color, 15%);
     }
   }
   &:focus {

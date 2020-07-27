@@ -100,3 +100,14 @@ export const setShowSendModal = show => ({
     show
   }
 });
+
+/**
+ * @param multipliers Object
+ * @returns {{payload: {multipliers: Object}, type: string}}
+ */
+export const setCurrencyMultipliers = multipliers => ({
+  type: actions.SET_CURRENCY_MULTIPLIERS,
+  payload: {
+    multipliers
+  }
+});

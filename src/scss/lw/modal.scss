@@ -30,6 +30,22 @@
     background-color: #fff;
     position: relative;
 
+    a.lw-back-btn {
+      display: block;
+      text-decoration: none;
+      color: $lw-secondary-6;
+      height: 18px;
+      position: absolute;
+      left: 10px;
+      top: 10px;
+
+      &:hover, &:active, &:focus {
+        text-decoration: none;
+        color: darken($lw-secondary-6, 15%);
+      }
+
+    }
+
     a.lw-close-btn {
       display: block;
       text-decoration: none;

@@ -10,7 +10,7 @@ import * as appActions from '../../actions/app-actions';
 import { handleError } from '../../util';
 import { Button } from './buttons';
 import SelectWalletDropdown from './select-wallet-dropdown';
-import AddressInput from './address-input';
+import { AddressInput } from './inputs';
 
 const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
 
@@ -71,7 +71,7 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
       <ModalHeader><Localize context={'receive-modal'}>Receive</Localize></ModalHeader>
       <ModalBody>
         <div><Localize context={'receive-modal'}>Select currency to receive</Localize>:</div>
-        <SelectWalletDropdown selected={selected} onSelect={ticker => setSelected(ticker)} />
+        <SelectWalletDropdown style={{marginBottom: 30}} selected={selected} onSelect={ticker => setSelected(ticker)} />
         <div><Localize context={'receive-modal'}>Your address</Localize>:</div>
         <AddressInput
           value={address}

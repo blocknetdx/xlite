@@ -19,7 +19,8 @@ export const actions = {
   SET_BALANCES: 'SET_BALANCES',
   SET_TRANSACTIONS: 'SET_TRANSACTIONS',
   SET_SHOW_RECEIVE_MODAL: 'SET_SHOW_RECEIVE_MODAL',
-  SET_SHOW_SEND_MODAL: 'SET_SHOW_SEND_MODAL'
+  SET_SHOW_SEND_MODAL: 'SET_SHOW_SEND_MODAL',
+  SET_CURRENCY_MULTIPLIERS: 'SET_CURRENCY_MULTIPLIERS'
 };
 
 export const localStorageKeys = {
@@ -27,7 +28,8 @@ export const localStorageKeys = {
   MANIFEST_SHA: 'MANIFEST_SHA',
   MANIFEST_DATA: 'MANIFEST_DATA',
   WALLET_CONFS: 'WALLET_CONFS',
-  XBRIDGE_CONFS: 'XBRIDGE_CONFS'
+  XBRIDGE_CONFS: 'XBRIDGE_CONFS',
+  ALT_CURRENCY_MULTIPLIERS: 'ALT_CURRENCY_MULTIPLIERS'
 };
 
 export const storageKeys = {
@@ -62,3 +64,7 @@ export const ICON_DIR = app ? path.join(app.getPath('userData'), 'icons') : '';
 export const IMAGE_DIR = path.resolve(__dirname, '../../images');
 
 export const HTTP_REQUEST_TIMEOUT = 10000;
+
+export const altCurrencies = {
+  USD: 'USD'
+};
