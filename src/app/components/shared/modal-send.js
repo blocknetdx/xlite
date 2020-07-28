@@ -1,7 +1,7 @@
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
-import { clipboard } from 'electron';
+import { clipboard, shell } from 'electron';
 import { Modal, ModalBody, ModalHeader } from './modal';
 import Localize from './localize';
 import * as appActions from '../../actions/app-actions';
@@ -48,6 +48,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   const [ inputAmount, setInputAmount ] = useState('');
   const [ altInputAmount, setAltInputAmount ] = useState('');
   const [ confirmTimer, setConfirmTimer ] = useState(0);
+  const [ txid, setTXID ] = useState('');
 
   const availableBalance = selected && balances.has(selected) ? balances.get(selected)[1] : 0;
 
@@ -170,12 +171,22 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   };
 
   const onSend = async function(e) {
-    e.preventDefault();
-    setProgress(3);
+    try {
+      e.preventDefault();
+
+      const res = await wallet.send(inputAmount, address, description);
+
+      setTXID(res);
+      setProgress(3);
+
+    } catch(err) {
+      handleError(err);
+    }
   };
 
   const onViewOnExplorer = e => {
     e.preventDefault();
+    shell.openExternal(`https://blockchair.com/${wallet.ticker.toLowerCase()}/transaction/${txid}`);
   };
 
   const minHeight = 538;

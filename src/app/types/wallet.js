@@ -131,6 +131,38 @@ class Wallet {
     return address;
   }
 
+  /**
+   * Makes a send transaction
+   * @param amount {string}
+   * @param address {string}
+   * @param description {description}
+   * @returns {Promise<void>}
+   */
+  async send(amount, address, description) {
+    const { rpc } = this;
+    const unspent = await rpc.listUnspent();
+    const spendable = unspent
+      .filter(u => u.spendable)
+      .sort((a, b) => {
+        const amountA = a.amount;
+        const amountB = b.amount;
+        return amountA === amountB ? 0 : amountA > amountB ? 1 : -1;
+      });
+    const inputs = [];
+    const amountDecimal = bignumber(Number(amount));
+    let totalDecimal = bignumber(0);
+    for(let i = 0; i < spendable.length; i++) {
+      const u = spendable[i];
+      inputs.push(u);
+      totalDecimal += bignumber(u.amount);
+      if (math.compare(amountDecimal, totalDecimal) > -1) break;
+    }
+    const rawTransaction = await rpc.createRawTransaction(inputs, {[address]: amount});
+    const signedRawTransaction = await rpc.signRawTransaction(rawTransaction);
+    const txid = await rpc.sendRawTransaction(signedRawTransaction);
+    return txid;
+  }
+
 }
 
 export default Wallet;
