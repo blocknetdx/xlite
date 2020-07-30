@@ -136,7 +136,10 @@ Localize.initialize({
         const wallet = innerAllWallets[i];
         const { ticker } = wallet;
 
-        const conversionCurrencies = Object.keys(altCurrencies);
+        const conversionCurrencies = [
+          ...Object.keys(altCurrencies),
+          'BTC'
+        ];
 
         const { body } = await request
           .get(`https://min-api.cryptocompare.com/data/price?fsym=${ticker}&tsyms=${conversionCurrencies.join(',')}`);

@@ -5,7 +5,7 @@ export const Column = ({ children, className = '', justify = 'flex-start', style
 
   const styles = {
     display: 'flex',
-    flexDirection: 'row',
+    flexDirection: 'column',
     flexWrap: 'nowrap',
     justifyContent: justify,
     ...style

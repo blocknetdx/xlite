@@ -102,21 +102,19 @@ class Wallet {
     return [total.toNumber().toFixed(8), spendable.toNumber().toFixed(8)];
   }
 
+  /**
+   * @returns {Promise<RPCTransaction[]>}
+   */
   async getTransactions() {
     const { rpc } = this;
     if(!this.rpcEnabled) return [];
-
-    // ToDo properly handle RPC errors
-
-    try {
-      const unspent = await rpc.listUnspent();
-      const transactions = await Promise.all(unspent.map(({ txId }) => rpc.getTransaction(txId)));
-      return transactions;
-    } catch(err) {
-      return [];
-    }
+    const transactions = await rpc.listTransactions();
+    return transactions;
   }
 
+  /**
+   * @returns {Promise<string[]>}
+   */
   async getAddresses() {
     const { rpc } = this;
     if(!this.rpcEnabled) return [];
@@ -124,6 +122,9 @@ class Wallet {
     return addresses;
   }
 
+  /**
+   * @returns {Promise<string>}
+   */
   async generateNewAddress() {
     const { rpc } = this;
     if(!this.rpcEnabled) return '';
@@ -154,7 +155,7 @@ class Wallet {
     for(let i = 0; i < spendable.length; i++) {
       const u = spendable[i];
       inputs.push(u);
-      totalDecimal += bignumber(u.amount);
+      totalDecimal = math.add(totalDecimal, bignumber(u.amount));
       if (math.compare(amountDecimal, totalDecimal) > -1) break;
     }
     const rawTransaction = await rpc.createRawTransaction(inputs, {[address]: amount});

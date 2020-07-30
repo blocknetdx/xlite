@@ -8,6 +8,46 @@ class RPCTransaction {
   /**
    * @type {string}
    */
+  address = '';
+
+  /**
+   * @type {string}
+   */
+  amount = '';
+
+  /**
+   * @type {string}
+   */
+  blockHash = '';
+
+  /**
+   * @type {number}
+   */
+  blockTime = 0;
+
+  /**
+   * @type {number}
+   */
+  category = '';
+
+  /**
+   * @type {number}
+   */
+  confirmations = 0;
+
+  /**
+   * @type {number}
+   */
+  time = 0;
+
+  /**
+   * @type {boolean}
+   */
+  trusted = false;
+
+  /**
+   * @type {string}
+   */
   hash = '';
 
   /**
@@ -28,7 +68,7 @@ class RPCTransaction {
   /**
    * @type {number}
    */
-  lockTime = 0;
+  blockTime = 0;
 
   /**
    * @type {Array<{coinbase: string, sequence: number}>}
@@ -44,26 +84,6 @@ class RPCTransaction {
    * @type {string}
    */
   hex = '';
-
-  /**
-   * @type {string}
-   */
-  blockHash = '';
-
-  /**
-   * @type {number}
-   */
-  confirmations = 0;
-
-  /**
-   * @type {number}
-   */
-  time = 0;
-
-  /**
-   * @type {number}
-   */
-  blockTime = 0;
 
   /**
    * @param data {Object}

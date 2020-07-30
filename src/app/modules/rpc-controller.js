@@ -365,6 +365,25 @@ class RPCController {
     return res;
   }
 
+  /**
+   * Lists wallet transactions
+   * @returns {Promise<RPCTransaction[]>}
+   */
+  async listTransactions() {
+    const res = await this._makeRequest('listtransactions', []);
+    return res.map(t => new RPCTransaction({
+      txId: t.txid,
+      address: t.address,
+      amount: t.amount,
+      blockHash: t.blockhash,
+      blockTime: t.blocktime,
+      category: t.category,
+      confirmations: t.confirmations,
+      time: t.time,
+      trusted: t.trusted
+    }));
+  }
+
 }
 
 export default RPCController;

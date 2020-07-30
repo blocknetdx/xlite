@@ -16,7 +16,7 @@ const { bignumber } = math;
 
 let Balance = ({ activeWallet, wallets, balances }) => {
   const wallet = activeWallet ? wallets.find(w => w.ticker === activeWallet) : null;
-  const [ total ] = wallet ? balances.get(wallet.ticker) : [];
+  const [ total, spendable ] = wallet ? balances.get(wallet.ticker) : [];
 
   // ToDo make this dynamic
   const conversionCurrency = 'USD';
@@ -44,7 +44,7 @@ let Balance = ({ activeWallet, wallets, balances }) => {
   return (
     <div className={'lw-balance-outer-container'}>
       <div className={'lw-balance-note'}><Localize context={'balance'}>Total wallet balance</Localize></div>
-      <div className={'lw-balance-container'}><h2>{wallet.ticker} {total}</h2> <h4>{conversionCurrency} {nationalCurrency}</h4></div>
+      <div className={'lw-balance-container'}><h2 title={Localize.text('Total spendable:', 'balance') + ' ' + spendable}>{wallet.ticker} {total}</h2> <h4>{conversionCurrency} {nationalCurrency}</h4></div>
     </div>
   );
 };

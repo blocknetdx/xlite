@@ -1,5 +1,8 @@
 @import './variables';
 
+$lw-row-padding-horiz: 20px;
+$lw-row-padding-vert: 18px;
+
 .lw-table-container {
 
   $row-height: 50px;
@@ -14,17 +17,23 @@
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: flex-start;
+    padding-top: $lw-row-padding-vert;
+    padding-bottom: $lw-row-padding-vert;
+    padding-left: $lw-row-padding-horiz;
+    padding-right: $lw-row-padding-horiz;
 
     .lw-table-column-heading {
       color: $lw-secondary-2;
       text-align: center;
-      line-height: $row-height;
+      line-height: 16px;
       font-size: $text-size;
     }
 
   }
 
   .lw-table-row {
+
+
     height: $row-height;
     border-bottom-style: solid;
     border-bottom-width: 1px;
@@ -33,14 +42,15 @@
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: flex-start;
+    padding-top: $lw-row-padding-vert;
+    padding-bottom: $lw-row-padding-vert;
+    padding-left: $lw-row-padding-horiz;
+    padding-right: $lw-row-padding-horiz;
 
-    div {
-      $line-height: 16px;
-      $padding: ($row-height - $line-height) / 2;
+    div.lw-table-data-container {
       font-size: 13px;
-      line-height: $line-height;
-      padding-top: $padding;
-      padding-bottom: $padding;
+      line-height: 16px;
+      text-align: center;
     }
 
     &:last-child {
