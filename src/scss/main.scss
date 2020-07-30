@@ -18,6 +18,7 @@
 @import "./lw/modal";
 @import "./lw/modal-receive";
 @import "./lw/modal-send";
+@import "./lw/portfolio";
 
 .color-negative {
   color: $lw-negative-1;
@@ -27,6 +28,9 @@
   color: $lw-positive-1;
 }
 
+.lw-color-secondary-3 {
+  color: $lw-secondary-3;
+}
 .lw-color-secondary-6 {
   color: $lw-secondary-6;
 }
@@ -200,6 +204,24 @@ a.lw-send-max-toggle {
     color: darken($lw-secondary-6, 20%);
     text-decoration: none;
   }
+}
+
+div.lw-percent-bar {
+
+  $lw-percent-bar-height: 6px;
+
+  background-color: $lw-secondary-7;
+  width: 100%;
+  height: $lw-percent-bar-height;
+  border-radius: 3px;
+  overflow: hidden;
+
+  div {
+    background-color: $lw-positive-1;
+    height: $lw-percent-bar-height;
+    width: 0;
+  }
+
 }
 
 // In case we want to manually do scrollbars rather than use perfect scrollbar

@@ -10,6 +10,7 @@ import Transactions from './transactions';
 import ReceiveModal from './shared/modal-receive';
 import Wallet from '../types/wallet';
 import SendModal from './shared/modal-send';
+import Portfolio from './portfolio';
 
 let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendModal, activeWallet, wallets }) => {
 
@@ -56,11 +57,12 @@ let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendMo
     case activeViews.TRANSACTIONS:
       body = <Transactions />;
       break;
+    case activeViews.PORTFOLIO:
+      body = <Portfolio />;
+      break;
     default:
       body = <div />;
   }
-
-  console.log('showSendModal', showSendModal);
 
   return (
     <div style={styles.container}>

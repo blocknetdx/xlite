@@ -7,6 +7,7 @@ import Wallet from '../../types/wallet';
 import Localize from './localize';
 import { handleError } from '../../util';
 import { all, create } from 'mathjs';
+import { MAX_DECIMAL_PLACE } from '../../constants';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -14,51 +15,39 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
-let Balance = ({ activeWallet, wallets, balances }) => {
+let Balance = ({ activeWallet, altCurrency, wallets, balances, currencyMultipliers }) => {
   const wallet = activeWallet ? wallets.find(w => w.ticker === activeWallet) : null;
   const [ total, spendable ] = wallet ? balances.get(wallet.ticker) : [];
 
-  // ToDo make this dynamic
-  const conversionCurrency = 'USD';
+  if(!wallet) return <div className={'lw-balance-outer-container'} />;
 
-  const [ nationalCurrency, setNationalCurrency ] = useState('0.00');
-  useEffect(() => {
-    if(activeWallet) {
-      request.get(`https://min-api.cryptocompare.com/data/price?fsym=${activeWallet}&tsyms=${conversionCurrency}`)
-        .then(({ body }) => {
-          const multiplier = body[conversionCurrency];
-          const num = math.multiply(bignumber(multiplier), bignumber(Number(total)));
-          setNationalCurrency(num.toFixed(2));
-        })
-        .catch(handleError);
-    }
-    return () => {
-      setNationalCurrency('0.00');
-    };
-  }, [activeWallet, total]);
-
-  if(!wallet) return <div />;
+  const altMultiplier = bignumber(currencyMultipliers[activeWallet] && currencyMultipliers[activeWallet][altCurrency] ? currencyMultipliers[activeWallet][altCurrency] : 0);
+  const altAmount = math.multiply(altMultiplier, bignumber(Number(total)));
 
   // ToDo add change over time data
 
   return (
     <div className={'lw-balance-outer-container'}>
       <div className={'lw-balance-note'}><Localize context={'balance'}>Total wallet balance</Localize></div>
-      <div className={'lw-balance-container'}><h2 title={Localize.text('Total spendable:', 'balance') + ' ' + spendable}>{wallet.ticker} {total}</h2> <h4>{conversionCurrency} {nationalCurrency}</h4></div>
+      <div className={'lw-balance-container'}><h2 title={Localize.text('Total spendable:', 'balance') + ' ' + spendable}>{wallet.ticker} <span className={'text-monospace'}>{Number(total)}</span></h2> <h4>{altCurrency} <span className={'text-monospace'}>{altAmount.toFixed(2)}</span></h4></div>
     </div>
   );
 };
 Balance.propTypes = {
   activeWallet: PropTypes.string,
+  altCurrency: PropTypes.string,
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
-  balances: PropTypes.instanceOf(Map)
+  balances: PropTypes.instanceOf(Map),
+  currencyMultipliers: PropTypes.object
 };
 
 Balance = connect(
   ({ appState }) => ({
     activeWallet: appState.activeWallet,
+    altCurrency: appState.altCurrency,
     wallets: appState.wallets,
-    balances: appState.balances
+    balances: appState.balances,
+    currencyMultipliers: appState.currencyMultipliers
   })
 )(Balance);
 

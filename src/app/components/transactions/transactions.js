@@ -10,6 +10,8 @@ import { Table, TableColumn, TableData, TableRow } from '../shared/table';
 import { all, create } from 'mathjs';
 import Wallet from '../../types/wallet';
 import { Column, Row } from '../shared/flex';
+import AssetWithImage from '../shared/asset-with-image';
+import { MAX_DECIMAL_PLACE } from '../../constants';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -49,6 +51,8 @@ const Transactions = ({ transactions, activeWallet, altCurrency, currencyMultipl
 
                 const wallet = wallets.find(w => w.ticker === ticker) || {};
 
+                const sent = t.type === 'send';
+
                 return (
                   <TableRow key={t.txId}>
                     <TableData style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
@@ -72,19 +76,21 @@ const Transactions = ({ transactions, activeWallet, altCurrency, currencyMultipl
                         </Column>
                         <div style={{flexGrow: 1}}>
                           <div>{moment(new Date(t.time * 1000)).format('MMM D YYYY')}</div>
-                          <div>{t.type === 'send' ? Localize.text('Sent', 'transactions') : Localize.text('Received', 'transactions')}</div>
+                          <div>{sent ? Localize.text('Sent', 'transactions') : Localize.text('Received', 'transactions')}</div>
                         </div>
                       </Row>
                     </TableData>
-                    <TableData><img alt={Localize.text('{{coin}} icon', 'transactions', {coin: ticker})} style={{display: 'inline-block', height: 24, width: 'auto', marginTop: -4, marginRight: 10}} srcSet={wallet.imagePath} />{ticker}</TableData>
-                    <TableData>{t.address}</TableData>
-                    <TableData>{t.amount}</TableData>
-                    <TableData style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                    <TableData>
+                      <AssetWithImage wallet={wallet} />
+                    </TableData>
+                    <TableData className={'text-monospace'}>{t.address}</TableData>
+                    <TableData className={'text-monospace'}>{t.amount}</TableData>
+                    <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
                       <div>
-                        {Number(math.multiply(bignumber(t.amount), btcMultiplier).toFixed(8))}
+                        {sent ? '-' : '+'}{Number(math.multiply(bignumber(t.amount), btcMultiplier).toFixed(MAX_DECIMAL_PLACE))}
                       </div>
                       <div>
-                        {`${altCurrency} ${math.multiply(bignumber(t.amount), altMultiplier).toFixed(2)}`}
+                        {sent ? '-' : '+'}${math.multiply(bignumber(t.amount), altMultiplier).toFixed(2)}
                       </div>
                     </TableData>
                   </TableRow>
@@ -94,7 +100,7 @@ const Transactions = ({ transactions, activeWallet, altCurrency, currencyMultipl
           </Table>
         </CardBody>
         <CardFooter>
-          <a href={'#'}><Localize context={'transactions'}>Load more</Localize> <i className={'fas fa-chevron-down'} /></a>
+          <a href={'#'}><Localize context={'universal'}>Load more</Localize> <i className={'fas fa-chevron-down'} /></a>
         </CardFooter>
       </Card>
     </div>

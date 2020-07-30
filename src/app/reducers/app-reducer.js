@@ -2,7 +2,7 @@ import { actions, activeViews, altCurrencies } from '../constants';
 import { Map } from 'immutable';
 
 const getInitialState = () => ({
-  activeView: activeViews.TRANSACTIONS,
+  activeView: activeViews.PORTFOLIO,
   currencyMultipliers: {},
   windowHeight: window.innerHeight,
   windowWidth: window.innerWidth,

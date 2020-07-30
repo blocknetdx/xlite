@@ -68,3 +68,5 @@ export const HTTP_REQUEST_TIMEOUT = 10000;
 export const altCurrencies = {
   USD: 'USD'
 };
+
+export const MAX_DECIMAL_PLACE = 8;

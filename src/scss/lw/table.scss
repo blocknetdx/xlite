@@ -7,6 +7,7 @@ $lw-row-padding-vert: 18px;
 
   $row-height: 50px;
   $text-size: 13px;
+  color: $lw-secondary-1;
 
   .lw-table-header {
     height: $row-height;
@@ -53,9 +54,9 @@ $lw-row-padding-vert: 18px;
       text-align: center;
     }
 
-    &:last-child {
-      border-bottom-style: none;
-    }
+    //&:last-child {
+    //  border-bottom-style: none;
+    //}
   }
 
 }

@@ -33,9 +33,9 @@ TableRow.propTypes = {
   style: PropTypes.object
 };
 
-export const TableData = ({ size = 1, children, idx, final, style }) => {
+export const TableData = ({ size = 1, children, className = '', idx, final, style }) => {
   return (
-    <div className={'lw-table-data-container'}
+    <div className={`lw-table-data-container ${className}`}
          style={{flexGrow: size, flexBasis: 1, textAlign: idx === 0 ? 'left' : final ? 'right' : 'center', ...style}}>
       {children}
     </div>
@@ -43,6 +43,7 @@ export const TableData = ({ size = 1, children, idx, final, style }) => {
 };
 TableData.propTypes = {
   children: PropTypes.any,
+  className: PropTypes.string,
   final: PropTypes.bool,
   idx: PropTypes.number,
   size: PropTypes.number,

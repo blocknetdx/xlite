@@ -283,7 +283,7 @@ $embed-responsive-aspect-ratios: join(
 
 // stylelint-disable value-keyword-case
 $font-family-sans-serif:      IBMPlexSans;
-$font-family-monospace:       SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;
+$font-family-monospace:       IBMPlexMono;
 $font-family-base:            $font-family-sans-serif !default;
 // stylelint-enable value-keyword-case
 
