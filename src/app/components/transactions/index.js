@@ -3,6 +3,7 @@ import Transactions from './transactions';
 
 export default connect(
   ({ appState }) => ({
+    activeView: appState.activeView,
     activeWallet: appState.activeWallet,
     transactions: appState.transactions,
     altCurrency: appState.altCurrency,

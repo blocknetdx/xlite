@@ -57,6 +57,9 @@ let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendMo
     case activeViews.TRANSACTIONS:
       body = <Transactions />;
       break;
+    case activeViews.COIN_TRANSACTIONS:
+      body = <Transactions />;
+      break;
     case activeViews.PORTFOLIO:
       body = <Portfolio />;
       break;

@@ -75,7 +75,10 @@ let Sidebar = ({ activeView, wallets, balances, setActiveView, setActiveWallet }
           .sort(walletSorter(balances))
           .map(w => ({id: w.ticker, text: w.name, image: w.imagePath}))
         }
-        onClick={ticker => setActiveWallet(ticker)} />
+        onClick={ticker => {
+          setActiveWallet(ticker);
+          setActiveView(activeViews.COIN_TRANSACTIONS);
+        }} />
     </div>
   );
 };

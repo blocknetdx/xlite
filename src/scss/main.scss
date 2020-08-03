@@ -27,7 +27,19 @@
 .lw-color-positive-1 {
   color: $lw-positive-1;
 }
-
+.lw-text-primary {
+  color: $lw-text-primary;
+}
+a.lw-text-primary {
+  color: $lw-text-primary;
+  &:hover, &:focus, &:active {
+    text-decoration: none;
+    color: darken($lw-text-primary, 10%);
+  }
+}
+.lw-color-secondary-2 {
+  color: $lw-secondary-2;
+}
 .lw-color-secondary-3 {
   color: $lw-secondary-3;
 }

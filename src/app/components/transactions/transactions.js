@@ -11,7 +11,7 @@ import { all, create } from 'mathjs';
 import Wallet from '../../types/wallet';
 import { Column, Row } from '../shared/flex';
 import AssetWithImage from '../shared/asset-with-image';
-import { MAX_DECIMAL_PLACE } from '../../constants';
+import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -19,14 +19,14 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
-const Transactions = ({ transactions, activeWallet, altCurrency, currencyMultipliers, wallets }) => {
+const Transactions = ({ activeView, transactions, activeWallet, altCurrency, currencyMultipliers, wallets }) => {
 
   const altMultiplier = bignumber(currencyMultipliers[activeWallet] && currencyMultipliers[activeWallet][altCurrency] ? currencyMultipliers[activeWallet][altCurrency] : 0);
   const btcMultiplier = bignumber(currencyMultipliers[activeWallet] && currencyMultipliers[activeWallet]['BTC'] ? currencyMultipliers[activeWallet]['BTC'] : 0);
 
   return (
     <div className={'lw-transactions-container'}>
-      <Balance />
+      <Balance showCoinDetails={activeView === activeViews.COIN_TRANSACTIONS} />
       <Card>
         <CardHeader>
           <h1>Latest Transactions</h1>
@@ -39,6 +39,7 @@ const Transactions = ({ transactions, activeWallet, altCurrency, currencyMultipl
             <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn>
             <TableColumn size={2}><Localize context={'transactions'}>Value</Localize> (BTC)</TableColumn>
             {[...transactions.entries()]
+              .filter(([ ticker ]) => activeView !== activeViews.COIN_TRANSACTIONS ? true : ticker === activeWallet)
               .reduce((arr, [ ticker, txs]) => {
                 return arr.concat(txs.map(tx => [ticker, tx]));
               }, [])
@@ -107,6 +108,7 @@ const Transactions = ({ transactions, activeWallet, altCurrency, currencyMultipl
   );
 };
 Transactions.propTypes = {
+  activeView: PropTypes.string,
   activeWallet: PropTypes.string,
   transactions: PropTypes.instanceOf(Map),
   altCurrency: PropTypes.string,
