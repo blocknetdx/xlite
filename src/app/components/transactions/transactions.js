@@ -2,7 +2,7 @@ import { Map } from 'immutable';
 import moment from 'moment';
 import path from 'path';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useState } from 'react';
 import Balance from '../shared/balance';
 import Localize from '../shared/localize';
 import { Card, CardBody, CardFooter, CardHeader } from '../shared/card';
@@ -12,6 +12,7 @@ import Wallet from '../../types/wallet';
 import { Column, Row } from '../shared/flex';
 import AssetWithImage from '../shared/asset-with-image';
 import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
+import TransactionDetailModal from '../shared/modal-transaction-detail';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -19,14 +20,19 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
+
 const Transactions = ({ activeView, transactions, activeWallet, altCurrency, currencyMultipliers, wallets }) => {
 
   const altMultiplier = bignumber(currencyMultipliers[activeWallet] && currencyMultipliers[activeWallet][altCurrency] ? currencyMultipliers[activeWallet][altCurrency] : 0);
   const btcMultiplier = bignumber(currencyMultipliers[activeWallet] && currencyMultipliers[activeWallet]['BTC'] ? currencyMultipliers[activeWallet]['BTC'] : 0);
 
+  const coinSpecificTransactions = activeView === activeViews.COIN_TRANSACTIONS;
+
+  const [ selectedTx, setSelectedTx ] = useState(null);
+
   return (
     <div className={'lw-transactions-container'}>
-      <Balance showCoinDetails={activeView === activeViews.COIN_TRANSACTIONS} />
+      <Balance showCoinDetails={coinSpecificTransactions} />
       <Card>
         <CardHeader>
           <h1>Latest Transactions</h1>
@@ -39,7 +45,7 @@ const Transactions = ({ activeView, transactions, activeWallet, altCurrency, cur
             <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn>
             <TableColumn size={2}><Localize context={'transactions'}>Value</Localize> (BTC)</TableColumn>
             {[...transactions.entries()]
-              .filter(([ ticker ]) => activeView !== activeViews.COIN_TRANSACTIONS ? true : ticker === activeWallet)
+              .filter(([ ticker ]) => !coinSpecificTransactions ? true : ticker === activeWallet)
               .reduce((arr, [ ticker, txs]) => {
                 return arr.concat(txs.map(tx => [ticker, tx]));
               }, [])
@@ -54,8 +60,13 @@ const Transactions = ({ activeView, transactions, activeWallet, altCurrency, cur
 
                 const sent = t.type === 'send';
 
+                const onRowClick = () => {
+                  if(!coinSpecificTransactions) return;
+                  setSelectedTx({...t, wallet, type: 'send'});
+                };
+
                 return (
-                  <TableRow key={t.txId}>
+                  <TableRow key={t.txId} clickable={coinSpecificTransactions ? true : false} onClick={onRowClick}>
                     <TableData style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
                       <Row>
                         <Column justify={'center'}>
@@ -104,6 +115,17 @@ const Transactions = ({ activeView, transactions, activeWallet, altCurrency, cur
           <a href={'#'}><Localize context={'universal'}>Load more</Localize> <i className={'fas fa-chevron-down'} /></a>
         </CardFooter>
       </Card>
+
+      {selectedTx ?
+        <TransactionDetailModal
+          altCurrency={altCurrency}
+          altMultiplier={altMultiplier}
+          currencyMultipliers={currencyMultipliers}
+          selectedTx={selectedTx}
+          onClose={() => setSelectedTx(null)} />
+        :
+        null
+      }
     </div>
   );
 };

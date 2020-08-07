@@ -48,6 +48,13 @@ $lw-row-padding-vert: 18px;
     padding-left: $lw-row-padding-horiz;
     padding-right: $lw-row-padding-horiz;
 
+    &.clickable {
+      &:hover {
+        cursor: pointer;
+        background-color: $lw-bg-3;
+      }
+    }
+
     div.lw-table-data-container {
       font-size: 13px;
       line-height: 16px;

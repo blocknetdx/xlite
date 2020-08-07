@@ -14,16 +14,17 @@ ModalHeader.propTypes = {
   children: PropTypes.any
 };
 
-export const ModalBody = ({ children, style = {} }) => {
+export const ModalBody = ({ children, style = {}, className = '' }) => {
   return (
-    <div style={style} className={'lw-modal-body-container'}>
+    <div style={style} className={`lw-modal-body-container ${className}`}>
       {children}
     </div>
   );
 };
 ModalBody.propTypes = {
   style: PropTypes.object,
-  children: PropTypes.any
+  children: PropTypes.any,
+  className: PropTypes.string
 };
 
 export const Modal = ({ children, showBackButton = false, onBack = () => {}, onClose = () => {} }) => {

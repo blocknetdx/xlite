@@ -106,7 +106,13 @@ Localize.initialize({
       const { ticker } = wallet;
       const [ total, spendable ] = await wallet.getBalance();
       balances = balances.set(ticker, [total, spendable]);
-      const txs = await wallet.getTransactions();
+      let txs;
+      try {
+        txs = await wallet.getTransactions();
+      } catch(err) {
+        handleError(err);
+        txs = [];
+      }
       transactions = transactions.set(ticker, txs);
     }
 
@@ -119,7 +125,13 @@ Localize.initialize({
         if(prevTotal !== total || prevSpendable !== spendable) {
           store.dispatch(appActions.setBalances(prevBalances.set(ticker, [total, spendable])));
         }
-        const txs = await wallet.getTransactions();
+        let txs;
+        try {
+          txs = await wallet.getTransactions();
+        } catch(err) {
+          handleError(err);
+          txs = [];
+        }
         const prevTransactions = store.getState().appState.transactions;
         store.dispatch(appActions.setTransactions(prevTransactions.set(ticker, txs)));
       }

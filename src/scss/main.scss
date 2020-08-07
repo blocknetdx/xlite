@@ -19,6 +19,7 @@
 @import "./lw/modal-receive";
 @import "./lw/modal-send";
 @import "./lw/portfolio";
+@import "./lw/modal-transaction-detail";
 
 .color-negative {
   color: $lw-negative-1;
@@ -48,6 +49,13 @@ a.lw-text-primary {
 }
 .lw-color-secondary-10 {
   color: $lw-secondary-10;
+}
+a.lw-color-secondary-10 {
+  color: $lw-secondary-10;
+  &:hover, &:focus, &:active {
+    text-decoration: none;
+    color: lighten($lw-secondary-10, 10%);
+  }
 }
 .lw-bg-secondary-2 {
   background-color: $lw-secondary-2;

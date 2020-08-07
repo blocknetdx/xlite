@@ -16,12 +16,17 @@ TableColumn.propTypes = {
   style: PropTypes.object
 };
 
-export const TableRow = ({ idx, children = [], style = {}, sizes = [] }) => {
+export const TableRow = ({ idx, children = [], style = {}, sizes = [], clickable = false, onClick = () => {} }) => {
 
   children = Array.isArray(children) ? children : [children];
 
   return (
-    <div className={'lw-table-row'} style={style}>
+    <div className={`lw-table-row ${clickable ? 'clickable' : ''}`}
+         style={style}
+         onClick={e => {
+           e.preventDefault();
+           onClick();
+         }}>
       {children.map((c, i) => React.cloneElement(c, {key: `row-${idx}-col${i}`, idx: i, size: sizes[i], final: i === children.length - 1}))}
     </div>
   );
@@ -30,7 +35,9 @@ TableRow.propTypes = {
   children: PropTypes.oneOfType([PropTypes.element, PropTypes.arrayOf(PropTypes.element)]),
   idx: PropTypes.number,
   sizes: PropTypes.array,
-  style: PropTypes.object
+  style: PropTypes.object,
+  clickable: PropTypes.bool,
+  onClick: PropTypes.func
 };
 
 export const TableData = ({ size = 1, children, className = '', idx, final, style }) => {
@@ -47,7 +54,7 @@ TableData.propTypes = {
   final: PropTypes.bool,
   idx: PropTypes.number,
   size: PropTypes.number,
-  style: PropTypes.object
+  style: PropTypes.object,
 };
 
 export const Table = ({ children = [] }) => {
@@ -79,7 +86,5 @@ export const Table = ({ children = [] }) => {
   );
 };
 Table.propTypes = {
-  columns: PropTypes.arrayOf(PropTypes.array),
-  rows: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.element)),
   children: PropTypes.any
 };

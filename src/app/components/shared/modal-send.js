@@ -186,7 +186,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
   const onViewOnExplorer = e => {
     e.preventDefault();
-    shell.openExternal(`https://blockchair.com/${wallet.ticker.toLowerCase()}/transaction/${txid}`);
+    shell.openExternal(`https://live.blockcypher.com/${wallet.ticker.toLowerCase()}/tx/${txid}`);
   };
 
   const minHeight = 538;
