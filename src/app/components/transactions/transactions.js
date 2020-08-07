@@ -62,7 +62,7 @@ const Transactions = ({ activeView, transactions, activeWallet, altCurrency, cur
 
                 const onRowClick = () => {
                   if(!coinSpecificTransactions) return;
-                  setSelectedTx({...t, wallet, type: 'send'});
+                  setSelectedTx({...t, wallet});
                 };
 
                 return (
