@@ -1,10 +1,16 @@
-module.exports = {
-  sourceMap: false,
-  presets: [
+module.exports = function (api) {
+  const sourceMaps = api.env('production') ? false : 'inline';
+  const presets = [
     '@babel/preset-react'
-  ],
-  plugins: [
+  ];
+  const plugins = [
     '@babel/plugin-transform-modules-commonjs',
     '@babel/plugin-proposal-class-properties'
-  ]
+  ];
+
+  return {
+    sourceMaps,
+    presets,
+    plugins
+  };
 };
