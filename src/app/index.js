@@ -1,4 +1,5 @@
 import { app, ipcMain,  Menu } from 'electron';
+import isDev from 'electron-is-dev';
 import contextMenu from 'electron-context-menu';
 import path from 'path';
 import openAppWindow from './windows/app-window';
@@ -66,7 +67,8 @@ Menu.setApplicationMenu(appMenu);
 
 // Start the application
 app.on('ready', async function() {
-  appWindow = openAppWindow(storage);
+  const devtools = isDev && process.env.SHOWDEVTOOLS !== 'false' && process.env.SHOWDEVTOOLS !== '0';
+  appWindow = openAppWindow(storage, devtools);
 });
 
 ipcMain.on(ipcMainListeners.GET_USER_LOCALE, e => {
