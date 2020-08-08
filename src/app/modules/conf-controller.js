@@ -75,7 +75,7 @@ class ConfController {
    * @param req {Function} Manifest data request func
    * @returns {Promise<boolean>}
    */
-  async updateLatest(manifestHash, manifestUrl, manifestKey, req) {
+  async updateLatest(manifestUrl, manifestHash, manifestKey, req) {
     let manifestData = null;
     try {
       // Get manifest

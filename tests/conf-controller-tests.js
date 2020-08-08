@@ -61,7 +61,7 @@ describe('ConfController Test Suite', function() {
       }
     };
     const confController = new ConfController(domStorage);
-    await confController.updateLatest('0123456789', 'manifest-url', 'manifest-latest.json', req).should.be.finally.true();
+    await confController.updateLatest('manifest-url', '0123456789', 'manifest-latest.json', req).should.be.finally.true();
     domStorage.getItem(localStorageKeys.MANIFEST_SHA).should.be.equal('0123456789');
     const res = await req('manifest-latest.json');
     domStorage.getItem(localStorageKeys.MANIFEST).should.be.deepEqual(JSON.parse(res.body.toString()));
@@ -72,7 +72,7 @@ describe('ConfController Test Suite', function() {
     // return bad json here
     const req = async (url) => { return ''; };
     const confController = new ConfController(domStorage);
-    await confController.updateLatest('0123456789', 'manifest-url', 'manifest-latest.json', req).should.be.finally.false();
+    await confController.updateLatest('manifest-url', '0123456789', 'manifest-latest.json', req).should.be.finally.false();
     domStorage.clear();
   });
   it('ConfController.updateLatest() should fail on bad manifest hash file', async () => {
@@ -90,7 +90,7 @@ describe('ConfController Test Suite', function() {
       return '';
     };
     const confController = new ConfController(domStorage);
-    await confController.updateLatest('0123456789', 'manifest-url', 'manifest-latest.json', req).should.be.finally.false();
+    await confController.updateLatest('manifest-url', '0123456789', 'manifest-latest.json', req).should.be.finally.false();
     domStorage.clear();
   });
 });
