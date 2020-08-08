@@ -68,12 +68,6 @@ export const getCloudChainsDir = () => {
 };
 
 /**
- * @param manifest {Object[]}
- * @returns {Map}
- */
-export const convertManifestToMap = manifest => manifest.reduce((map, obj) => map.set(obj.ticker, obj), Map());
-
-/**
  * Wallets array sorting function
  */
 export const walletSorter = balances => (a, b) =>  {

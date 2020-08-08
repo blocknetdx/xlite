@@ -14,8 +14,8 @@ export const setWindowSize = (width, height) => ({
 });
 
 /**
- * @param manifest {Map}
- * @returns {{payload: {manifest: Map}, type: string}}
+ * @param manifest {TokenManifest}
+ * @returns {{payload: {manifest: TokenManifest}, type: string}}
  */
 export const setManifest = manifest => ({
   type: actions.SET_MANIFEST,

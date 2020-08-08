@@ -1,12 +1,13 @@
 import { actions, activeViews, altCurrencies } from '../constants';
 import { Map } from 'immutable';
+import TokenManifest from '../modules/token-manifest';
 
 const getInitialState = () => ({
   activeView: activeViews.PORTFOLIO,
   currencyMultipliers: {},
   windowHeight: window.innerHeight,
   windowWidth: window.innerWidth,
-  manifest: Map(),
+  manifest: new TokenManifest([]),
   wallets: [],
   activeWallet: '',
   altCurrency: altCurrencies.USD,

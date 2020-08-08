@@ -13,10 +13,10 @@ class WalletController {
   _cloudChainsSettingsDir = '';
 
   /**
-   * @type {Map<string, Object>}
+   * @type {TokenManifest}
    * @private
    */
-  _manifest = Map();
+  _manifest = null;
 
   /**
    * @type {boolean}
@@ -33,7 +33,7 @@ class WalletController {
   /**
    * Constructs a WalletController instance
    * @param ccSettingsDir {string}
-   * @param manifest {Map<string, Object>}
+   * @param manifest {TokenManifest}
    */
   constructor(cloudChainsSettingsDir, manifest) {
     this._cloudChainsSettingsDir = cloudChainsSettingsDir;
@@ -56,12 +56,12 @@ class WalletController {
           const data = fs.readJsonSync(filePath);
           const matches = f.match(configFilePatt);
           const ticker = matches[1];
-          const manifestData = manifest.get(ticker);
-          if(!manifestData) return null;
+          const token = manifest.getToken(ticker);
+          if(!token) return null;
           return {
             ...data,
             ticker,
-            name: manifestData.blockchain,
+            name: token.blockchain,
             filePath,
             rpc: data.rpcEnabled ? new RPCController(data.rpcPort, data.rpcUsername, data.rpcPassword) : null
           };

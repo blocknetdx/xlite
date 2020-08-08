@@ -11,13 +11,14 @@ import isDev from 'electron-is-dev';
 import * as appActions from './actions/app-actions';
 import appReducer from './reducers/app-reducer';
 import App from './components/app';
-import { convertManifestToMap, getCloudChainsDir, getLocaleData, handleError, logger, walletSorter } from './util';
+import { getCloudChainsDir, getLocaleData, handleError, logger, walletSorter } from './util';
 import ConfController from './modules/conf-controller';
 import domStorage from './modules/dom-storage';
-import { altCurrencies, ipcMainListeners, localStorageKeys } from './constants';
+import {altCurrencies, HTTP_REQUEST_TIMEOUT, ipcMainListeners, localStorageKeys} from './constants';
 import WalletController from './modules/wallet-controller';
 import Localize from './components/shared/localize';
 import Wallet from './types/wallet';
+import TokenManifest from './modules/token-manifest';
 import request from 'superagent';
 
 // Handle any uncaught exceptions
@@ -53,40 +54,19 @@ Localize.initialize({
 });
 
 (async function() {
-  try {
-    const confController = new ConfController();
-    let data;
-    // We don't want to stop the app from loading if there is a problem fetching
-    // the new manifest data. So, we wrap it in its own try/catch
-    try {
-      data = await confController.getLatest();
-    } catch(err) {
-      handleError(err);
-    }
-    let manifestArr;
-    if(data) {
-      const {
-        manifestData,
-        xbridgeConfs,
-        manifest: newManifest,
-        walletConfs,
-        manifestSha
-      } = data;
-      domStorage.setItems({
-        [localStorageKeys.MANIFEST]: newManifest,
-        [localStorageKeys.MANIFEST_DATA]: manifestData,
-        [localStorageKeys.XBRIDGE_CONFS]: xbridgeConfs,
-        [localStorageKeys.WALLET_CONFS]: walletConfs,
-        [localStorageKeys.MANIFEST_SHA]: manifestSha
-      });
-      logger.info(`Downloaded updated manifest, wallet, and xbridge confs. Manifest SHA: ${manifestSha}`);
-      manifestArr = newManifest;
-    } else {
-      manifestArr = domStorage.getItem(localStorageKeys.MANIFEST);
-    }
-    const manifest = convertManifestToMap(manifestArr);
-    store.dispatch(appActions.setManifest(manifest));
+  // Ask the conf controller for the latest manifest data.
+  const manifestUrl = 'https://s3.amazonaws.com/blockdxbuilds/blockchainconfig/blockchainconfigfilehashmap.json';
+  const confController = new ConfController(domStorage);
+  const manifestHeadReq = async () => { return await request.head(manifestUrl).timeout(HTTP_REQUEST_TIMEOUT); };
+  if (await confController.needsUpdate(manifestHeadReq)) {
+    const confRequest = async (url) => { return await request.get(url).timeout(HTTP_REQUEST_TIMEOUT).responseType('blob'); };
+    await confController.updateLatest(manifestUrl, confController.getManifestHash(), 'manifest-latest.json', confRequest);
+  }
+  // Create the token manifest from the raw manifest data
+  const tokenManifest = new TokenManifest(confController.getManifest());
+  store.dispatch(appActions.setManifest(tokenManifest));
 
+  try {
     const cloudChainsDir = getCloudChainsDir();
     const cloudChainsSettingsDir = path.join(cloudChainsDir, 'settings');
     const ccExists = await fs.exists(cloudChainsDir);
@@ -94,7 +74,7 @@ Localize.initialize({
 
     if(!ccExists || !ccSettingsExists) throw new Error('Cannot find CloudChains settings folder');
 
-    const walletController = new WalletController(cloudChainsSettingsDir, manifest);
+    const walletController = new WalletController(cloudChainsSettingsDir, tokenManifest);
     await walletController.initialize();
 
     const allWallets = walletController.getWallets()
