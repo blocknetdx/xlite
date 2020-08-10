@@ -4,45 +4,38 @@ import domStorage from '../src/app/modules/dom-storage';
 import {localStorageKeys} from '../src/app/constants';
 
 describe('ConfController Test Suite', function() {
-  this.timeout(15000);
-
-  it('ConfController.getManifest()', () => {
+  beforeEach(function() {
     domStorage.clear();
+  });
+
+  it('ConfController.getManifest()', function() {
     domStorage.setItem(localStorageKeys.MANIFEST, '{"manifest_should_exist": true}');
     const confController = new ConfController(domStorage);
     confController.getManifest().should.equal('{"manifest_should_exist": true}');
-    domStorage.clear();
   });
-  it('ConfController.getManifestHash()', () => {
-    domStorage.clear();
+  it('ConfController.getManifestHash()', function() {
     domStorage.setItem(localStorageKeys.MANIFEST_SHA, '0123456789');
     const confController = new ConfController(domStorage);
     confController.getManifestHash().should.equal('0123456789');
-    domStorage.clear();
   });
-  it('ConfController.needsUpdate() with stale manifest should not match', async () => {
-    domStorage.clear();
+  it('ConfController.needsUpdate() with stale manifest should not match', async function() {
     const confController = new ConfController(domStorage);
     await confController.needsUpdate(async () => { return {headers: {'x-amz-meta-x-manifest-hash': '0123456789'}}; }).should.be.finally.true();
-    domStorage.clear();
   });
-  it('ConfController.needsUpdate() with recent manifest should match', async () => {
-    domStorage.clear();
+  it('ConfController.needsUpdate() with recent manifest should match', async function() {
     domStorage.setItem(localStorageKeys.MANIFEST_SHA, '0123456789');
     const confController = new ConfController(domStorage);
     await confController.needsUpdate(async () => { return {headers: {'x-amz-meta-x-manifest-hash': '0123456789'}}; }).should.be.finally.false();
-    domStorage.clear();
   });
-  it('ConfController.fetchManifestHash() should match', async () => {
+  it('ConfController.fetchManifestHash() should match', async function() {
     const confController = new ConfController(domStorage);
     await confController.fetchManifestHash(async () => { return {headers: {'x-amz-meta-x-manifest-hash': '0123456789'}}; }).should.be.finally.equal('0123456789');
   });
-  it('ConfController.fetchManifestHash() bad request should be empty', async () => {
+  it('ConfController.fetchManifestHash() bad request should be empty', async function() {
     const confController = new ConfController(domStorage);
     await confController.fetchManifestHash(async () => { return {}; }).should.be.finally.equal('');
   });
-  it('ConfController.updateLatest() should pass on valid input', async () => {
-    domStorage.clear();
+  it('ConfController.updateLatest() should pass on valid input', async function() {
     const req = async (url) => {
       if (url === 'manifest-url') {
         let o = {};
@@ -65,18 +58,14 @@ describe('ConfController Test Suite', function() {
     domStorage.getItem(localStorageKeys.MANIFEST_SHA).should.be.equal('0123456789');
     const res = await req('manifest-latest.json');
     domStorage.getItem(localStorageKeys.MANIFEST).should.be.deepEqual(JSON.parse(res.body.toString()));
-    domStorage.clear();
   });
-  it('ConfController.updateLatest() should fail on bad manifest url', async () => {
-    domStorage.clear();
+  it('ConfController.updateLatest() should fail on bad manifest url', async function() {
     // return bad json here
     const req = async (url) => { return ''; };
     const confController = new ConfController(domStorage);
     await confController.updateLatest('manifest-url', '0123456789', 'manifest-latest.json', req).should.be.finally.false();
-    domStorage.clear();
   });
-  it('ConfController.updateLatest() should fail on bad manifest hash file', async () => {
-    domStorage.clear();
+  it('ConfController.updateLatest() should fail on bad manifest hash file', async function() {
     // return bad json here (manifest-latest.json => manifest-.json)
     const req = async (url) => {
       if (url === 'manifest-url') {
@@ -91,6 +80,5 @@ describe('ConfController Test Suite', function() {
     };
     const confController = new ConfController(domStorage);
     await confController.updateLatest('manifest-url', '0123456789', 'manifest-latest.json', req).should.be.finally.false();
-    domStorage.clear();
   });
 });
