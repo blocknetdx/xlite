@@ -5,7 +5,8 @@ import { Card, CardBody, CardFooter, CardHeader } from './card';
 import Localize from './localize';
 import { Table, TableColumn, TableData, TableRow } from './table';
 import AssetWithImage from './asset-with-image';
-import { MAX_DECIMAL_PLACE } from '../../constants';
+import * as appActions from '../../actions/app-actions';
+import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
 import { Column } from './flex';
 import PercentBar from './percent-bar';
 import { walletSorter } from '../../util';
@@ -19,7 +20,7 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
-const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideVolume = false, altCurrency, balances, currencyMultipliers, style = {}, wallets }) => {
+const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideVolume = false, altCurrency, balances, currencyMultipliers, style = {}, wallets, showAllButton = false, setActiveView }) => {
 
   const filteredWallets = wallets
     .filter(w => w.rpcEnabled)
@@ -36,6 +37,12 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
     altBalances[ticker] = balance;
     totalAltBalance = math.add(totalAltBalance, balance);
   }
+
+  const styles = {
+    inactiveFooterButton: {
+      color: '#c8cdd6'
+    }
+  };
 
   return (
     <Card style={style}>
@@ -99,7 +106,14 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
         </Table>
       </CardBody>
       <CardFooter>
-        <a style={{color: '#c8cdd6'}}><Localize context={'universal'}>Nothing more to load</Localize></a>
+        {showAllButton ?
+          <a href={'#'} onClick={e => {
+            e.preventDefault();
+            setActiveView(activeViews.PORTFOLIO);
+          }}><Localize context={'portfolio'}>View all assets</Localize> <i className={'fas fa-chevron-right'} /></a>
+          :
+          <a style={styles.inactiveFooterButton}><Localize context={'universal'}>Nothing more to load</Localize></a>
+        }
       </CardFooter>
     </Card>
   );
@@ -113,7 +127,9 @@ AssetsOverviewPanel.propTypes = {
   balances: PropTypes.instanceOf(Map),
   currencyMultipliers: PropTypes.object,
   style: PropTypes.object,
-  wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet))
+  wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
+  showAllButton: PropTypes.bool,
+  setActiveView: PropTypes.func
 };
 
 export default connect(
@@ -123,5 +139,8 @@ export default connect(
     balances: appState.balances,
     currencyMultipliers: appState.currencyMultipliers,
     wallets: appState.wallets
+  }),
+  dispatch => ({
+    setActiveView: activeView => dispatch(appActions.setActiveView(activeView))
   })
 )(AssetsOverviewPanel);

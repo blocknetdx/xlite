@@ -8,11 +8,12 @@ import { Column, Row } from './flex';
 import path from 'path';
 import moment from 'moment';
 import AssetWithImage from './asset-with-image';
-import { MAX_DECIMAL_PLACE } from '../../constants';
+import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
 import { Map } from 'immutable';
 import { all, create } from 'mathjs';
 import Wallet from '../../types/wallet';
 import TransactionDetailModal from './modal-transaction-detail';
+import * as appActions from '../../actions/app-actions';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -20,7 +21,7 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
-const TransactionsPanel = ({ selectable = false, activeWallet, altCurrency, coinSpecificTransactions = false, hideAddress = false, hideAmount = false, currencyMultipliers, transactions, wallets, style = {} }) => {
+const TransactionsPanel = ({ selectable = false, activeWallet, altCurrency, coinSpecificTransactions = false, hideAddress = false, hideAmount = false, currencyMultipliers, transactions, wallets, style = {}, showAllButton = false, setActiveView }) => {
 
   const [ selectedTx, setSelectedTx ] = useState(null);
 
@@ -106,7 +107,14 @@ const TransactionsPanel = ({ selectable = false, activeWallet, altCurrency, coin
         </Table>
       </CardBody>
       <CardFooter>
-        <a href={'#'}><Localize context={'universal'}>Load more</Localize> <i className={'fas fa-chevron-down'} /></a>
+        {showAllButton ?
+          <a href={'#'} onClick={e => {
+            e.preventDefault();
+            setActiveView(activeViews.TRANSACTIONS);
+          }}><Localize context={'transactions'}>View all transactions</Localize> <i className={'fas fa-chevron-right'} /></a>
+          :
+          <a href={'#'}><Localize context={'universal'}>Load more</Localize> <i className={'fas fa-chevron-down'} /></a>
+        }
       </CardFooter>
 
       {selectedTx ?
@@ -133,7 +141,8 @@ TransactionsPanel.propTypes = {
   transactions: PropTypes.instanceOf(Map),
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   style: PropTypes.object,
-  onSelect: PropTypes.func
+  showAllButton: PropTypes.bool,
+  setActiveView: PropTypes.func
 };
 
 export default connect(
@@ -143,5 +152,8 @@ export default connect(
     altCurrency: appState.altCurrency,
     currencyMultipliers: appState.currencyMultipliers,
     wallets: appState.wallets
+  }),
+  dispatch => ({
+    setActiveView: activeView => dispatch(appActions.setActiveView(activeView))
   })
 )(TransactionsPanel);

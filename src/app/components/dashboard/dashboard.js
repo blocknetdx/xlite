@@ -23,8 +23,9 @@ const Dashboard = ({ activeWallet }) => {
         </Column>
       </Row>
       <Row style={{flexGrow: 1, minHeight: 0}}>
-        <AssetsOverviewPanel hidePercentBar={true} hideTicker={true} hideVolume={true} style={{ flexGrow: 1 }} />
+        <AssetsOverviewPanel showAllButton={true} hidePercentBar={true} hideTicker={true} hideVolume={true} style={{ flexGrow: 1 }} />
         <TransactionsPanel
+          showAllButton={true}
           hideAddress={true}
           hideAmount={true}
           style={{ marginLeft: 30, width: transactionsPanelWidth, minWidth: transactionsPanelWidth, maxWidth: transactionsPanelWidth }} />
