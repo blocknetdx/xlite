@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import PerfectScrollbar from 'react-perfect-scrollbar';
 
 export const TableColumn = ({ size = 1, children, idx, final, style = {} }) => {
   return (
@@ -24,10 +25,15 @@ export const TableRow = ({ idx, children = [], style = {}, sizes = [], clickable
     <div className={`lw-table-row ${clickable ? 'clickable' : ''}`}
          style={style}
          onClick={e => {
+           if(!clickable)
+             return;
            e.preventDefault();
            onClick();
          }}>
-      {children.map((c, i) => React.cloneElement(c, {key: `row-${idx}-col${i}`, idx: i, size: sizes[i], final: i === children.length - 1}))}
+      {children
+        .filter(c => c !== null)
+        .map((c, i) => React.cloneElement(c, {key: `row-${idx}-col${i}`, idx: i, size: sizes[i], final: i === children.length - 1}))
+      }
     </div>
   );
 };
@@ -67,6 +73,7 @@ export const Table = ({ children = [] }) => {
   const rows = [];
 
   for(const child of children) {
+    if(child === null) continue;
     if(child.type.name === 'TableColumn') {
       columns.push(child);
     } else if(child.type.name === 'TableRow') {
@@ -81,7 +88,11 @@ export const Table = ({ children = [] }) => {
       <div className={'lw-table-header'}>
         {columns.map((c, i) => React.cloneElement(c, {key: `col-${i}`, idx: i, final: i === columns.length - 1}))}
       </div>
-      {rows.map((r, i) => React.cloneElement(r, {key: `row-${i}`, idx: i, sizes}))}
+      <div className={'lw-table-body'}>
+        <PerfectScrollbar>
+          {rows.map((r, i) => React.cloneElement(r, {key: `row-${i}`, idx: i, sizes}))}
+        </PerfectScrollbar>
+      </div>
     </div>
   );
 };

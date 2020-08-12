@@ -3,7 +3,7 @@ import { Map } from 'immutable';
 import TokenManifest from '../modules/token-manifest';
 
 const getInitialState = () => ({
-  activeView: activeViews.PORTFOLIO,
+  activeView: activeViews.DASHBOARD,
   currencyMultipliers: {},
   windowHeight: window.innerHeight,
   windowWidth: window.innerWidth,

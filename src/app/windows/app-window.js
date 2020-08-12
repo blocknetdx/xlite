@@ -5,7 +5,7 @@ import { storageKeys } from '../constants';
 
 const openAppWindow = (storage, devtools) => {
   let { height, width } = electron.screen.getPrimaryDisplay().workAreaSize;
-  width *= 0.6;
+  width *= 0.8;
   const nheight = width * 9/16;
   height = height >= nheight ? nheight : height;
   return new BrowserWindow({

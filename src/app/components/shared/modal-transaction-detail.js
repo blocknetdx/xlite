@@ -16,7 +16,7 @@ const { bignumber } = math;
 
 const Divider = () => <div style={{flexGrow: 1, height: 1, backgroundColor: 'rgba(0, 0, 0, 0.2)'}} />;
 
-const TransactionDetailModal = ({ altCurrency, altMultiplier, currencyMultipliers, selectedTx, onClose }) => {
+const TransactionDetailModal = ({ altCurrency, currencyMultipliers, selectedTx, onClose }) => {
 
   const { ticker } = selectedTx.wallet;
   const selectedAltMultiplier = bignumber(currencyMultipliers[ticker] && currencyMultipliers[ticker][altCurrency] ? currencyMultipliers[ticker][altCurrency] : 0);
@@ -54,7 +54,7 @@ const TransactionDetailModal = ({ altCurrency, altMultiplier, currencyMultiplier
           </div>
         </Row>
         <Row justify={'center'}>
-          <div style={{color: '#777', marginBottom: 36}}>{altCurrency} <span className={'text-monospace'}>{math.multiply(bignumber(selectedTx.amount), altMultiplier).toFixed(2)}</span></div>
+          <div style={{color: '#777', marginBottom: 36}}>{altCurrency} <span className={'text-monospace'}>{math.multiply(bignumber(selectedTx.amount), selectedAltMultiplier).toFixed(2)}</span></div>
         </Row>
         <Row>
           <Divider />
@@ -90,7 +90,6 @@ const TransactionDetailModal = ({ altCurrency, altMultiplier, currencyMultiplier
 };
 TransactionDetailModal.propTypes = {
   altCurrency: PropTypes.string,
-  altMultiplier: PropTypes.object,
   currencyMultipliers: PropTypes.object,
   selectedTx: PropTypes.object,
   onClose: PropTypes.func

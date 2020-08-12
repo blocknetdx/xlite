@@ -34,13 +34,14 @@ CardFooter.propTypes = {
   children: PropTypes.oneOfType([PropTypes.element, PropTypes.arrayOf(PropTypes.element)])
 };
 
-export const Card = ({ children }) => {
+export const Card = ({ children, style = {} }) => {
   return (
-    <div className={'lw-card-container'}>
+    <div className={'lw-card-container'} style={style}>
       {children}
     </div>
   );
 };
 Card.propTypes = {
-  children: PropTypes.oneOfType([PropTypes.element, PropTypes.arrayOf(PropTypes.element)])
+  children: PropTypes.oneOfType([PropTypes.element, PropTypes.arrayOf(PropTypes.element)]),
+  style: PropTypes.object
 };

@@ -7,10 +7,19 @@ $lw-row-padding-vert: 18px;
 
   $row-height: 50px;
   $text-size: 13px;
+  overflow: hidden;
+
   color: $lw-secondary-1;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
 
   .lw-table-header {
     height: $row-height;
+    min-height: $row-height;
+    max-height: $row-height;
     border-bottom-style: solid;
     border-bottom-width: 1px;
     border-bottom-color: $lw-bg-6;
@@ -32,38 +41,50 @@ $lw-row-padding-vert: 18px;
 
   }
 
-  .lw-table-row {
+  .lw-table-body {
 
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
 
-    height: $row-height;
-    border-bottom-style: solid;
-    border-bottom-width: 1px;
-    border-bottom-color: $lw-bg-6;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    padding-top: $lw-row-padding-vert;
-    padding-bottom: $lw-row-padding-vert;
-    padding-left: $lw-row-padding-horiz;
-    padding-right: $lw-row-padding-horiz;
+    div {
 
-    &.clickable {
-      &:hover {
-        cursor: pointer;
-        background-color: $lw-bg-3;
+      .lw-table-row {
+
+        height: $row-height;
+        border-bottom-style: solid;
+        border-bottom-width: 1px;
+        border-bottom-color: $lw-bg-6;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        padding-top: $lw-row-padding-vert;
+        padding-bottom: $lw-row-padding-vert;
+        padding-left: $lw-row-padding-horiz;
+        padding-right: $lw-row-padding-horiz;
+
+        &.clickable {
+          &:hover {
+            cursor: pointer;
+            background-color: $lw-bg-3;
+          }
+        }
+
+        div.lw-table-data-container {
+          font-size: 13px;
+          line-height: 16px;
+          text-align: center;
+        }
+
+        //&:last-child {
+        //  border-bottom-style: none;
+        //}
       }
+
     }
 
-    div.lw-table-data-container {
-      font-size: 13px;
-      line-height: 16px;
-      text-align: center;
-    }
-
-    //&:last-child {
-    //  border-bottom-style: none;
-    //}
   }
 
 }
