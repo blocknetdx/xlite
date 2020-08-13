@@ -15,6 +15,8 @@ class DOMStorage {
    * @private
    */
   _serialize(value) {
+    if (value instanceof Map)
+      return JSON.stringify(Array.from(value));
     return JSON.stringify(value);
   }
 
