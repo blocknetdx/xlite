@@ -1,10 +1,8 @@
-import electron from 'electron';
 import fs from 'fs-extra';
 import isDev from 'electron-is-dev';
 import path from 'path';
 import { createLogger, format, transports } from 'winston';
 import { DATA_DIR, DEFAULT_LOCALE } from '../constants';
-import { Map } from 'immutable';
 import Localize from '../components/shared/localize';
 
 export const getLocaleData = locale => {
@@ -50,21 +48,6 @@ if(isDev) {
 export const handleError = err => {
   if(isDev) console.error(err);
   logger.error('', err);
-};
-
-/**
- * @returns {string}
- */
-export const getCloudChainsDir = () => {
-  const app = isRenderer() ? electron.remote.app : electron.app;
-  switch(process.platform) {
-    case 'win32':
-      return path.join(app.getPath('appData'), 'CloudChains');
-    case 'linux':
-      return path.join(app.getPath('home'), 'CloudChains');
-    default:
-      return path.join(app.getPath('appData'), 'CloudChains');
-  }
 };
 
 /**
