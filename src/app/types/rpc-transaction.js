@@ -26,7 +26,7 @@ class RPCTransaction {
   blockTime = 0;
 
   /**
-   * @type {number}
+   * @type {string}
    */
   category = '';
 
@@ -64,11 +64,6 @@ class RPCTransaction {
    * @type {number}
    */
   vSize = 0;
-
-  /**
-   * @type {number}
-   */
-  blockTime = 0;
 
   /**
    * @type {Array<{coinbase: string, sequence: number}>}
