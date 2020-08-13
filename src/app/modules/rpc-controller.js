@@ -44,6 +44,14 @@ class RPCController {
   }
 
   /**
+   * Returns true if the rpc connection is undefined.
+   * @return {boolean}
+   */
+  isNull() {
+    return this._port <= 1024;
+  }
+
+  /**
    * Makes an RPC server request
    * @param method {string}
    * @param params {Object}
