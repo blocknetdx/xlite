@@ -23,7 +23,7 @@ const { bignumber } = math;
 const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideVolume = false, altCurrency, balances, currencyMultipliers, style = {}, wallets, showAllButton = false, setActiveView }) => {
 
   const filteredWallets = wallets
-    .filter(w => w.rpcEnabled)
+    .filter(w => w.rpcEnabled())
     .sort(walletSorter(balances));
 
   const altBalances = {};
@@ -31,7 +31,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
 
   for(const w of filteredWallets) {
     const { ticker } = w;
-    const [ totalBalance ] = balances.get(ticker);
+    const [ totalBalance ] = balances.has(ticker) ? balances.get(ticker) : ['0'];
     const altMultiplier = bignumber(currencyMultipliers[ticker] && currencyMultipliers[ticker][altCurrency] ? currencyMultipliers[ticker][altCurrency] : 0);
     const balance = math.multiply(bignumber(Number(totalBalance)), altMultiplier);
     altBalances[ticker] = balance;
@@ -67,9 +67,10 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
               const altMultiplier = bignumber(currencyMultipliers[ticker] && currencyMultipliers[ticker][altCurrency] ? currencyMultipliers[ticker][altCurrency] : 0);
               const btcMultiplier = bignumber(currencyMultipliers[ticker] && currencyMultipliers[ticker]['BTC'] ? currencyMultipliers[ticker]['BTC'] : 0);
 
-              const [ totalBalance ] = balances.get(ticker);
+              const [ totalBalance ] = balances.has(ticker) ? balances.get(ticker) : ['0'];
 
-              const percent = Number(math.multiply(math.divide(altBalances[ticker], totalAltBalance), bignumber(100)).toFixed(2));
+              const percent = totalAltBalance > 0 ? Number(math.multiply(math.divide(altBalances[ticker], totalAltBalance), bignumber(100)).toFixed(2))
+                                                  : (0).toFixed(2);
 
               return (
                 <TableRow key={ticker}>
