@@ -1,0 +1,62 @@
+cache:
+  paths:
+    - node_modules/
+
+stages:
+  - test
+  - build
+  - check
+
+test:
+  stage: test
+  image: blocknetdx/devbuilds:electron-tests
+  script:
+    - "npm install --no-audit"
+    - "npm run test-headless"
+
+build_linux:
+  stage: build
+  image: electronuserland/builder:latest
+  script:
+    - "npm install --no-audit"
+    - "npm run build-native-linux"
+  artifacts:
+    name: "XVault-$CI_COMMIT_REF_NAME-linux"
+    paths:
+      - dist-native/*.tar.gz
+      - dist-native/*.AppImage
+      - dist-native/*.deb
+
+build_win:
+  stage: build
+  image: electronuserland/builder:wine
+  script:
+    - "npm install --no-audit"
+    - "npm run build-native-win"
+  artifacts:
+    name: "XVault-$CI_COMMIT_REF_NAME-win"
+    paths:
+      - dist-native/*.exe
+      - dist-native/*.zip
+
+build_mac:
+  stage: build
+  image: blocknetdx/devbuilds:blockdx-gitlab-mac
+  script:
+    - "npm install --no-audit"
+    - "npm run build-native-mac"
+  artifacts:
+    name: "XVault-$CI_COMMIT_REF_NAME-mac"
+    paths:
+      - dist-native/mac/XVault.app
+
+check_artifacts:
+  stage: check
+  image: ubuntu:bionic
+  script:
+    - "set -- dist-native/XVault-*-linux.tar.gz && [[ -f \"$1\" ]]"
+    - "set -- dist-native/XVault-*-linux.AppImage && [[ -f \"$1\" ]]"
+    - "set -- dist-native/XVault-*-linux.deb && [[ -f \"$1\" ]]"
+    - "set -- dist-native/XVault-*-win.exe && [[ -f \"$1\" ]]"
+    - "set -- dist-native/XVault-*-win-x64.zip && [[ -f \"$1\" ]]"
+    - "set -- dist-native/mac/XVault.app && [[ -d \"$1\" ]]"
