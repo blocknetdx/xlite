@@ -9,9 +9,15 @@ describe('ConfController Test Suite', function() {
   });
 
   it('ConfController.getManifest()', function() {
+    const data = [{'manifest_should_exist': true}];
+    domStorage.setItem(localStorageKeys.MANIFEST, data);
+    const confController = new ConfController(domStorage);
+    confController.getManifest().should.eql(data);
+  });
+  it('ConfController.getManifest() with bad data should return empty []', function() {
     domStorage.setItem(localStorageKeys.MANIFEST, '{"manifest_should_exist": true}');
     const confController = new ConfController(domStorage);
-    confController.getManifest().should.equal('{"manifest_should_exist": true}');
+    confController.getManifest().should.eql([]);
   });
   it('ConfController.getManifestHash()', function() {
     domStorage.setItem(localStorageKeys.MANIFEST_SHA, '0123456789');

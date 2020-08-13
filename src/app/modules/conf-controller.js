@@ -24,10 +24,13 @@ class ConfController {
 
   /**
    * Get raw manifest data object.
-   * @returns {Object}
+   * @returns {Array<Object>}
    */
   getManifest() {
-    return this._domStorage.getItem(localStorageKeys.MANIFEST);
+    const manifest = this._domStorage.getItem(localStorageKeys.MANIFEST);
+    if (!_.isArray(manifest))
+      return [];
+    return manifest;
   }
 
   /**
@@ -35,14 +38,17 @@ class ConfController {
    * @returns {string}
    */
   getManifestHash() {
-    return this._domStorage.getItem(localStorageKeys.MANIFEST_SHA);
+    const hash = this._domStorage.getItem(localStorageKeys.MANIFEST_SHA);
+    if (!_.isString(hash))
+      return '';
+    return hash;
   }
 
   /**
    * Fetches the latest manifest hash from the endpoint and checks
    * if it matches the hash we currently have. Updates the datastore
    * with the latest manifest hash.
-   * @param req {Function}
+   * @param req {function}
    * @returns {Promise<boolean>}
    */
   async needsUpdate(req) {
@@ -53,7 +59,7 @@ class ConfController {
 
   /**
    * Fetch the latest manifest hash.
-   * @param req {Function}
+   * @param req {function}
    * @returns {Promise<string>}
    */
   async fetchManifestHash(req) {
@@ -72,7 +78,7 @@ class ConfController {
    * @param manifestUrl {string}
    * @param manifestHash {string}
    * @param manifestKey {string}
-   * @param req {Function} Manifest data request func
+   * @param req {function} Manifest data request func
    * @returns {Promise<boolean>}
    */
   async updateLatest(manifestUrl, manifestHash, manifestKey, req) {
