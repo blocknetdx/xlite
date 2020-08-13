@@ -20,10 +20,10 @@ class TokenManifest {
    */
   constructor(manifest) {
     this._manifest = manifest;
-    this._manifest.forEach(t => {
+    for (const t of this._manifest) {
       const token = new Token(t);
       this._tokens.set(token.ticker, token);
-    });
+    }
   }
 
   /**
