@@ -27,6 +27,9 @@ export const actions = {
 export const localStorageKeys = {
   MANIFEST: 'MANIFEST',
   MANIFEST_SHA: 'MANIFEST_SHA',
+  BALANCES: 'BALANCES',
+  TRANSACTIONS: 'TRANSACTIONS',
+  ACTIVE_WALLET: 'ACTIVE_WALLET',
   ALT_CURRENCY_MULTIPLIERS: 'ALT_CURRENCY_MULTIPLIERS'
 };
 
@@ -64,7 +67,8 @@ export const IMAGE_DIR = path.resolve(__dirname, '../../images');
 export const HTTP_REQUEST_TIMEOUT = 10000;
 
 export const altCurrencies = {
-  USD: 'USD'
+  USD: 'USD',
+  BTC: 'USD',
 };
 
 export const MAX_DECIMAL_PLACE = 8;

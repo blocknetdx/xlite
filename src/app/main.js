@@ -1,24 +1,23 @@
 import './modules/window-zoom-handlers';
-import { ipcRenderer } from 'electron';
-import fs from 'fs-extra';
-import { Map } from 'immutable';
-import path from 'path';
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { combineReducers, createStore } from 'redux';
-import { Provider } from 'react-redux';
-import isDev from 'electron-is-dev';
 import * as appActions from './actions/app-actions';
-import appReducer from './reducers/app-reducer';
 import App from './components/app';
-import { getCloudChainsDir, getLocaleData, handleError, logger, walletSorter } from './util';
+import appReducer from './reducers/app-reducer';
+import CloudChains from './modules/cloudchains';
 import ConfController from './modules/conf-controller';
 import domStorage from './modules/dom-storage';
-import {altCurrencies, HTTP_REQUEST_TIMEOUT, ipcMainListeners, localStorageKeys} from './constants';
-import WalletController from './modules/wallet-controller';
+import {getLocaleData, handleError, logger, walletSorter} from './util';
+import {HTTP_REQUEST_TIMEOUT, ipcMainListeners} from './constants';
 import Localize from './components/shared/localize';
-import Wallet from './types/wallet';
 import TokenManifest from './modules/token-manifest';
+import WalletController from './modules/wallet-controller';
+
+import { combineReducers, createStore } from 'redux';
+import { ipcRenderer } from 'electron';
+import isDev from 'electron-is-dev';
+import { Provider } from 'react-redux';
+import React from 'react';
+import ReactDOM from 'react-dom';
+
 import request from 'superagent';
 
 // Handle any uncaught exceptions
@@ -53,132 +52,100 @@ Localize.initialize({
   localeData: getLocaleData(locale)
 });
 
-(async function() {
-  // Ask the conf controller for the latest manifest data.
+/**
+ * Updates the conf manifest.
+ * @param confController {ConfController}
+ * @return {Promise<void>}
+ */
+async function updateConfManifest(confController) {
   const manifestUrl = 'https://s3.amazonaws.com/blockdxbuilds/blockchainconfig/blockchainconfigfilehashmap.json';
-  const confController = new ConfController(domStorage);
   const manifestHeadReq = async () => { return await request.head(manifestUrl).timeout(HTTP_REQUEST_TIMEOUT); };
   if (await confController.needsUpdate(manifestHeadReq)) {
     const confRequest = async (url) => { return await request.get(url).timeout(HTTP_REQUEST_TIMEOUT).responseType('blob'); };
     await confController.updateLatest(manifestUrl, confController.getManifestHash(), 'manifest-latest.json', confRequest);
   }
+}
+
+(async function() {
+  // Ask the conf controller for the latest manifest data.
+  const confController = new ConfController(domStorage);
+  let confNeedsManifestUpdate = true;
+  if (confController.getManifest().length === 0) {
+    confNeedsManifestUpdate = false;
+    await updateConfManifest(confController);
+  }
   // Create the token manifest from the raw manifest data
   const tokenManifest = new TokenManifest(confController.getManifest());
   store.dispatch(appActions.setManifest(tokenManifest));
 
-  try {
-    const cloudChainsDir = getCloudChainsDir();
-    const cloudChainsSettingsDir = path.join(cloudChainsDir, 'settings');
-    const ccExists = await fs.exists(cloudChainsDir);
-    const ccSettingsExists = await fs.exists(cloudChainsSettingsDir);
-
-    if(!ccExists || !ccSettingsExists) throw new Error('Cannot find CloudChains settings folder');
-
-    const walletController = new WalletController(cloudChainsSettingsDir, tokenManifest);
-    await walletController.initialize();
-
-    const allWallets = walletController.getWallets()
-      .map(w => new Wallet(w));
-
-    let balances = Map();
-    let transactions = Map();
-    for(const wallet of allWallets) {
-      const { ticker } = wallet;
-      const [ total, spendable ] = await wallet.getBalance();
-      balances = balances.set(ticker, [total, spendable]);
-      let txs;
-      try {
-        txs = await wallet.getTransactions();
-      } catch(err) {
-        handleError(err);
-        txs = [];
-      }
-      transactions = transactions.set(ticker, txs);
+  // Create CloudChains conf manager and determine if the daemon is installed
+  const cloudChains = new CloudChains(CloudChains.defaultPathFunc);
+  if (!await cloudChains.isInstalled()) {
+    logger.info('no cloudchains installation found, installing...');
+    try {
+      await cloudChains.runSetup();
+    } catch (err) {
+      handleError(err);
+      return; // TODO Failed setup fatal?
     }
-
-    setInterval(async function() {
-      for(const wallet of allWallets) {
-        const { ticker } = wallet;
-        const [ total, spendable ] = await wallet.getBalance();
-        const prevBalances = store.getState().appState.balances;
-        const [ prevTotal, prevSpendable ] = prevBalances.get(wallet.ticker);
-        if(prevTotal !== total || prevSpendable !== spendable) {
-          store.dispatch(appActions.setBalances(prevBalances.set(ticker, [total, spendable])));
-        }
-        let txs;
-        try {
-          txs = await wallet.getTransactions();
-        } catch(err) {
-          handleError(err);
-          txs = [];
-        }
-        const prevTransactions = store.getState().appState.transactions;
-        store.dispatch(appActions.setTransactions(prevTransactions.set(ticker, txs)));
-      }
-    }, 30000);
-
-    const updateAltCurrencies = async function() {
-
-      const multipliers = {};
-
-      const innerAllWallets = [...allWallets];
-
-      for(let i = 0; i < innerAllWallets.length; i++) {
-
-        const wallet = innerAllWallets[i];
-        const { ticker } = wallet;
-
-        const conversionCurrencies = [
-          ...Object.keys(altCurrencies),
-          'BTC'
-        ];
-
-        const { body } = await request
-          .get(`https://min-api.cryptocompare.com/data/price?fsym=${ticker}&tsyms=${conversionCurrencies.join(',')}`);
-
-        for(const conversionCurrency of Object.keys(body)) {
-          const multiplier = body[conversionCurrency];
-          multipliers[ticker] = multipliers[ticker] || {};
-          multipliers[ticker][conversionCurrency] = multiplier;
-        }
-
-      }
-      domStorage.setItem(localStorageKeys.ALT_CURRENCY_MULTIPLIERS, JSON.stringify(multipliers));
-      store.dispatch(appActions.setCurrencyMultipliers(multipliers));
-    };
-
-    setInterval(async function() {
-      try {
-        await updateAltCurrencies();
-      } catch(err) {
-        handleError(err);
-      }
-    }, 300000);
-
-    {
-      const currencyMultipliersJson = domStorage.getItem(localStorageKeys.ALT_CURRENCY_MULTIPLIERS);
-      if(currencyMultipliersJson) {
-        const currencyMultipliers = JSON.parse(currencyMultipliersJson);
-        store.dispatch(appActions.setCurrencyMultipliers(currencyMultipliers));
-        updateAltCurrencies()
-          .catch(handleError);
-      } else {
-        await updateAltCurrencies();
-      }
-    }
-
-    store.dispatch(appActions.setTransactions(transactions));
-    store.dispatch(appActions.setBalances(balances));
-
-    const sortedWallets = allWallets
-      .sort(walletSorter(balances));
-
-    store.dispatch(appActions.setWallets(sortedWallets));
-    store.dispatch(appActions.setActiveWallet(sortedWallets[0].ticker));
-
-  } catch(err) {
-    handleError(err);
   }
+  if (!await cloudChains.hasSettings()) {
+    logger.error('cannot find CloudChains settings');
+    handleError(new Error('Cannot find CloudChains settings'));
+    return; // TODO Missing cloudchain settings fatal? maybe rerun setup?
+  }
+
+  const walletController = new WalletController(cloudChains, tokenManifest, domStorage);
+  try {
+    walletController.loadWallets();
+  } catch (err) {
+    logger.error('fatal error, failed to load CloudChains conf files');
+    return; // TODO Failing to load CloudChains conf files fatal?
+  }
+
+  // Notify UI of existing cached info
+  walletController.dispatchBalances(appActions.setBalances, store);
+  walletController.dispatchTransactions(appActions.setTransactions, store);
+  walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
+  walletController.dispatchWallets(appActions.setWallets, store);
+  walletController.dispatchActiveWallet(appActions.setActiveWallet, store);
+
+  // Update latest balance info
+  await walletController.updateAllBalances();
+  walletController.dispatchBalances(appActions.setBalances, store);
+  walletController.dispatchTransactions(appActions.setTransactions, store);
+
+  // Update currency information
+  const currencyReq = async (ticker, currencies) => {
+    return await request.get(`https://min-api.cryptocompare.com/data/price?fsym=${ticker}&tsyms=${currencies.join(',')}`);
+  };
+  await walletController.updatePriceMultipliers(currencyReq);
+  walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
+
+  // Set the active wallet only if it hasn't already been set
+  // or if there's only one wallet available.
+  const wallets = walletController.getWallets();
+  if (wallets.length > 0) {
+    if (wallets.length === 1)
+      walletController.setActiveWallet(wallets[0].ticker());
+    else if (!walletController.getActiveWallet()) { // pick wallet with highest balance
+      const balances = walletController.getBalances();
+      const sortedWallets = wallets.sort(walletSorter(balances));
+      walletController.setActiveWallet(sortedWallets[0].ticker());
+    }
+  }
+
+  // Active wallets
+  walletController.dispatchWallets(appActions.setWallets, store);
+  walletController.dispatchActiveWallet(appActions.setActiveWallet, store);
+
+  // Watch for updates
+  walletController.pollUpdates(30000); // every 30 sec
+  walletController.pollPriceMultipliers(currencyReq, 300000); // every 5 min
+
+  // Update the manifest if necessary
+  if (confNeedsManifestUpdate)
+    await updateConfManifest(confController);
 })();
 
 ReactDOM.render(
