@@ -127,11 +127,11 @@ async function updateConfManifest(confController) {
   const wallets = walletController.getWallets();
   if (wallets.length > 0) {
     if (wallets.length === 1)
-      walletController.setActiveWallet(wallets[0].ticker());
+      walletController.setActiveWallet(wallets[0].ticker);
     else if (!walletController.getActiveWallet()) { // pick wallet with highest balance
       const balances = walletController.getBalances();
       const sortedWallets = wallets.sort(walletSorter(balances));
-      walletController.setActiveWallet(sortedWallets[0].ticker());
+      walletController.setActiveWallet(sortedWallets[0].ticker);
     }
   }
 
