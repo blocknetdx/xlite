@@ -1,7 +1,11 @@
+import {IMAGE_DIR} from '../constants';
+import {logger} from '../util';
+import RPCController from '../modules/rpc-controller';
+
+import _ from 'lodash';
+import {all, create} from 'mathjs';
 import fs from 'fs-extra';
-import { create, all } from 'mathjs';
 import path from 'path';
-import { IMAGE_DIR } from '../constants';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -37,24 +41,20 @@ class Wallet {
   }
 
   /**
-   * Coin name
-   * @type {string}
+   * RPCController Instance for enabled wallets
+   * @type {RPCController}
    */
-  name = '';
+  rpc = new RPCController(0, '', '');
 
   /**
-   * Coin ticker
    * @type {string}
    */
   ticker = '';
 
-  rpcEnabled = false;
-
   /**
-   * RPCController Instance for enabled wallets
-   * @type {RPCController}
+   * @type {string}
    */
-  rpc = null;
+  name = '';
 
   /**
    * Coin logo image path
@@ -63,85 +63,156 @@ class Wallet {
   imagePath = '';
 
   /**
-   * Constructs a wallet
-   * @param data {Object}
+   * Associated cloudchains wallet conf.
+   * @type {CCWalletConf}
    */
-  constructor(data) {
-    Object.assign(this, data);
-    this.imagePath = Wallet.getImage(data.ticker);
+  _conf = null;
+
+  /**
+   * Blocknet token data.
+   * @type {Token}
+   */
+  _token = null;
+
+  /**
+   * Constructs a wallet
+   * @param token {Token}
+   * @param conf {CCWalletConf}
+   */
+  constructor(token, conf) {
+    this._token = token;
+    this._conf = conf;
+    this.ticker = token.ticker;
+    this.name = token.blockchain;
+    this.imagePath = Wallet.getImage(token.ticker);
+    this.initRpcIfEnabled();
   }
 
   /**
-   * @param data {Object}
-   * @returns {Wallet}
+   * Initializes the rpc controller for the wallet only if the rpc
+   * is enabled in the conf.
    */
-  set(data) {
-    return new Wallet({...this, ...data});
+  initRpcIfEnabled() {
+    if (!this.rpcEnabled())
+      return;
+    this.rpc = new RPCController(this._conf.rpcPort, this._conf.rpcUsername, this._conf.rpcPassword);
   }
 
+  /**
+   * RPC enabled. Returns false if config explicitly set rpc to false or
+   * if there's no config.
+   * @return {boolean}
+   */
+  rpcEnabled() {
+    if (_.isNull(this._conf) || _.isUndefined(this._conf))
+      return false;
+    return this._conf.rpcEnabled;
+  }
+
+  /**
+   * Get balance information. Returns null on error.
+   * @return {Promise<null|string[]>}
+   */
   async getBalance() {
-    const { rpc } = this;
-    if(!this.rpcEnabled) return ['0', '0'];
-    let unspent;
-
-    // ToDo properly handle rpc errors here at some point
-
-    try {
-      unspent = await rpc.listUnspent();
-    } catch(err) {
-      // console.error(err);
-      unspent = [];
+    if (this.rpc.isNull()) {
+      logger.error(`failed to get balance info for ${this.ticker} because rpc is disabled`);
+      return null;
     }
+
+    let unspent;
+    try {
+      unspent = await this.rpc.listUnspent();
+    } catch(err) {
+      logger.error(`failed to list utxos for ${this.ticker}`, err);
+      return null;
+    }
+
     let total = bignumber(0);
     let spendable = bignumber(0);
     for(let { amount, spendable: isSpendable } of unspent) {
       amount = bignumber(amount);
-      if(isSpendable) spendable = math.add(spendable, amount);
+      if (isSpendable)
+        spendable = math.add(spendable, amount);
       total = math.add(total, amount);
     }
     return [total.toNumber().toFixed(8), spendable.toNumber().toFixed(8)];
   }
 
   /**
-   * @returns {Promise<RPCTransaction[]>}
+   * Get wallet transactions. Returns null on error.
+   * @return {Promise<null|RPCTransaction[]>}
    */
   async getTransactions() {
-    const { rpc } = this;
-    if(!this.rpcEnabled) return [];
-    const transactions = await rpc.listTransactions();
-    return transactions;
+    if (this.rpc.isNull()) {
+      logger.error(`failed to get transactions for ${this.ticker} because rpc is disabled`);
+      return null;
+    }
+
+    try {
+      return await this.rpc.listTransactions();
+    } catch (e) {
+      logger.error('', e);
+      return null;
+    }
   }
 
   /**
-   * @returns {Promise<string[]>}
+   * Get addresses. Returns null on error.
+   * @return {Promise<null|string[]>}
    */
   async getAddresses() {
-    const { rpc } = this;
-    if(!this.rpcEnabled) return [];
-    const addresses = await rpc.getAddressesByAccount();
-    return addresses;
+    if (this.rpc.isNull()) {
+      logger.error(`failed to get addresses for ${this.ticker} because rpc is disabled`);
+      return null;
+    }
+
+    try {
+      return await this.rpc.getAddressesByAccount();
+    } catch (e) {
+      logger.error('', e);
+      return null;
+    }
   }
 
   /**
-   * @returns {Promise<string>}
+   * Get new address. Returns empty string on error.
+   * @return {Promise<string>}
    */
   async generateNewAddress() {
-    const { rpc } = this;
-    if(!this.rpcEnabled) return '';
-    const address = await rpc.getNewAddress();
-    return address;
+    if (this.rpc.isNull()) {
+      logger.error(`failed to generate address for ${this.ticker} because rpc is disabled`);
+      return '';
+    }
+
+    try {
+      return await this.rpc.getNewAddress();
+    } catch (e) {
+      logger.error('', e);
+      return '';
+    }
   }
 
   /**
-   * Makes a send transaction
+   * Sends the amount to the specified address.
    * @param amount {string}
    * @param address {string}
-   * @param description {description}
-   * @returns {Promise<void>}
+   * @param description {string}
+   * @returns {Promise<null|string>} Returns txid on success, null on error
    */
   async send(amount, address, description) {
-    const { rpc } = this;
-    const unspent = await rpc.listUnspent();
+    if (this.rpc.isNull()) {
+      logger.error(`failed to send ${this.ticker} because rpc is disabled`);
+      return null;
+    }
+
+    let unspent;
+    try {
+      unspent = await this.rpc.listUnspent();
+    } catch (e) {
+      logger.error(`failed to get rpc utxos for ${this.ticker}`, e);
+      return null; // fatal
+    }
+    // TODO Transaction builder
     const spendable = unspent
       .filter(u => u.spendable)
       .sort((a, b) => {
@@ -158,9 +229,30 @@ class Wallet {
       totalDecimal = math.add(totalDecimal, bignumber(u.amount));
       if (math.compare(amountDecimal, totalDecimal) > -1) break;
     }
-    const rawTransaction = await rpc.createRawTransaction(inputs, {[address]: amount});
-    const signedRawTransaction = await rpc.signRawTransaction(rawTransaction);
-    const txid = await rpc.sendRawTransaction(signedRawTransaction);
+
+    // Create, sign, and send the transaction. Return null on rpc errors.
+    let rawTransaction;
+    try {
+      rawTransaction = await this.rpc.createRawTransaction(inputs, {[address]: amount});
+    } catch (e) {
+      logger.error(`failed to create raw transaction for ${this.ticker}`, e);
+      return null; // fatal
+    }
+    let signedRawTransaction;
+    try {
+      signedRawTransaction = await this.rpc.signRawTransaction(rawTransaction);
+    } catch (e) {
+      logger.error(`failed to sign raw transaction for ${this.ticker}`, e);
+      return null; // fatal
+    }
+    let txid = null;
+    try {
+      txid = await this.rpc.sendRawTransaction(signedRawTransaction);
+    } catch (e) {
+      logger.error(`failed to send raw transaction for ${this.ticker}`, e);
+      return null; // fatal
+    }
+
     return txid;
   }
 

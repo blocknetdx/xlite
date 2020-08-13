@@ -20,7 +20,7 @@ let SelectWalletDropdown = ({ selected = '', style = {}, showAll = false, wallet
       </a>
       <div className={'dropdown-menu'}>
         {wallets
-          .filter(w => (showAll || w.rpcEnabled) && w.ticker !== selected)
+          .filter(w => (showAll || w.rpcEnabled()) && w.ticker !== selected)
           .sort(walletSorter(balances))
           .map(w => {
             const onClick = e => {

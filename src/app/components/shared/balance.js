@@ -18,7 +18,7 @@ const { bignumber } = math;
 
 let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, balances, currencyMultipliers }) => {
   const wallet = activeWallet ? wallets.find(w => w.ticker === activeWallet) : null;
-  const [ total, spendable ] = wallet ? balances.get(wallet.ticker) : [];
+  const [ total, spendable ] = wallet && balances.has(wallet.ticker) ? balances.get(wallet.ticker) : ['0', '0'];
 
   if(!wallet) return <div className={'lw-balance-outer-container'} />;
 

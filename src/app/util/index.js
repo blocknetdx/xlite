@@ -54,15 +54,17 @@ export const handleError = err => {
  * Wallets array sorting function
  */
 export const walletSorter = balances => (a, b) =>  {
-  const { ticker: tickerA, name: nameA, rpcEnabled: rpcEnabledA } = a;
-  const [ totalA ] = balances.get(tickerA);
-  const { ticker: tickerB, name: nameB, rpcEnabled: rpcEnabledB } = b;
-  const [ totalB ] = balances.get(tickerB);
+  const { ticker: tickerA, name: nameA } = a;
+  const rpcEnabledA = a.rpcEnabled();
+  const [ totalA ] = balances.has(tickerA) ? balances.get(tickerA) : ['0'];
+  const { ticker: tickerB, name: nameB } = b;
+  const rpcEnabledB = b.rpcEnabled();
+  const [ totalB ] = balances.has(tickerB) ? balances.get(tickerB) : ['0'];
   if(rpcEnabledA === rpcEnabledB) {
-    if(totalA === totalB) {
+    if(Number(totalA) === Number(totalB)) {
       return Localize.compare(nameA, nameB);
     } else {
-      return totalA > totalB ? -1 : 1;
+      return Number(totalA) > Number(totalB) ? -1 : 1;
     }
   } else {
     return rpcEnabledA ? -1 : 1;
