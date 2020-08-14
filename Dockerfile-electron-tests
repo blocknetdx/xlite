@@ -1,0 +1,31 @@
+# docker build -f Dockerfile-electron-tests -t blocknetdx/devbuilds:electron-tests .
+FROM ubuntu:bionic
+
+RUN apt update \
+  && apt install -y --no-install-recommends \
+     software-properties-common \
+     ca-certificates \
+     wget curl git python vim \
+  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+ # Install node js
+RUN apt-get update \
+  && apt install -y --no-install-recommends gnupg \
+  && curl -sL https://deb.nodesource.com/setup_10.x | bash - \
+  && apt-get install -y --no-install-recommends \
+      nodejs \
+  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN apt update \
+  && apt install -y --no-install-recommends \
+    xvfb hicolor-icon-theme libcanberra-gtk* libgl1-mesa-dri \
+  	libgl1-mesa-glx libpangox-1.0-0 libpulse0 libv4l-0 \
+  	fonts-symbola \
+  && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+  && echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends \
+  	google-chrome-stable \
+  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+WORKDIR /opt
