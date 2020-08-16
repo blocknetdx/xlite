@@ -5,19 +5,20 @@ import appReducer from './reducers/app-reducer';
 import CloudChains from './modules/cloudchains';
 import ConfController from './modules/conf-controller';
 import domStorage from './modules/dom-storage';
-import {getLocaleData, handleError, logger, walletSorter} from './util';
-import {HTTP_REQUEST_TIMEOUT, ipcMainListeners} from './constants';
+import { getLocaleData, handleError, logger, walletSorter } from './util';
+import { activeViews, HTTP_REQUEST_TIMEOUT, ipcMainListeners } from './constants';
 import Localize from './components/shared/localize';
 import TokenManifest from './modules/token-manifest';
 import WalletController from './modules/wallet-controller';
 
 import { combineReducers, createStore } from 'redux';
+import fs from 'fs-extra';
 import { ipcRenderer } from 'electron';
 import isDev from 'electron-is-dev';
+import path from 'path';
 import { Provider } from 'react-redux';
 import React from 'react';
 import ReactDOM from 'react-dom';
-
 import request from 'superagent';
 
 // Handle any uncaught exceptions
@@ -67,22 +68,34 @@ async function updateConfManifest(confController) {
   }
 }
 
-(async function() {
-  // Create CloudChains conf manager and determine if the daemon is installed
-  const cloudChains = new CloudChains(CloudChains.defaultPathFunc);
+fs.readJson(path.resolve(__dirname, '../../package.json'))
+  .then(({ version }) => {
+    logger.info(`Starting Xvault version ${version}`);
+  })
+  .catch(err => logger.error(err));
+
+let ccVersionLogged = false;
+
+// Create CloudChains conf manager
+const cloudChains = new CloudChains(CloudChains.defaultPathFunc);
+store.dispatch(appActions.setCloudChains(cloudChains));
+
+const startupProcess = async function() {
+
+  // cc is not installed
   if (!await cloudChains.isInstalled()) {
-    logger.info('no cloudchains installation found, installing...');
-    try {
-      await cloudChains.runSetup();
-    } catch (err) {
-      handleError(err);
-      return; // TODO Failed setup fatal?
-    }
+    logger.info('No cloudchains installation found.');
+    store.dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
+    return;
   }
+
+  // cc found but missing settings
   if (!await cloudChains.hasSettings()) {
     logger.error('cannot find CloudChains settings');
-    handleError(new Error('Cannot find CloudChains settings'));
-    return; // TODO Missing cloudchain settings fatal? maybe rerun setup?
+    logger.info('Enabling all CloudChains wallets.');
+    await cloudChains.enableAllWallets();
+    logger.info('Enabling CloudChains master RPC server.');
+    cloudChains.loadConfs();
   }
 
   // Ask the conf controller for the latest manifest data. Also need
@@ -99,6 +112,36 @@ async function updateConfManifest(confController) {
   // Create the token manifest from the raw manifest data and fee information
   const tokenManifest = new TokenManifest(confController.getManifest(), confController.getFeeInfo());
   store.dispatch(appActions.setManifest(tokenManifest));
+
+  if(!ccVersionLogged) {
+    const binFilePath = cloudChains.getCCSPVFilePath();
+    const exists = await fs.pathExists(binFilePath);
+    if(!exists) {
+      logger.error(`Unable to find CC binary at ${binFilePath}`);
+      return;
+    }
+    // No need to await and hold up the whole process for this
+    cloudChains.getCCSPVVersion()
+      .then(ccVersion => {
+        logger.info(`Using CC CLI version ${ccVersion}`);
+        ccVersionLogged = true;
+      })
+      .catch(err => {
+        logger.error(err);
+      });
+  }
+
+  // cc is installed and has settings
+  const { ccWalletStarted } = store.getState().appState;
+
+  // cc needs to be started
+  if(!ccWalletStarted) {
+    store.dispatch(appActions.setCCWalletCreated(true));
+    store.dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
+    return;
+  } else { // cc has already been started
+    store.dispatch(appActions.setActiveView(activeViews.DASHBOARD));
+  }
 
   const walletController = new WalletController(cloudChains, tokenManifest, domStorage);
   try {
@@ -151,11 +194,11 @@ async function updateConfManifest(confController) {
   // Update the manifest if necessary
   if (confNeedsManifestUpdate)
     await updateConfManifest(confController);
-})();
+};
 
 ReactDOM.render(
   <Provider store={store}>
-    <App />
+    <App startupProcess={startupProcess} />
   </Provider>,
   document.getElementById('js-main')
 );

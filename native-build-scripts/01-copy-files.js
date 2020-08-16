@@ -15,6 +15,7 @@ const rmrf = require('rmrf-promise');
   await fs.ensureDir(buildDir);
 
   const filesToCopy = [
+    'bin',
     'dist',
     'locales'
   ];

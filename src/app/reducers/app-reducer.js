@@ -1,9 +1,12 @@
-import { actions, activeViews, altCurrencies } from '../constants';
+import { actions, altCurrencies } from '../constants';
 import { Map } from 'immutable';
 import TokenManifest from '../modules/token-manifest';
 
 const getInitialState = () => ({
-  activeView: activeViews.DASHBOARD,
+  cloudChains: null,
+  ccWalletCreated: false,
+  ccWalletStarted: false,
+  activeView: '',
   currencyMultipliers: {},
   windowHeight: window.innerHeight,
   windowWidth: window.innerWidth,
@@ -69,6 +72,21 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         currencyMultipliers: payload.multipliers
+      };
+    case actions.SET_CC_WALLET_CREATED:
+      return {
+        ...state,
+        ccWalletCreated: payload.ccWalletCreated
+      };
+    case actions.SET_CC_WALLET_STARTED:
+      return {
+        ...state,
+        ccWalletStarted: payload.ccWalletStarted
+      };
+    case actions.SET_CLOUDCHAINS:
+      return {
+        ...state,
+        cloudChains: payload.cloudChains
       };
     default:
       return state;

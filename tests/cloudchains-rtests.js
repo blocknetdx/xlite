@@ -1,10 +1,15 @@
+/* global after, before, beforeEach, describe, it, should */
+
 import 'should';
+import escapeRegExp from 'lodash/escapeRegExp';
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
 
 import CCWalletConf from '../src/app/types/ccwalletconf';
 import CloudChains from '../src/app/modules/cloudchains';
+import { DEFAULT_MASTER_PORT, platforms, ccBinDirs, ccBinNames } from '../src/app/constants';
+import fakeExecFile from './fake-exec-file';
 
 describe('CCWalletConf Test Suite', function() {
   const confDataBLOCK = {
@@ -127,12 +132,321 @@ describe('CloudChains Test Suite', function() {
       const cc = new CloudChains(ccFunc);
       cc.loadConfs().should.be.true();
       cc.getWalletConfs().length.should.be.equal(2); // master conf should not be picked up here
-      cc.getMasterConf().ticker().should.be.equal('master'); // master conf should be valid
+      const masterConf = cc.getMasterConf();
+      masterConf.ticker().should.be.equal('master'); // master conf should be valid
+      masterConf.rpcPort.should.equal(DEFAULT_MASTER_PORT); // master conf should have correct port
+    });
+    it('CloudChains.checkUpdateMasterConf', function() {
+      const ticker = 'master';
+      const rpcEnabled = true;
+      const rpcUsername = 'someusername';
+      const rpcPassword = 'somepassword';
+      const rpcPort = DEFAULT_MASTER_PORT;
+      const goodConf = new CCWalletConf(ticker, {
+        rpcEnabled,
+        rpcUsername,
+        rpcPassword,
+        rpcPort
+      });
+      const badConfs = [
+        new CCWalletConf(ticker, {
+          rpcEnabled: false,
+          rpcUsername,
+          rpcPassword,
+          rpcPort
+        }),
+        new CCWalletConf(ticker, {
+          rpcEnabled,
+          rpcUsername: '',
+          rpcPassword,
+          rpcPort
+        }),
+        new CCWalletConf(ticker, {
+          rpcEnabled,
+          rpcUsername,
+          rpcPassword: '',
+          rpcPort
+        }),
+        new CCWalletConf(ticker, {
+          rpcEnabled,
+          rpcUsername,
+          rpcPassword,
+          rpcPort: -1000
+        })
+      ];
+      const cc = new CloudChains(ccFunc);
+      cc.checkUpdateMasterConf.should.be.a.Function();
+      const returnedConf = cc.checkUpdateMasterConf(goodConf);
+      // If conf is good, check that the same conf is returned
+      returnedConf.should.equal(goodConf);
+      for(const badConf of badConfs) {
+        let savedTo = '';
+        let savedData;
+        const fakeWriteJsonSync = (filePath, data) => {
+          savedTo = filePath;
+          savedData = data;
+        };
+        const fakeFilePath = 'filepath';
+        const fixedConf = cc.checkUpdateMasterConf(badConf, fakeFilePath, fakeWriteJsonSync);
+        // Check that the conf is now valid
+        fixedConf.should.not.equal(badConf);
+        fixedConf.rpcEnabled.should.be.true();
+        fixedConf.rpcUsername.length.should.be.greaterThan(0);
+        fixedConf.rpcPassword.length.should.be.greaterThan(0);
+        fixedConf.rpcPort.should.equal(DEFAULT_MASTER_PORT);
+        // Check that writeJsonSync was called
+        savedTo.should.equal(fakeFilePath);
+        savedData.should.equal(fixedConf);
+      }
     });
   });
 
-  it('CloudChains.runSetup()', function() {
-    // TODO Implement test CloudChains.runSetup()
+  describe('CloudChains CLI methods', function() {
+
+    const platformArr = Object
+      .keys(platforms)
+      .reduce((arr, key) => [...arr, platforms[key]], []);
+
+    it('CloudChains.getCLIDir()', function() {
+      const cc = new CloudChains(ccFunc);
+      cc.getCLIDir.should.be.a.Function();
+      for(const platform of platformArr) {
+        cc._platform = platform;
+        const cliDir = cc.getCLIDir();
+        // Check that the dir is a valid string
+        cliDir.should.be.a.String();
+        cliDir.length.should.be.greaterThan(0);
+        // Check that the dir is platform-specific
+        const platformNamePatt = new RegExp(escapeRegExp(ccBinDirs[platform]) + '$');
+        platformNamePatt.test(cliDir).should.be.true();
+      }
+    });
+
+    it('CloudChains.getCCSPVFilePath()', function() {
+      const cc = new CloudChains(ccFunc);
+      cc.getCCSPVFilePath.should.be.a.Function();
+      for(const platform of platformArr) {
+        cc._platform = platform;
+        const filePath = cc.getCCSPVFilePath();
+        // Check that the dir is a valid string
+        filePath.should.be.a.String();
+        filePath.length.should.be.greaterThan(0);
+        // Check that the file is platform-specific
+        const platformNamePatt = new RegExp(escapeRegExp(ccBinNames[platform]));
+        platformNamePatt.test(filePath).should.be.true();
+      }
+    });
+
+    it('CloudChains.getCCSPVVersion()', async function() {
+      const cc = new CloudChains(ccFunc);
+      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
+      cc._execFile = execFile;
+      cc.getCCSPVVersion.should.be.a.Function();
+      const testVersion = '1.2.3';
+      // If there is an error opening the CLI
+      const versionWhenError = await new Promise((resolve, reject) => {
+        cc.getCCSPVVersion()
+          .then(resolve)
+          .catch(reject);
+        mockErr();
+      });
+      versionWhenError.should.equal('');
+      // If no version is outputted by the CLI
+      const versionWhenNoOutput = await new Promise((resolve, reject) => {
+        cc.getCCSPVVersion()
+          .then(resolve)
+          .catch(reject);
+        mockClose();
+      });
+      versionWhenNoOutput.should.equal('');
+      // If a version is outputted by the CLI
+      const version = await new Promise((resolve, reject) => {
+        cc.getCCSPVVersion()
+          .then(resolve)
+          .catch(reject);
+        mockWrite(testVersion);
+        mockClose();
+      });
+      version.should.equal(testVersion);
+    });
+
+    it('CloudChains.spvIsRunning()', function() {
+      const cc = new CloudChains(ccFunc);
+      cc.spvIsRunning.should.be.a.Function();
+
+      {
+        // If there was no child process started
+        const running = cc.spvIsRunning();
+        running.should.be.false();
+      }
+
+      {
+        // If there was a child process started but it was closed
+        const { execFile, mockExitCode } = fakeExecFile();
+        cc._cli = execFile('somepath', [], () => {});
+        mockExitCode(0);
+        const running = cc.spvIsRunning();
+        running.should.be.false();
+      }
+
+      {
+        // If there was a child process started and it is still running
+        const { execFile } = fakeExecFile();
+        cc._cli = execFile('somepath', [], () => {});
+        const running = cc.spvIsRunning();
+        running.should.be.true();
+      }
+    });
+
+    it('CloudChains.startSPV()', async function() {
+      const cc = new CloudChains(ccFunc);
+      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
+      cc._execFile = execFile;
+      cc.startSPV.should.be.a.Function();
+      const password = 'password';
+
+      {
+        // If there is an error opening the CLI
+        const success = await new Promise((resolve, reject) => {
+          cc.startSPV(password)
+            .then(resolve)
+            .catch(reject);
+          mockErr();
+        });
+        success.should.be.false();
+      }
+
+      {
+        // If the process closes
+        const success = await new Promise((resolve, reject) => {
+          cc.startSPV()
+            .then(resolve)
+            .catch(reject);
+          mockClose();
+        });
+        success.should.be.false();
+      }
+
+      {
+        // If the CLI successfully starts up without a password
+        const success = await new Promise((resolve, reject) => {
+          cc.startSPV()
+            .then(resolve)
+            .catch(reject);
+          mockWrite('selection');
+        });
+        success.should.be.true();
+      }
+
+      {
+        // If the CLI successfully starts up with a password
+        const success = await new Promise((resolve, reject) => {
+          cc.startSPV(password)
+            .then(resolve)
+            .catch(reject);
+          mockWrite('master rpc server');
+        });
+        success.should.be.true();
+      }
+
+    });
+
+    it('CloudChains.stopSPV()', function() {
+      const cc = new CloudChains(ccFunc);
+      cc.stopSPV.should.be.a.Function();
+      // If there is no running CLI process
+      should.throws(() => cc.stopSPV());
+      // If there is a running CLI process
+      const { execFile, wasKilled } = fakeExecFile();
+      cc._cli = execFile('somepath', [], () => {});
+      cc.stopSPV();
+      wasKilled().should.be.true();
+    });
+
+    it('CloudChains.createSPVWallet()', async function() {
+      const cc = new CloudChains(ccFunc);
+      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
+      cc._execFile = execFile;
+      cc.createSPVWallet.should.be.a.Function();
+      const password = 'password';
+      const testMnemonic = 'some mnemonic here';
+
+      {
+        // If there is an error opening the CLI
+        const res = await new Promise((resolve, reject) => {
+          cc.createSPVWallet(password)
+            .then(resolve)
+            .catch(reject);
+          mockErr();
+        });
+        res.should.equal('');
+      }
+
+      {
+        // If the wallet is not successfully created
+        const res = await new Promise((resolve, reject) => {
+          cc.createSPVWallet(password)
+            .then(resolve)
+            .catch(reject);
+          mockClose();
+        });
+        res.should.equal('');
+      }
+
+      {
+        // If the wallet is successfully created
+        const res = await new Promise((resolve, reject) => {
+          cc.createSPVWallet(password)
+            .then(resolve)
+            .catch(reject);
+          mockWrite(`mnemonic = ${testMnemonic}`);
+          mockClose();
+        });
+        res.should.equal(testMnemonic);
+      }
+    });
+
+    it('CloudChains.enableAllWallets()', async function() {
+      const cc = new CloudChains(ccFunc);
+      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
+      cc._execFile = execFile;
+      cc.enableAllWallets.should.be.a.Function();
+
+      {
+        // If there is an error opening the CLI
+        const success = await new Promise((resolve, reject) => {
+          cc.enableAllWallets()
+            .then(resolve)
+            .catch(reject);
+          mockErr();
+        });
+        success.should.be.false();
+      }
+
+      {
+        // If the process closes
+        const success = await new Promise((resolve, reject) => {
+          cc.enableAllWallets()
+            .then(resolve)
+            .catch(reject);
+          mockClose();
+        });
+        success.should.be.false();
+      }
+
+      {
+        // If the CLI successfully enables the wallets
+        const success = await new Promise((resolve, reject) => {
+          cc.enableAllWallets()
+            .then(resolve)
+            .catch(reject);
+          mockWrite('selection');
+        });
+        success.should.be.true();
+      }
+
+    });
+
   });
 
   after(function() {

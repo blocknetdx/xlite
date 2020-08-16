@@ -74,3 +74,5 @@ export const walletSorter = balances => (a, b) =>  {
 export const unixTime = () => {
   return Math.floor(new Date() / 1000);
 };
+
+export const timeout = length => new Promise(resolve => setTimeout(resolve, length));

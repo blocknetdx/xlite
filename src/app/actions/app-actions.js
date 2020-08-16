@@ -111,3 +111,36 @@ export const setCurrencyMultipliers = multipliers => ({
     multipliers
   }
 });
+
+/**
+ * @param ccWalletCreated {boolean}
+ * @returns {{payload: {ccWalletCreated: boolean}, type: string}}
+ */
+export const setCCWalletCreated = ccWalletCreated => ({
+  type: actions.SET_CC_WALLET_CREATED,
+  payload: {
+    ccWalletCreated
+  }
+});
+
+/**
+ * @param ccWalletStarted {boolean}
+ * @returns {{payload: {ccWalletStarted: boolean}, type: string}}
+ */
+export const setCCWalletStarted = ccWalletStarted => ({
+  type: actions.SET_CC_WALLET_STARTED,
+  payload: {
+    ccWalletStarted
+  }
+});
+
+/**
+ * @param cloudChains {CloudChains}
+ * @returns {{payload: {cloudChains: CloudChains}, type: string}}
+ */
+export const setCloudChains = cloudChains => ({
+  type: actions.SET_CLOUDCHAINS,
+  payload: {
+    cloudChains
+  }
+});

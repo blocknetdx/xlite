@@ -4,7 +4,7 @@ import path from 'path';
 const app = electron.app ? electron.app : electron.remote ? electron.remote.app : null;
 
 export const activeViews = {
-  LOGIN: 'LOGIN',
+  LOGIN_REGISTER: 'LOGIN_REGISTER',
   DASHBOARD: 'DASHBOARD',
   PORTFOLIO: 'PORTFOLIO',
   TRANSACTIONS: 'TRANSACTIONS',
@@ -21,7 +21,10 @@ export const actions = {
   SET_TRANSACTIONS: 'SET_TRANSACTIONS',
   SET_SHOW_RECEIVE_MODAL: 'SET_SHOW_RECEIVE_MODAL',
   SET_SHOW_SEND_MODAL: 'SET_SHOW_SEND_MODAL',
-  SET_CURRENCY_MULTIPLIERS: 'SET_CURRENCY_MULTIPLIERS'
+  SET_CURRENCY_MULTIPLIERS: 'SET_CURRENCY_MULTIPLIERS',
+  SET_CC_WALLET_CREATED: 'SET_CC_WALLET_CREATED',
+  SET_CC_WALLET_STARTED: 'SET_CC_WALLET_STARTED',
+  SET_CLOUDCHAINS: 'SET_CLOUDCHAINS'
 };
 
 export const localStorageKeys = {
@@ -33,6 +36,9 @@ export const localStorageKeys = {
   ACTIVE_WALLET: 'ACTIVE_WALLET',
   ALT_CURRENCY_MULTIPLIERS: 'ALT_CURRENCY_MULTIPLIERS',
   TX_LAST_FETCH_TIME: 'TX_LAST_FETCH_TIME',
+  MNEMONIC: 'MNEMONIC',
+  PASSWORD: 'PASSWORD',
+  SALT: 'SALT'
 };
 
 export const storageKeys = {
@@ -76,3 +82,23 @@ export const altCurrencies = {
 export const MAX_DECIMAL_PLACE = 8;
 
 export const DUST_SATOSHIS = 5460;
+
+export const platforms = {
+  win: 'win32',
+  mac: 'darwin',
+  linux: 'linux'
+};
+
+export const ccBinDirs = {
+  win32: 'win',
+  darwin: 'mac',
+  linux: 'linux'
+};
+
+export const ccBinNames = {
+  win32: 'Cloudchains-SPV.exe',
+  darwin: 'Cloudchains-SPV',
+  linux: 'Cloudchains-SPV'
+};
+
+export const DEFAULT_MASTER_PORT = 9955;
