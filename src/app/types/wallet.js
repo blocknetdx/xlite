@@ -1,6 +1,8 @@
 import {IMAGE_DIR} from '../constants';
 import {logger} from '../util';
+import Recipient from './recipient';
 import RPCController from '../modules/rpc-controller';
+import TransactionBuilder from '../modules/transactionbuilder';
 
 import _ from 'lodash';
 import {all, create} from 'mathjs';
@@ -135,7 +137,7 @@ class Wallet {
         spendable = math.add(spendable, amount);
       total = math.add(total, amount);
     }
-    return [total.toNumber().toFixed(8), spendable.toNumber().toFixed(8)];
+    return [total.toFixed(8), spendable.toFixed(8)];
   }
 
   /**
@@ -194,16 +196,27 @@ class Wallet {
 
   /**
    * Sends the amount to the specified address.
-   * @param amount {string}
-   * @param address {string}
-   * @param description {string}
+   * @param recipients {Recipient[]}
    * @returns {Promise<null|string>} Returns txid on success, null on error
    */
-  async send(amount, address, description) {
+  async send(recipients) {
     if (this.rpc.isNull()) {
       logger.error(`failed to send ${this.ticker} because rpc is disabled`);
       return null;
     }
+    if (!_.isArray(recipients) || recipients.length < 1) {
+      logger.error(`failed to send ${this.ticker} because no recipient was specified`);
+      return null;
+    }
+    // Validate recipients
+    for (const r of recipients) {
+      if (!(r instanceof Recipient)) {
+        logger.error(`failed to send ${this.ticker} because bad recipient ${r}`);
+        return null;
+      }
+    }
+
+    // TODO Check that recipient addresses are valid
 
     let unspent;
     try {
@@ -212,28 +225,24 @@ class Wallet {
       logger.error(`failed to get rpc utxos for ${this.ticker}`, e);
       return null; // fatal
     }
-    // TODO Transaction builder
-    const spendable = unspent
-      .filter(u => u.spendable)
-      .sort((a, b) => {
-        const amountA = a.amount;
-        const amountB = b.amount;
-        return amountA === amountB ? 0 : amountA > amountB ? 1 : -1;
-      });
-    const inputs = [];
-    const amountDecimal = bignumber(Number(amount));
-    let totalDecimal = bignumber(0);
-    for(let i = 0; i < spendable.length; i++) {
-      const u = spendable[i];
-      inputs.push(u);
-      totalDecimal = math.add(totalDecimal, bignumber(u.amount));
-      if (math.compare(amountDecimal, totalDecimal) > -1) break;
+    const builder = new TransactionBuilder(this._token.feeinfo);
+    for (const r of recipients)
+      builder.addRecipient(r);
+    try {
+      builder.fundTransaction(unspent);
+    } catch (e) {
+      logger.error(`failed on transaction builder for ${this.ticker}`, e);
+      return null; // fatal
+    }
+    if (!builder.isValid()) {
+      logger.error(`failed to create the transaction for ${this.ticker}`);
+      return null; // fatal
     }
 
     // Create, sign, and send the transaction. Return null on rpc errors.
     let rawTransaction;
     try {
-      rawTransaction = await this.rpc.createRawTransaction(inputs, {[address]: amount});
+      rawTransaction = await this.rpc.createRawTransaction(builder.getInputs(), builder.getTxOutputs());
     } catch (e) {
       logger.error(`failed to create raw transaction for ${this.ticker}`, e);
       return null; // fatal

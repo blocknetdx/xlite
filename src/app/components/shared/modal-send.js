@@ -5,6 +5,7 @@ import { clipboard, shell } from 'electron';
 import { Modal, ModalBody, ModalHeader } from './modal';
 import Localize from './localize';
 import * as appActions from '../../actions/app-actions';
+import Recipient from '../../types/recipient';
 import SelectWalletDropdown from './select-wallet-dropdown';
 import Wallet from '../../types/wallet';
 import { AddressInput, CurrencyInput, Textarea } from './inputs';
@@ -174,7 +175,10 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
     try {
       e.preventDefault();
 
-      const res = await wallet.send(inputAmount, address, description);
+      const recipient = new Recipient({ address, amount: inputAmount, description });
+      const res = await wallet.send([recipient]);
+      if (!res)
+        throw new Error('Failed to send wallet transaction');
 
       setTXID(res);
       setProgress(3);
