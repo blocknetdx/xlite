@@ -76,6 +76,7 @@ describe('WalletController Test Suite', function() {
   };
   const txBLOCK = new RPCTransaction(otxBLOCK);
   const txBTC = new RPCTransaction(otxBTC);
+  const availableWallets = ['BLOCK', 'BTC'];
 
   beforeEach(async function() {
     domStorage.clear();
@@ -127,11 +128,25 @@ describe('WalletController Test Suite', function() {
           return '[{"blockchain":"Blocknet","ticker":"BLOCK","ver_id":"blocknet--v4.0.1","ver_name":"Blocknetv4","conf_name":"blocknet.conf","dir_name_linux":"blocknet","dir_name_mac":"Blocknet","dir_name_win":"Blocknet","repo_url":"https://github.com/blocknetdx/blocknet","versions":["v4.3.0"],"xbridge_conf":"blocknet--v4.0.1.conf","wallet_conf":"blocknet--v4.0.1.conf"},{"blockchain":"Bitcoin","ticker":"BTC","ver_id":"bitcoin--v0.15.1","ver_name":"Bitcoinv0.15.x","conf_name":"bitcoin.conf","dir_name_linux":"bitcoin","dir_name_mac":"Bitcoin","dir_name_win":"Bitcoin","repo_url":"https://github.com/bitcoin/bitcoin","versions":["v0.15.1","v0.15.2"],"xbridge_conf":"bitcoin--v0.15.1.conf","wallet_conf":"bitcoin--v0.15.1.conf"}]';
         };
         return o;
+      } else if (url === 'xbridge-confs/blocknet--v4.0.1.conf') {
+        let o = {};
+        o.body = {};
+        o.body.toString = () => {
+          return '[BLOCK]\\nTitle=Blocknet\\nAddress=\\nIp=127.0.0.1\\nPort=41414\\nUsername=\\nPassword=\\nAddressPrefix=26\\nScriptPrefix=28\\nSecretPrefix=154\\nCOIN=100000000\\nMinimumAmount=0\\nTxVersion=1\\nDustAmount=0\\nCreateTxMethod=BTC\\nGetNewKeySupported=true\\nImportWithNoScanSupported=true\\nMinTxFee=10000\\nBlockTime=60\\nFeePerByte=20\\nConfirmations=0';
+        };
+        return o;
+      } else if (url === 'xbridge-confs/bitcoin--v0.15.1.conf') {
+        let o = {};
+        o.body = {};
+        o.body.toString = () => {
+          return '[BTC]\\nTitle=Bitcoin\\nAddress=\\nIp=127.0.0.1\\nPort=8332\\nUsername=\\nPassword=\\nAddressPrefix=0\\nScriptPrefix=5\\nSecretPrefix=128\\nCOIN=100000000\\nMinimumAmount=0\\nTxVersion=2\\nDustAmount=0\\nCreateTxMethod=BTC\\nMinTxFee=7500\\nBlockTime=600\\nGetNewKeySupported=false\\nImportWithNoScanSupported=false\\nFeePerByte=120\\nConfirmations=1';
+        };
+        return o;
       }
     };
-    confController = new ConfController(domStorage);
-    await confController.updateLatest('manifest-url', '0123456789', 'manifest-latest.json', req).should.be.finally.true();
-    tokenManifest = new TokenManifest(confController.getManifest());
+    confController = new ConfController(domStorage, availableWallets);
+    await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.true();
+    tokenManifest = new TokenManifest(confController.getManifest(), confController.getFeeInfo());
     cloudChains = new CloudChains(ccFunc);
   });
 

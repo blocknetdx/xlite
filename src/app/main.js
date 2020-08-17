@@ -59,25 +59,15 @@ Localize.initialize({
  */
 async function updateConfManifest(confController) {
   const manifestUrl = 'https://s3.amazonaws.com/blockdxbuilds/blockchainconfig/blockchainconfigfilehashmap.json';
+  const manifestConfPrefix = 'https://s3.amazonaws.com/blockdxbuilds/blockchainconfig/files/xbridge-confs/';
   const manifestHeadReq = async () => { return await request.head(manifestUrl).timeout(HTTP_REQUEST_TIMEOUT); };
   if (await confController.needsUpdate(manifestHeadReq)) {
     const confRequest = async (url) => { return await request.get(url).timeout(HTTP_REQUEST_TIMEOUT).responseType('blob'); };
-    await confController.updateLatest(manifestUrl, confController.getManifestHash(), 'manifest-latest.json', confRequest);
+    await confController.updateLatest(manifestUrl, manifestConfPrefix, confController.getManifestHash(), 'manifest-latest.json', confRequest);
   }
 }
 
 (async function() {
-  // Ask the conf controller for the latest manifest data.
-  const confController = new ConfController(domStorage);
-  let confNeedsManifestUpdate = true;
-  if (confController.getManifest().length === 0) {
-    confNeedsManifestUpdate = false;
-    await updateConfManifest(confController);
-  }
-  // Create the token manifest from the raw manifest data
-  const tokenManifest = new TokenManifest(confController.getManifest());
-  store.dispatch(appActions.setManifest(tokenManifest));
-
   // Create CloudChains conf manager and determine if the daemon is installed
   const cloudChains = new CloudChains(CloudChains.defaultPathFunc);
   if (!await cloudChains.isInstalled()) {
@@ -94,6 +84,21 @@ async function updateConfManifest(confController) {
     handleError(new Error('Cannot find CloudChains settings'));
     return; // TODO Missing cloudchain settings fatal? maybe rerun setup?
   }
+
+  // Ask the conf controller for the latest manifest data. Also need
+  // to provide the conf controller with knowledge about available
+  // wallets so that it can limit the number of downloads to only
+  // what we need.
+  const availableWallets = cloudChains.getWalletConfs().map(c => c.ticker());
+  const confController = new ConfController(domStorage, availableWallets);
+  let confNeedsManifestUpdate = true;
+  if (confController.getManifest().length === 0) {
+    confNeedsManifestUpdate = false;
+    await updateConfManifest(confController);
+  }
+  // Create the token manifest from the raw manifest data and fee information
+  const tokenManifest = new TokenManifest(confController.getManifest(), confController.getFeeInfo());
+  store.dispatch(appActions.setManifest(tokenManifest));
 
   const walletController = new WalletController(cloudChains, tokenManifest, domStorage);
   try {

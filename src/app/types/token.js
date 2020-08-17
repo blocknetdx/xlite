@@ -1,3 +1,5 @@
+import FeeInfo from './feeinfo';
+
 /**
  * Manifest token
  *
@@ -33,6 +35,9 @@ class Token {
   versions = [];
   xbridge_conf = '';
   wallet_conf = '';
+
+  // Memory only
+  feeinfo = new FeeInfo({});
 
   /**
    * Constructor

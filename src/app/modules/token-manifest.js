@@ -2,7 +2,7 @@ import Token from '../types/token';
 
 class TokenManifest {
   /**
-   * @type {Array<Object>}
+   * @type {Object[]}
    * @private
    */
   _manifest = [];
@@ -15,13 +15,19 @@ class TokenManifest {
   _tokens = new Map();
 
   /**
-   * Constructor
-   * @param manifest {Array<Object>}
+   * Constructor. Fee info is required to associate fee data
+   * with the token manifest data.
+   * @param manifest {Object[]}
+   * @param feeInfo {FeeInfo[]}
    */
-  constructor(manifest) {
+  constructor(manifest, feeInfo) {
     this._manifest = manifest;
+    const fees = new Map();
+    for (const info of feeInfo)
+      fees.set(info.ticker, info);
     for (const t of this._manifest) {
       const token = new Token(t);
+      token.feeinfo = fees.get(token.ticker);
       this._tokens.set(token.ticker, token);
     }
   }

@@ -27,6 +27,7 @@ export const actions = {
 export const localStorageKeys = {
   MANIFEST: 'MANIFEST',
   MANIFEST_SHA: 'MANIFEST_SHA',
+  FEEINFO: 'FEEINFO',
   BALANCES: 'BALANCES',
   TRANSACTIONS: 'TRANSACTIONS',
   ACTIVE_WALLET: 'ACTIVE_WALLET',
@@ -72,3 +73,5 @@ export const altCurrencies = {
 };
 
 export const MAX_DECIMAL_PLACE = 8;
+
+export const DUST_SATOSHIS = 5460;

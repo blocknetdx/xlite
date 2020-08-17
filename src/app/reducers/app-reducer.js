@@ -7,7 +7,7 @@ const getInitialState = () => ({
   currencyMultipliers: {},
   windowHeight: window.innerHeight,
   windowWidth: window.innerWidth,
-  manifest: new TokenManifest([]),
+  manifest: new TokenManifest([], []),
   wallets: [],
   activeWallet: '',
   altCurrency: altCurrencies.USD,

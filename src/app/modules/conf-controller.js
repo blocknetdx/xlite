@@ -1,5 +1,8 @@
+import FeeInfo from '../types/feeinfo';
 import {logger, requireRenderer} from '../util';
 import {localStorageKeys} from '../constants';
+import Token from '../types/token';
+
 import _ from 'lodash';
 
 /**
@@ -12,14 +15,21 @@ class ConfController {
    * @private
    */
   _domStorage = null;
+  /**
+   * @type {Set}
+   * @private
+   */
+  _availableWallets = new Set();
 
   /**
    * Constructor
    * @param domStorage {DOMStorage}
+   * @param wallets {string[]} Available wallets (tickers)
    */
-  constructor(domStorage) {
+  constructor(domStorage, wallets) {
     requireRenderer();
     this._domStorage = domStorage;
+    this._availableWallets = new Set(wallets);
   }
 
   /**
@@ -42,6 +52,20 @@ class ConfController {
     if (!_.isString(hash))
       return '';
     return hash;
+  }
+
+  /**
+   * Get the fee info data provider.
+   * @returns {FeeInfo[]}
+   */
+  getFeeInfo() {
+    const info = this._domStorage.getItem(localStorageKeys.FEEINFO);
+    const fees = [];
+    if (!_.isArray(info)) // do not process bad data
+      return fees;
+    for (const fee of info)
+      fees.push(new FeeInfo(fee));
+    return fees;
   }
 
   /**
@@ -76,12 +100,13 @@ class ConfController {
   /**
    * Downloads and caches the latest token manifest.
    * @param manifestUrl {string}
+   * @param manifestConfPrefix {string}
    * @param manifestHash {string}
    * @param manifestKey {string}
    * @param req {function} Manifest data request func
    * @returns {Promise<boolean>}
    */
-  async updateLatest(manifestUrl, manifestHash, manifestKey, req) {
+  async updateLatest(manifestUrl, manifestConfPrefix, manifestHash, manifestKey, req) {
     let manifestData = null;
     try {
       // Get manifest
@@ -107,6 +132,72 @@ class ConfController {
     if (!_.isNull(manifest) && !_.isUndefined(manifest)) {
       this._domStorage.setItem(localStorageKeys.MANIFEST_SHA, manifestHash);
       this._domStorage.setItem(localStorageKeys.MANIFEST, manifest);
+
+      // Pull the wallet confs for available wallets and get fee information.
+      const fees = [];
+      const reFpb = /^\s*feeperbyte\s*=\s*(\d+)\s*$/i;
+      const reMtf = /^\s*mintxfee\s*=\s*(\d+)\s*$/i;
+      const reCoin = /^\s*coin\s*=\s*(\d+)\s*$/i;
+      for (const t of manifest) {
+        const token = new Token(t);
+        if (this._availableWallets.has(token.ticker)) {
+          try {
+            // Sample data (without //):
+            // [BLOCK]
+            // Title=Blocknet
+            // Address=
+            // Ip=127.0.0.1
+            // Port=41414
+            // Username=
+            // Password=
+            // AddressPrefix=26
+            // ScriptPrefix=28
+            // SecretPrefix=154
+            // COIN=100000000
+            // MinimumAmount=0
+            // TxVersion=1
+            // DustAmount=0
+            // CreateTxMethod=BTC
+            // GetNewKeySupported=true
+            // ImportWithNoScanSupported=true
+            // MinTxFee=10000
+            // BlockTime=60
+            // FeePerByte=20
+            // Confirmations=0
+            const res = await req(manifestConfPrefix + token.xbridge_conf);
+            const xbconf = res.body.toString().split(/(?:\\r)?\\n/gm);
+            let matchfpb = null;
+            let matchminfee = null;
+            let matchcoin = null;
+            for (const line of xbconf) {
+              if (!matchfpb)
+                matchfpb = line.match(reFpb);
+              if (!matchminfee)
+                matchminfee = line.match(reMtf);
+              if (!matchcoin)
+                matchcoin = line.match(reCoin);
+            }
+            if (matchfpb && matchminfee && matchcoin) {
+              const feeInfo = new FeeInfo({
+                ticker: token.ticker,
+                feeperbyte: Number(matchfpb[1]),
+                mintxfee: Number(matchminfee[1]),
+                coin: Number(matchcoin[1]),
+              });
+              fees.push(feeInfo);
+            } else {
+              logger.error(`failed to read fee info for ${token.ticker}`);
+              return false;
+            }
+          } catch (e) {
+            logger.error(`failed to download fee info for ${token.ticker}`, e);
+            return false;
+          }
+        }
+      }
+      // Store fee data
+      this._domStorage.setItem(localStorageKeys.FEEINFO, fees);
+
       return true;
     }
 
