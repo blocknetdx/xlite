@@ -2,7 +2,7 @@
 
 $lw-login-background-color: $lw-bg-6;
 $lw-login-input-border-color: $lw-secondary-6;
-$lw-login-input-border-color-active: $lw-secondary-6;
+$lw-login-input-border-color-active: $lw-secondary-5;
 $lw-login-input-border-width: 1px;
 $lw-login-input-total-height: 56px;
 $lw-login-text-color: $lw-secondary-1;
@@ -44,7 +44,7 @@ $lw-login-logo-total-width: 230px;
 
     .lw-login-input-container {
 
-      margin-top: 50px;
+      //margin-top: 50px;
       border-color: $lw-login-input-border-color;
       border-style: solid;
       border-width: $lw-login-input-border-width;
@@ -137,3 +137,22 @@ $lw-login-logo-total-width: 230px;
 
 }
 
+.lw-login-textarea {
+  display: block;
+  width: 100%;
+  border-color: $lw-login-input-border-color;
+  border-style: solid;
+  border-width: $lw-login-input-border-width;
+  border-radius: 6px;
+  background-color: transparent;
+  color: $lw-login-text-color;
+  font-size: 15px;
+  padding: 10px 20px 10px 20px;
+  resize: none;
+
+  &:focus {
+    border-color: $lw-login-input-border-color-active;
+    outline: none;
+  }
+
+}

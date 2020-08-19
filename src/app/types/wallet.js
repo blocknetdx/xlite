@@ -32,8 +32,8 @@ class Wallet {
     const tickerLower = ticker.toLowerCase();
     const imagePath1x = path.join(coinImageDir, `icon-${tickerLower}.png`);
     const imagePath2x = path.join(coinImageDir, `icon-${tickerLower}@2x.png`);
-    const image1xExists = fs.existsSync(imagePath1x);
-    const image2xExists = fs.existsSync(imagePath2x);
+    const image1xExists = fs.pathExistsSync(imagePath1x);
+    const image2xExists = fs.pathExistsSync(imagePath2x);
     if(image1xExists && image2xExists) {
       return `${imagePath1x}, ${imagePath2x} 2x`;
     } else if(image1xExists) {

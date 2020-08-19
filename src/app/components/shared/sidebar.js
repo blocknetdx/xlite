@@ -11,6 +11,7 @@ import { activeViews, IMAGE_DIR } from '../../constants';
 import { IconInput } from './inputs';
 import Wallet from '../../types/wallet';
 import { walletSorter } from '../../util';
+import CloudChains from '../../modules/cloudchains';
 
 const SidebarFilterableList = ({ placeholder, items, onClick = () => {} }) => {
 
@@ -60,14 +61,21 @@ SidebarButton.propTypes = {
 
 const iconsDir = path.join(IMAGE_DIR, 'icons');
 
-let Sidebar = ({ activeView, wallets, balances, setActiveView, setActiveWallet }) => {
+let Sidebar = ({ activeView, cloudChains, wallets, balances, setActiveView, setActiveWallet, setCCWalletStarted }) => {
+
+  const onLockClick = async function(e) {
+    e.preventDefault();
+    cloudChains.stopSPV();
+    setCCWalletStarted(false);
+  };
+
   return (
     <div className={'lw-sidebar-container'} style={{overflowY: 'hidden', flexWrap: 'nowrap', maxHeight: '100%'}}>
       <SidebarButton active={activeView === activeViews.DASHBOARD} onClick={() => activeView !== activeViews.DASHBOARD ? setActiveView(activeViews.DASHBOARD) : null}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-home.png')}, ${path.join(iconsDir, 'icon-home@2x.png')} 2x`} /> <Localize context={'sidebar'}>Dashboard</Localize></SidebarButton>
       <SidebarButton active={activeView === activeViews.PORTFOLIO} onClick={() => activeView !== activeViews.PORTFOLIO ? setActiveView(activeViews.PORTFOLIO) : null}><img alt={Localize.text('Portfolio icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-wallet.png')}, ${path.join(iconsDir, 'icon-wallet@2x.png')} 2x`} /> <Localize context={'sidebar'}>Portfolio</Localize></SidebarButton>
       <SidebarButton active={activeView === activeViews.TRANSACTIONS} onClick={() => activeView !== activeViews.TRANSACTIONS ? setActiveView(activeViews.TRANSACTIONS) : null}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-history.png')}, ${path.join(iconsDir, 'icon-history@2x.png')} 2x`} /> <Localize context={'sidebar'}>Transactions</Localize></SidebarButton>
       <SidebarButton><img alt={Localize.text('Settings icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-settings.png')}, ${path.join(iconsDir, 'icon-settings@2x.png')} 2x`} /> <Localize context={'sidebar'}>Settings</Localize></SidebarButton>
-      <SidebarButton onClick={() => setActiveView(activeViews.LOGIN)}><img alt={Localize.text('Lock icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-lock-closed.png')}, ${path.join(iconsDir, 'icon-lock-closed@2x.png')} 2x`} /> <Localize context={'sidebar'}>Lock Wallet</Localize></SidebarButton>
+      <SidebarButton onClick={onLockClick}><img alt={Localize.text('Lock icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-lock-closed.png')}, ${path.join(iconsDir, 'icon-lock-closed@2x.png')} 2x`} /> <Localize context={'sidebar'}>Lock Wallet</Localize></SidebarButton>
       <SidebarDivider />
       <SidebarFilterableList
         placeholder={Localize.text('Search assets', 'sidebar')}
@@ -84,20 +92,24 @@ let Sidebar = ({ activeView, wallets, balances, setActiveView, setActiveWallet }
 };
 Sidebar.propTypes = {
   activeView: PropTypes.string,
+  cloudChains: PropTypes.instanceOf(CloudChains),
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   balances: PropTypes.instanceOf(Map),
   setActiveView: PropTypes.func,
-  setActiveWallet: PropTypes.func
+  setActiveWallet: PropTypes.func,
+  setCCWalletStarted: PropTypes.func
 };
 Sidebar = connect(
   ({ appState }) => ({
     activeView: appState.activeView,
+    cloudChains: appState.cloudChains,
     wallets: appState.wallets,
     balances: appState.balances
   }),
   dispatch => ({
     setActiveView: activeView => dispatch(appActions.setActiveView(activeView)),
-    setActiveWallet: activeWallet => dispatch(appActions.setActiveWallet(activeWallet))
+    setActiveWallet: activeWallet => dispatch(appActions.setActiveWallet(activeWallet)),
+    setCCWalletStarted: ccWalletStarted => dispatch(appActions.setCCWalletStarted(ccWalletStarted))
   })
 )(Sidebar);
 

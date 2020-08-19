@@ -19,6 +19,7 @@ build_linux:
   image: electronuserland/builder:latest
   script:
     - "npm install --no-audit"
+    - "npm run download-binaries-linux"
     - "npm run build-native-linux"
   artifacts:
     name: "XVault-$CI_COMMIT_REF_NAME-linux"
@@ -32,6 +33,7 @@ build_win:
   image: electronuserland/builder:wine
   script:
     - "npm install --no-audit"
+    - "npm run download-binaries-win"
     - "npm run build-native-win"
   artifacts:
     name: "XVault-$CI_COMMIT_REF_NAME-win"
@@ -44,6 +46,7 @@ build_mac:
   image: blocknetdx/devbuilds:blockdx-gitlab-mac
   script:
     - "npm install --no-audit"
+    - "npm run download-binaries-mac"
     - "npm run build-native-mac"
   artifacts:
     name: "XVault-$CI_COMMIT_REF_NAME-mac"
