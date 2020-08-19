@@ -70,3 +70,7 @@ export const walletSorter = balances => (a, b) =>  {
     return rpcEnabledA ? -1 : 1;
   }
 };
+
+export const unixTime = () => {
+  return Math.floor(new Date() / 1000);
+};

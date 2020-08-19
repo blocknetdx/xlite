@@ -97,17 +97,12 @@ class WalletController {
 
   /**
    * Return transaction data.
-   * @return {Map<string, Array<RPCTransaction>>}
+   * @return {Map<string, RPCTransaction[]>}
    */
   getTransactions() {
-    const data = new Map(this._domStorage.getItem(localStorageKeys.TRANSACTIONS));
-    for (const [key, val] of data) {
-      const newData = [];
-      // iterate over txs and create data providers
-      for (const o of val)
-        newData.push(new RPCTransaction(o));
-      data.set(key, newData);
-    }
+    const data = new Map();
+    for (const [ticker, wallet] of this._wallets)
+      data.set(ticker, wallet.getTransactions());
     return data;
   }
 
@@ -150,7 +145,7 @@ class WalletController {
         logger.info(`failed to load wallet for token: ${conf.ticker()}`);
         return;
       }
-      this._wallets.set(conf.ticker(), new Wallet(token, conf));
+      this._wallets.set(conf.ticker(), new Wallet(token, conf, this._domStorage));
     }, this);
   }
 
@@ -243,13 +238,12 @@ class WalletController {
    */
   async updateBalanceInfo(ticker) {
     const balances = this.getBalances();
-    const transactions = this.getTransactions();
-    if (await this._updateBalanceInfo(ticker, balances, transactions)) {
-      // Save to storage
+    if (await this._updateBalanceInfo(ticker, balances))
       this._domStorage.setItem(localStorageKeys.BALANCES, balances);
-      // TODO Store transactions by ticker to partition writes
-      this._domStorage.setItem(localStorageKeys.TRANSACTIONS, transactions);
-    }
+    // Trigger fetch on the latest transactions
+    const wallet = this.getWallet(ticker);
+    if (wallet)
+      await wallet.updateTransactions();
   }
 
   /**
@@ -260,19 +254,17 @@ class WalletController {
     // Start with existing balance data and only persist new data if change
     // was detected.
     const balances = this.getBalances();
-    const transactions = this.getTransactions();
     let dataChanged = false;
     for (const wallet of this.getWallets()) {
-      if (await this._updateBalanceInfo(wallet.ticker, balances, transactions))
+      if (await this._updateBalanceInfo(wallet.ticker, balances))
         dataChanged = true;
+      // Trigger fetch on the latest transactions
+      await wallet.updateTransactions();
     }
 
     // Save to storage
-    if (dataChanged) {
+    if (dataChanged)
       this._domStorage.setItem(localStorageKeys.BALANCES, balances);
-      // TODO Store transactions by ticker to partition writes
-      this._domStorage.setItem(localStorageKeys.TRANSACTIONS, transactions);
-    }
   }
 
   /**
@@ -303,23 +295,21 @@ class WalletController {
   }
 
   /**
-   * Fetch and update the latest balance and transaction info for the wallet
-   * with the specified ticker. Mutates the balances and transactions data
-   * providers passed into the func but does not update the underlying data
-   * storage directly. Returns true if the data providers were mutated.
+   * Fetch and update the latest balance info for the wallet with the
+   * specified ticker. Mutates the balances data provider passed into
+   * the func but does not update the underlying data storage directly.
+   * Returns true if the data providers were mutated.
    * @param ticker {string}
    * @param balances {Map<string, Array<string>>}
-   * @param transactions {Map<string, RPCTransaction>}
    * @return {Promise<boolean>}
    */
-  async _updateBalanceInfo(ticker, balances, transactions) {
+  async _updateBalanceInfo(ticker, balances) {
     // Start with existing balance data and only persist new data if no errors.
     const wallet = this.getWallet(ticker);
     if (!wallet)
       return false; // no wallet found
 
     let balanceUpdated = false;
-    let txsUpdated = false;
 
     try {
       const balanceInfo = await wallet.getBalance();
@@ -330,17 +320,8 @@ class WalletController {
     } catch (err) {
       logger.error(`failed to get balance info for ${wallet.ticker}`, err);
     }
-    try {
-      const txs = await wallet.getTransactions(); // TODO Need to use a date range here
-      if (txs) {
-        transactions.set(wallet.ticker, txs);
-        txsUpdated = true;
-      }
-    } catch(err) {
-      logger.error(`failed to get transactions for ${wallet.ticker}`, err);
-    }
 
-    return balanceUpdated || txsUpdated;
+    return balanceUpdated;
   }
 }
 

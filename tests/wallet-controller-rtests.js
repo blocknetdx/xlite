@@ -14,6 +14,7 @@ import domStorage from '../src/app/modules/dom-storage';
 import FakeRPCController from './fake-rpc-controller';
 import {localStorageKeys} from '../src/app/constants';
 import RPCTransaction from '../src/app/types/rpc-transaction';
+import Token from '../src/app/types/token';
 import TokenManifest from '../src/app/modules/token-manifest';
 import Wallet from '../src/app/types/wallet';
 import WalletController from '../src/app/modules/wallet-controller';
@@ -186,15 +187,19 @@ describe('WalletController Test Suite', function() {
     wc.getBalances().get('BLOCK').should.be.eql(balances.get('BLOCK'));
     wc.getBalances().get('BTC').should.be.eql(balances.get('BTC'));
   });
-  it('WalletController.getTransactions()', function() {
-    const transactions = new Map([['BLOCK', [txBLOCK]], ['BTC', [txBTC]]]);
-    domStorage.setItem(localStorageKeys.TRANSACTIONS, transactions);
+  it('WalletController.getTransactions()', async function() {
     const wc = new WalletController(cloudChains, tokenManifest, domStorage);
     wc.loadWallets();
+    const blockWallet = wc.getWallet('BLOCK');
+    const fakerpc = new FakeRPCController();
+    blockWallet.rpc = fakerpc;
+    await blockWallet.updateTransactions();
     wc.getTransactions().should.be.an.instanceof(Map);
-    wc.getTransactions().size.should.be.equal(2);
-    wc.getTransactions().get('BLOCK').should.be.eql([txBLOCK]);
-    wc.getTransactions().get('BTC').should.be.eql([txBTC]);
+    wc.getTransactions().has('BLOCK').should.be.true();
+    const sortFn = (a,b) => a.txId.localeCompare(b.txId);
+    const txs = wc.getTransactions().get('BLOCK').sort(sortFn);
+    const fakeTxs = (await fakerpc.listTransactions()).sort(sortFn);
+    txs.should.be.eql(fakeTxs);
   });
   it('WalletController.getActiveWallet()', function() {
     const wc = new WalletController(cloudChains, tokenManifest, domStorage);
@@ -266,8 +271,11 @@ describe('WalletController Test Suite', function() {
     store.getState().appState.balances.get('BTC')[1].should.be.equal(balances.get('BTC')[1]);
   });
   it('WalletController.dispatchTransactions()', function() {
+    const blockWallet = new Wallet(new Token({ticker: 'BLOCK'}), null, domStorage);
+    const btcWallet = new Wallet(new Token({ticker: 'BTC'}), null, domStorage);
     const transactions = new Map([['BLOCK', [txBLOCK]], ['BTC', [txBTC]]]);
-    domStorage.setItem(localStorageKeys.TRANSACTIONS, transactions);
+    domStorage.setItem(blockWallet._getTransactionStorageKey(), transactions.get('BLOCK'));
+    domStorage.setItem(btcWallet._getTransactionStorageKey(), transactions.get('BTC'));
     const combinedReducers = combineReducers({ appState: appReducer });
     const store = createStore(combinedReducers);
     const wc = new WalletController(cloudChains, tokenManifest, domStorage);
@@ -345,21 +353,19 @@ describe('WalletController Test Suite', function() {
   };
 
   it('WalletController.updateAllBalances()', async function() {
-    await updateBalancePrep();
+    const wc = await updateBalancePrep();
     domStorage.getItem(localStorageKeys.BALANCES).should.be.eql(Array.from(balances));
+    const wallet = wc.getWallet('BLOCK');
+    wallet.getTransactions().should.be.eql(await fakerpc.listTransactions());
   });
   it('WalletController._updateBalanceInfo()', async function() {
     const wc = await updateBalancePrep();
     const newBalances = new Map();
-    const newTransactions = new Map();
     const wallet = wc.getWallet('BLOCK');
     const oldBalances = wc.getBalances();
-    const oldTransactions = wc.getTransactions();
-    await wc._updateBalanceInfo(wallet.ticker, newBalances, newTransactions);
+    await wc._updateBalanceInfo(wallet.ticker, newBalances);
     newBalances.get('BLOCK').should.be.eql(oldBalances.get('BLOCK'));
     newBalances.size.should.be.equal(1); // should not have any other tickers
-    newTransactions.get('BLOCK').should.be.eql(oldTransactions.get('BLOCK'));
-    newTransactions.get('BLOCK').should.be.eql(await fakerpc.listTransactions());
   });
   it('WalletController._updateBalanceInfo() should not update on wallet error', async function() {
     const wc = await updateBalancePrep();
