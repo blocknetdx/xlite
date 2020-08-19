@@ -6,6 +6,7 @@ import RPCUnspent from '../src/app/types/rpc-unspent';
 import RPCSignedRawTransaction from '../src/app/types/rpc-signed-raw-transaction';
 import RPCTransaction from '../src/app/types/rpc-transaction';
 import RPCTransactionOutput from '../src/app/types/rpc-transaction-output';
+import {unixTime} from '../src/app/util';
 
 /**
  * Used in unit tests
@@ -326,7 +327,9 @@ class FakeRPCController {
     return '0c0466b7ced37291d128db1994a2ce2fcd63ee9d745f3c065ed8a344f80c78a4';
   }
 
-  async listTransactions() {
+  async listTransactions(startTime=0, endTime=0) {
+    if (endTime === 0)
+      endTime = unixTime();
     const data = [{
       "address": "yBMQcUYNZ2g177GTb77ZT6wWoknfqobBMJ",
       "category": "send",
@@ -339,7 +342,7 @@ class FakeRPCController {
       "blocktime": 1596654098,
       "txid": "c8203e500e7cfb91eaaf59ec84ec2cf436379efd91c5012cb65dcd108c9f6f2c",
       "walletconflicts": [],
-      "time": 1596654000,
+      "time": 1596654100,
       "timereceived": 1596654000,
       "bip125-replaceable": "no",
       "abandoned": false
@@ -356,7 +359,7 @@ class FakeRPCController {
       "blocktime": 1596654098,
       "txid": "b0fa8f367e14b775ebcca5321769ae9b9fecf8ac2049cf22f7557485ea43d8bd",
       "walletconflicts": [],
-      "time": 1596654000,
+      "time": 1596654200,
       "timereceived": 1596654000,
       "bip125-replaceable": "no",
       "abandoned": false
@@ -373,7 +376,7 @@ class FakeRPCController {
       "blocktime": 1596654098,
       "txid": "bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611",
       "walletconflicts": [],
-      "time": 1596654001,
+      "time": 1596654301,
       "timereceived": 1596654001,
       "bip125-replaceable": "no",
       "abandoned": false
@@ -390,22 +393,23 @@ class FakeRPCController {
       "blocktime": 1596654098,
       "txid": "17dc2a8b2af2904dc388d23d2237e493a48f0da4752ebac4311a945785fd082b",
       "walletconflicts": [],
-      "time": 1596654002,
+      "time": 1596654400,
       "timereceived": 1596654002,
       "bip125-replaceable": "no",
       "abandoned": false
     }];
     return data.map(t => new RPCTransaction({
-      txId: t.txid,
-      address: t.address,
-      amount: t.amount,
-      blockHash: t.blockhash,
-      blockTime: t.blocktime,
-      category: t.category,
-      confirmations: t.confirmations,
-      time: t.time,
-      trusted: true
-    }));
+        txId: t.txid,
+        address: t.address,
+        amount: t.amount,
+        blockHash: t.blockhash,
+        blockTime: t.blocktime,
+        category: t.category,
+        confirmations: t.confirmations,
+        time: t.time,
+        trusted: true
+      }))
+      .filter(t => t.time >= startTime && t.time <= endTime);
   }
 }
 

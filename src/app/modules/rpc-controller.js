@@ -1,4 +1,3 @@
-import request from 'superagent';
 import { HTTP_REQUEST_TIMEOUT } from '../constants';
 import RPCInfo from '../types/rpc-info';
 import RPCNetworkInfo from '../types/rpc-network-info';
@@ -8,6 +7,10 @@ import RPCUnspent from '../types/rpc-unspent';
 import RPCTransactionOutput from '../types/rpc-transaction-output';
 import RPCTransaction from '../types/rpc-transaction';
 import RPCSignedRawTransaction from '../types/rpc-signed-raw-transaction';
+import {unixTime} from '../util';
+
+import _ from 'lodash';
+import request from 'superagent';
 
 /**
  * Class for making RPC calls
@@ -48,7 +51,7 @@ class RPCController {
    * @return {boolean}
    */
   isNull() {
-    return this._port <= 1024;
+    return !_.isNumber(this._port) || this._port <= 1024;
   }
 
   /**
@@ -375,10 +378,16 @@ class RPCController {
 
   /**
    * Lists wallet transactions
+   * @param startTime {number} Get transactions since this time
+   * @param endTime {number} Get transactions to this time
    * @returns {Promise<RPCTransaction[]>}
    */
-  async listTransactions() {
-    const res = await this._makeRequest('listtransactions', []);
+  async listTransactions(startTime, endTime) {
+    if (!_.isNumber(startTime))
+      startTime = 0;
+    if (!_.isNumber(endTime) || endTime === 0)
+      endTime = unixTime();
+    const res = await this._makeRequest('listtransactions', [startTime, endTime]);
     return res.map(t => new RPCTransaction({
       txId: t.txid,
       address: t.address,
