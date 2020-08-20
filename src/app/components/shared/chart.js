@@ -30,7 +30,7 @@ export default class Chart extends React.Component {
     gradientTopColor: PropTypes.string,
     gradientBottomColor: PropTypes.string,
     chartGridColor: PropTypes.string,
-    chartScale: PropTypes.string, // day, week, month
+    chartScale: PropTypes.string, // Supported scales: day, week, month, half-year, year
   }
 
   constructor(props) {
@@ -42,6 +42,9 @@ export default class Chart extends React.Component {
     this.renderCanvas();
   }
 
+  /**
+   * Renders the chart canvas and performs all drawing operations.
+   */
   renderCanvas() {
     const { chartData, simple, simpleStrokeColor, hideAxes, defaultWidth, defaultHeight,
       gradientTopColor, gradientBottomColor, chartGridColor, chartScale } = this.props;
@@ -49,9 +52,9 @@ export default class Chart extends React.Component {
     const ctx = canvas.getContext('2d');
     const w = defaultWidth * window.devicePixelRatio;
     const h = defaultHeight * window.devicePixelRatio;
-    const xAxisPadding = !simple ? this._pix(38) : 0;
-    const yAxisTopPadding = !simple ? this._pix(15) : 0;
-    const yAxisBotPadding = !simple ? this._pix(25) : 0;
+    const xAxisPadding = !simple ? this._pix(38) : 0;    // no axis labels for simple chart
+    const yAxisTopPadding = !simple ? this._pix(15) : 0; // ^
+    const yAxisBotPadding = !simple ? this._pix(25) : 0; // ^
     const chartWidth = w - xAxisPadding;
     const chartHeight = h - yAxisBotPadding - yAxisTopPadding;
 
@@ -84,6 +87,7 @@ export default class Chart extends React.Component {
       }
     }
 
+    // Retina/HDPI screen support (requires canvas.scaled below)
     canvas.width = w;
     canvas.height = h;
     canvas.style.width = defaultWidth + 'px';
@@ -130,7 +134,7 @@ export default class Chart extends React.Component {
         return;
       }
 
-      // Complete the full chart paths
+      // Complete the full chart paths for non-simple chart
       chart.lineTo(xAxisPadding + chartWidth, yAxisTopPadding + data[data.length-1][3]);
       chart.lineTo(xAxisPadding + chartWidth, yAxisTopPadding + chartHeight);
       chart.lineTo(xAxisPadding, yAxisTopPadding + chartHeight);
@@ -214,6 +218,7 @@ export default class Chart extends React.Component {
       ctx.restore();
     }
 
+    // Retina/HDPI screen support
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   }
 
