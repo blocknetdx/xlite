@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Wallet from '../../types/wallet';
 import Balance from '../shared/balance';
 import { Column, Row } from '../shared/flex';
+import AssetPieChart, {chartSampleData as pieSampleData} from '../shared/asset-piechart';
 import AssetsOverviewPanel from '../shared/assets-overview-panel';
 import Chart, {chartSampleData} from '../shared/chart';
 import TransactionsPanel from '../shared/transactions-panel';
@@ -26,6 +27,7 @@ const Dashboard = ({ activeWallet }) => {
                  chartGridColor={'#949494'} chartScale={'half-year'} style={{ flexGrow: 1 }} />
         </Column>
         <Column>
+          <AssetPieChart className={'lw-portfolio-piechart'} defaultWidth={262} chartData={pieSampleData} lineWidth={12} />
         </Column>
       </Row>
       <Row style={{flexGrow: 1, minHeight: 0}}>
