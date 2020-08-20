@@ -64,11 +64,11 @@ export default class Chart extends React.Component {
     if (data.length > 0) {
       const today = unixTime();
       data.sort((a,b) => a[0] - b[0]); // sort by time ascending
-      if (chartScale === 'day' || chartScale === '' || !chartScale) {
+      if (chartScale === 'day') {
         const startTime = today-oneDaySeconds;
         data = this._timeScaleFilter(data, startTime, today, oneHourSeconds);
         xAxisTicks = this._timeScaleLabels(startTime, today, oneHourSeconds*2, 'hA', 'ddd');
-      } else if (chartScale === 'week') {
+      } else if (chartScale === 'week' || chartScale === '' || !chartScale) {
         const startTime = today-(oneDaySeconds*7);
         data = this._timeScaleFilter(data, startTime, today, oneDaySeconds);
         xAxisTicks = this._timeScaleLabels(startTime, today, oneDaySeconds, 'ddd, MMM Do', 'YYYY', false);
