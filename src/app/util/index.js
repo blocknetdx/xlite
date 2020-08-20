@@ -76,3 +76,8 @@ export const unixTime = () => {
 };
 
 export const timeout = length => new Promise(resolve => setTimeout(resolve, length));
+
+export const oneHourSeconds = 3600;
+export const oneDaySeconds = 86400;
+export const oneWeekSeconds = 604800;
+export const oneMonthSeconds = 2592000;
