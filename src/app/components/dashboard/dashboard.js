@@ -4,20 +4,26 @@ import Wallet from '../../types/wallet';
 import Balance from '../shared/balance';
 import { Column, Row } from '../shared/flex';
 import AssetsOverviewPanel from '../shared/assets-overview-panel';
+import Chart, {chartSampleData} from '../shared/chart';
 import TransactionsPanel from '../shared/transactions-panel';
 
 const Dashboard = ({ activeWallet }) => {
 
   if(!activeWallet) return <div />;
 
-  const balanceRowHeight = 314;
+  const chartContainerHeight = 360;
+  const chartHeight = 250;
   const transactionsPanelWidth = 350;
 
   return (
     <div className={'lw-dashboard-container'}>
-      <Row style={{height: balanceRowHeight, minHeight: balanceRowHeight, maxHeight: balanceRowHeight}}>
+      <Row style={{height: chartContainerHeight, minHeight: chartHeight, maxHeight: chartContainerHeight}}>
         <Column>
           <Balance />
+          <Chart className={'lw-dashboard-chart'} chartData={chartSampleData} simple={false} simpleStrokeColor={'#ccc'}
+                 hideAxes={false} defaultWidth={700} defaultHeight={chartHeight}
+                 gradientTopColor={'#00ffff'} gradientBottomColor={'rgba(0, 71, 255, 0)'}
+                 chartGridColor={'#949494'} chartScale={'half-year'} style={{ flexGrow: 1 }} />
         </Column>
         <Column>
         </Column>

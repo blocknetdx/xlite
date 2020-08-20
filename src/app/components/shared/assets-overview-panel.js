@@ -13,6 +13,7 @@ import { walletSorter } from '../../util';
 import { Map } from 'immutable';
 import Wallet from '../../types/wallet';
 import { all, create } from 'mathjs';
+import Chart, {chartSampleData} from './chart';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -79,7 +80,11 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                   </TableData>
                   {!hideTicker ? <TableData>{ticker}</TableData> : null}
                   <TableData className={'text-monospace'}>{Number(altMultiplier.toFixed(MAX_DECIMAL_PLACE))}</TableData>
-                  <TableData></TableData>
+                  <TableData>
+                    <Chart chartData={chartSampleData} simple={true} simpleStrokeColor={'#ccc'}
+                           hideAxes={true} defaultWidth={125} defaultHeight={40}
+                           chartGridColor={'#949494'} chartScale={'week'} />
+                  </TableData>
                   {!hideVolume ? <TableData></TableData> : null}
                   <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0}}>
                     {!hidePercentBar ?
