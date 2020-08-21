@@ -13,8 +13,9 @@ const openAppWindow = (storage, devtools) => {
     toggleDevTools: devtools,
     isMainWindow: true,
     windowOptions: {
-      width: width,
-      height: height
+      // Convert width and height to integers since some OS to display combinations ignore sizes with decimals
+      width: Math.floor(width),
+      height: Math.floor(height)
     },
     webPreferences: {
       zoomFactor: 1.0
