@@ -40,7 +40,7 @@ class CloudChains {
   /**
    * @param filePath {string}
    * @param args {string[]}
-   * @param callback {funcion}
+   * @param callback {function}
    * @returns {ChildProcess}
    * @private
    */
