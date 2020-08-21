@@ -88,8 +88,10 @@ class RPCController {
         .catch(err => {
           if(err.timeout) {
             reject(new Error(`RPC server ${method} request timed out.`));
-          } else {
+          } else if (_.has(err, 'status')) {
             reject(new Error(`RPC server ${method} request failed with HTTP status code ${err.status} and message "${err.message}"`));
+          } else {
+            reject(new Error(`RPC server ${method} request failed with message "${err.message}"`));
           }
         });
     });
@@ -401,6 +403,17 @@ class RPCController {
     }));
   }
 
+  /**
+   * Call the CloudChains RPC help method.
+   * @return {Promise<Object>}
+   */
+  async ccHelp() {
+    try {
+      return await this._makeRequest('help', []);
+    } catch (e) {
+      return e;
+    }
+  }
 }
 
 export default RPCController;

@@ -158,22 +158,14 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
 
     setProcessing(true);
 
-    const started = await cloudChains.startSPV(password);
-
-    if(!started) {
-      setErrorMessage(Localize.text('Invalid password.', 'login'));
-      setProcessing(false);
-      return;
-    }
-
-    try {
-      cloudChains.loadConfs(); // load all confs and update the master conf if necessary
-    } catch(err) {
-      logger.error('Problem enabling master config.');
-      handleError(err);
-      setErrorMessage(Localize.text('Oops! There was a problem enabling the master config.', 'login'));
-      setProcessing(false);
-      return;
+    const rpcRunning = await cloudChains.isWalletRPCRunning();
+    if (!rpcRunning) {
+      const started = await cloudChains.startSPV(password);
+      if(!started) {
+        setErrorMessage(Localize.text('Invalid password.', 'login'));
+        setProcessing(false);
+        return;
+      }
     }
 
     const storedPassword = domStorage.getItem(localStorageKeys.PASSWORD);

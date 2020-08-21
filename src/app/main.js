@@ -87,30 +87,37 @@ fs.readJson(path.resolve(__dirname, '../../package.json'))
   })
   .catch(err => logger.error(err));
 
-let ccVersionLogged = false;
-
 // Create CloudChains conf manager
 const cloudChains = new CloudChains(CloudChains.defaultPathFunc);
-store.dispatch(appActions.setCloudChains(cloudChains));
 
-const startupProcess = async function() {
-
-  // cc is not installed
+// cc is not installed
+(async function() {
   if (!await cloudChains.isInstalled()) {
     logger.info('No cloudchains installation found.');
     store.dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
     return;
   }
-
   // cc found but missing settings
   if (!await cloudChains.hasSettings()) {
     logger.error('cannot find CloudChains settings');
     logger.info('Enabling all CloudChains wallets.');
-    await cloudChains.enableAllWallets();
     logger.info('Enabling CloudChains master RPC server.');
-    cloudChains.loadConfs();
+    await cloudChains.enableAllWallets();
   }
+})();
 
+// Load configuration prior to any further initialization
+try {
+  cloudChains.loadConfs();
+} catch (e) {
+  logger.error('Problem loading configs');
+  // TODO Fatal, shutdown application?
+}
+
+// Initialize the store with the cloudchains configuration
+store.dispatch(appActions.setCloudChains(cloudChains));
+
+const startupProcess = async function() {
   // Ask the conf controller for the latest manifest data. Also need
   // to provide the conf controller with knowledge about available
   // wallets so that it can limit the number of downloads to only
@@ -126,7 +133,7 @@ const startupProcess = async function() {
   const tokenManifest = new TokenManifest(confController.getManifest(), confController.getFeeInfo());
   store.dispatch(appActions.setManifest(tokenManifest));
 
-  if(!ccVersionLogged) {
+  if (!await cloudChains.isWalletRPCRunning()) {
     const binFilePath = cloudChains.getCCSPVFilePath();
     const exists = await fs.pathExists(binFilePath);
     if(!exists) {
@@ -137,7 +144,6 @@ const startupProcess = async function() {
     cloudChains.getCCSPVVersion()
       .then(ccVersion => {
         logger.info(`Using CC CLI version ${ccVersion}`);
-        ccVersionLogged = true;
       })
       .catch(err => {
         logger.error(err);

@@ -1,6 +1,8 @@
 import CCWalletConf from '../types/ccwalletconf';
 import { isRenderer, logger } from '../util';
+import RPCController from './rpc-controller';
 
+import _ from 'lodash';
 import electron from 'electron';
 import isDev from 'electron-is-dev';
 import fs from 'fs-extra';
@@ -270,6 +272,23 @@ class CloudChains {
         }
       });
     });
+  }
+
+  /**
+   * Returns true if the wallet rpc is accepting connections. Calls the rpc
+   * "help" method.
+   * @return {boolean}
+   */
+  async isWalletRPCRunning() {
+    if (!this._masterConf.rpcEnabled)
+      return false;
+    const rpc = new RPCController(this._masterConf.rpcPort, this._masterConf.rpcUsername, this._masterConf.rpcPassword);
+    try {
+      const res = await rpc.ccHelp();
+      return _.isString(res);
+    } catch (e) {
+      return false;
+    }
   }
 
   /**
