@@ -40,6 +40,8 @@ export default class Chart extends React.Component {
 
   componentDidMount() {
     this.renderCanvas();
+    // redraw canvas hack to correctly render fonts
+    setTimeout(() => this.renderCanvas(), 100);
   }
 
   /**
@@ -71,7 +73,7 @@ export default class Chart extends React.Component {
       } else if (chartScale === 'week' || chartScale === '' || !chartScale) {
         const startTime = today-(oneDaySeconds*7);
         data = this._timeScaleFilter(data, startTime, today, oneDaySeconds);
-        xAxisTicks = this._timeScaleLabels(startTime, today, oneDaySeconds, 'ddd, MMM Do', 'YYYY', false);
+        xAxisTicks = this._timeScaleLabels(startTime, today, oneDaySeconds, 'MMM DD', 'YYYY', false);
       } else if (chartScale === 'month') {
         const startTime = today-(oneDaySeconds*30);
         data = this._timeScaleFilter(data, startTime, today, oneDaySeconds);
@@ -88,6 +90,7 @@ export default class Chart extends React.Component {
     }
 
     // Retina/HDPI screen support (requires canvas.scaled below)
+    ctx.clearRect(0, 0, w, h);
     canvas.width = w;
     canvas.height = h;
     canvas.style.width = defaultWidth + 'px';
@@ -189,7 +192,7 @@ export default class Chart extends React.Component {
       ctx.save();
       ctx.direction = 'rtl';
       ctx.fillStyle = chartGridColor;
-      ctx.font = '16pt IBMPlexMonoMedium-Regular';
+      ctx.font = 'normal normal normal ' + this._pix(10) + 'px IBMPlexMonoMedium';
       for (let i = 1; i <= yAxisTicks; i++) {
         const y = yaxisGridLinesYAxis[i-1];
         ctx.fillText((y_max/yAxisTicks*i).toFixed(0), xAxisPadding - axisTickWidth - this._pix(4), y + this._pix(3));
@@ -211,8 +214,8 @@ export default class Chart extends React.Component {
         const label = xAxisTicks[i][0];
         const bold = xAxisTicks[i][1];
         const x = chartWidth/xAxisTicks.length * i;
-        ctx.font = bold + ' 16pt IBMPlexMonoMedium-Regular';
-        ctx.fillStyle = bold === '' ? chartGridColor : '#ccc';
+        ctx.font = 'normal normal ' + bold + ' ' + this._pix(10) + 'px IBMPlexMonoMedium';
+        ctx.fillStyle = bold !== 'normal' ? '#ccc' : chartGridColor;
         ctx.fillText(label, xAxisPadding + x, yAxisTopPadding + chartHeight + yAxisBotPadding - this._pix(4));
       }
       ctx.restore();
@@ -305,7 +308,7 @@ export default class Chart extends React.Component {
       if (!prevDate || (timeFormatBold !== '' && prevDate.format(timeFormatBold) !== m.format(timeFormatBold)))
         makeBold = !prevDate ? boldFirst : true;
       const fm = makeBold ? m.format(timeFormatBold).toUpperCase() : m.format(timeFormatNormal);
-      labels.push([fm, makeBold ? 'bold' : '']);
+      labels.push([fm, makeBold ? 'bold' : 'normal']);
       prevDate = m; // store prev date
     }
     return labels;
