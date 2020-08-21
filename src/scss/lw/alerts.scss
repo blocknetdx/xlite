@@ -1,0 +1,65 @@
+@import "./variables";
+@import "./buttons";
+
+$lw-alert-header-text: #2f3943;
+$lw-alert-text-color: $lw-secondary-6;
+$lw-alert-button-background-color: $lw-button-background-color;
+$lw-alert-button-hover_background-color: darken($lw-alert-button-background-color, 10%);
+
+.swal-overlay.swal-overlay--show-modal:focus {
+  outline-width: 0;
+}
+
+.swal-modal {
+  border-radius: 4px;
+}
+
+.swal-title {
+  color: $lw-alert-header-text;
+  font-size: 25px;
+}
+
+.swal-text {
+  color: $lw-alert-text-color;
+  font-size: 16px;
+}
+
+.swal-button {
+  border-width: 2px;
+  border-style: solid;
+  border-color: $lw-alert-button-background-color;
+  background-color: $lw-alert-button-background-color;
+  color: $lw-button-text-color;
+  min-width: $lw-button-min-width;
+  height: $lw-button-height;
+  line-height: $lw-button-height - 4;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: $lw-button-font-size;
+
+  &:not([disabled]):hover, &:active {
+    border-width: 2px;
+    border-color: $lw-alert-button-hover_background-color;
+    background-color: $lw-alert-button-hover_background-color;
+  }
+
+  &--cancel {
+    border-width: 2px;
+    border-style: solid;
+    border-color: $lw-secondary-3;
+    background-color: #fff;
+    color: $lw-secondary-6;
+
+    &:not([disabled]):hover, &:active {
+      border-width: 2px;
+      border-color: $lw-secondary-3;
+      background-color: $lw-secondary-1;
+    }
+
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+}
