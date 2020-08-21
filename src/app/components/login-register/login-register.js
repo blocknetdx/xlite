@@ -149,7 +149,7 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
       if(CC_WALLET_AUTOLOGIN === 'true') {
         setTimeout(() => {
           onLoginSubmit();
-        }, 0);
+        }, 100);
       }
     }
   }, [process.env.CC_WALLET_PASS]);
@@ -157,6 +157,8 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
   const onLoginSubmit = async function() {
 
     setProcessing(true);
+
+    const storedPassword = domStorage.getItem(localStorageKeys.PASSWORD);
 
     const rpcRunning = await cloudChains.isWalletRPCRunning();
     if (!rpcRunning) {
@@ -166,10 +168,18 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
         setProcessing(false);
         return;
       }
+    } else if (storedPassword) {
+      const storedSalt = domStorage.getItem(localStorageKeys.SALT);
+      const hashedPassword = pbkdf2(password, storedSalt);
+      if (hashedPassword !== storedPassword) {
+        setErrorMessage(Localize.text('Invalid password.', 'login'));
+        setProcessing(false);
+        return;
+      }
     }
 
-    const storedPassword = domStorage.getItem(localStorageKeys.PASSWORD);
-    if(!storedPassword) {
+    // Save hashed password to db
+    if (!storedPassword) {
       const salt = generateSalt(32);
       const hashedPassword = pbkdf2(password, salt);
       domStorage.setItems({
