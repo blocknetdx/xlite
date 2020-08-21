@@ -1,8 +1,13 @@
 @import './variables';
+@import './fonts';
 
 .lw-dashboard-chart {
   position: relative;
 }
 .lw-portfolio-chart {
   position: relative;
+}
+.lw-portfolio-piechart {
+  position: absolute;
+  font-family: IBMPlexSans;
 }
