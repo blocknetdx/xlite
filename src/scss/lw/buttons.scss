@@ -4,6 +4,9 @@ $lw-button-background-color: $lw-bg-1;
 $lw-button-background-hover-color: lighten($lw-button-background-color, 15%);
 $lw-button-text-color: $lw-text-primary;
 $lw-button-transparent-text-color: #444444;
+$lw-button-min-width: 150px;
+$lw-button-height: 40px;
+$lw-button-font-size: 16px;
 
 button {
   border-radius: $lw-button-border-radius;
@@ -19,9 +22,9 @@ button {
   border: none;
   padding-left: 10px;
   padding-right: 10px;
-  min-width: 150px;
-  height: 40px;
-  font-size: 16px;
+  min-width: $lw-button-min-width;
+  height: $lw-button-height;
+  font-size: $lw-button-font-size;
   border-radius: $lw-button-border-radius;
   background-color: $lw-button-background-color;
   color: $lw-button-text-color;
