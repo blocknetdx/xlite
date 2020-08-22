@@ -1,7 +1,7 @@
 import electron from 'electron';
 import path from 'path';
 import BrowserWindow from '../modules/browser-window';
-import { storageKeys } from '../constants';
+import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, storageKeys } from '../constants';
 
 const openAppWindow = (storage, devtools) => {
   let { height, width } = electron.screen.getPrimaryDisplay().workAreaSize;
@@ -15,7 +15,9 @@ const openAppWindow = (storage, devtools) => {
     windowOptions: {
       // Convert width and height to integers since some OS to display combinations ignore sizes with decimals
       width: Math.floor(width),
-      height: Math.floor(height)
+      height: Math.floor(height),
+      minWidth: MIN_WINDOW_WIDTH,
+      minHeight: MIN_WINDOW_HEIGHT
     },
     webPreferences: {
       zoomFactor: 1.0

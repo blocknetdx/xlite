@@ -1,6 +1,5 @@
 @import './variables';
 
-$lw-sidebar-width: 240px;
 $lw-sidebar-background: $lw-bg-5;
 $lw-sidebar-line-color: transparent;
 $lw-sidebar-button-height: 50px;
@@ -10,8 +9,6 @@ $lw-sidebar-hover-color: darken($lw-sidebar-background, 5%);
 .lw-sidebar-container {
 
   background-color: $lw-sidebar-background;
-  width: $lw-sidebar-width;
-  min-width: $lw-sidebar-width;
   border-right-style: solid;
   border-right-width: 1px;
   border-right-color: $lw-sidebar-line-color;

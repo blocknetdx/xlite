@@ -44,6 +44,13 @@ export default class Chart extends React.Component {
     setTimeout(() => this.renderCanvas(), 100);
   }
 
+  componentDidUpdate(prevProps) {
+    const { defaultWidth } = this.props;
+    if(prevProps.defaultWidth !== defaultWidth) {
+      this.renderCanvas();
+    }
+  }
+
   /**
    * Renders the chart canvas and performs all drawing operations.
    */

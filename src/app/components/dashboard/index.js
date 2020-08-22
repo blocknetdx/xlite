@@ -4,6 +4,7 @@ import Dashboard from './dashboard';
 export default connect(
   ({ appState }) => ({
     activeWallet: appState.activeWallet,
-    wallets: appState.wallets
+    wallets: appState.wallets,
+    windowWidth: appState.windowWidth
   })
 )(Dashboard);

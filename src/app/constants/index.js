@@ -102,3 +102,10 @@ export const ccBinNames = {
 };
 
 export const DEFAULT_MASTER_PORT = 9955;
+
+export const SIDEBAR_WIDTH = 240;
+
+export const MIN_WINDOW_WIDTH = 800;
+export const MIN_WINDOW_HEIGHT = 600;
+export const MIN_UI_WIDTH = 1024;
+export const MIN_UI_HEIGHT = 600;
