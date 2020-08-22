@@ -1,4 +1,4 @@
-import FeeInfo from './feeinfo';
+import XBridgeInfo from './xbridgeinfo';
 
 /**
  * Manifest token
@@ -36,8 +36,8 @@ class Token {
   xbridge_conf = '';
   wallet_conf = '';
 
-  // Memory only
-  feeinfo = new FeeInfo({});
+  // Memory only (xbridge info)
+  xbinfo = new XBridgeInfo({});
 
   /**
    * Constructor

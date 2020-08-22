@@ -74,3 +74,7 @@ app.on('ready', async function() {
 ipcMain.on(ipcMainListeners.GET_USER_LOCALE, e => {
   e.returnValue = storage.getItem(storageKeys.LOCALE);
 });
+
+ipcMain.on(ipcMainListeners.CLOSE, e => {
+  app.quit();
+});

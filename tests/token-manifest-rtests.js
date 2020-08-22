@@ -1,7 +1,7 @@
 import 'should';
-import FeeInfo from '../src/app/types/feeinfo';
 import Token from '../src/app/types/token';
 import TokenManifest from '../src/app/modules/token-manifest';
+import XBridgeInfo from '../src/app/types/xbridgeinfo';
 
 describe('TokenManifest Test Suite', function() {
   const data = JSON.parse(`[{
@@ -39,8 +39,8 @@ describe('TokenManifest Test Suite', function() {
   }]`);
   const blockToken = new Token(data[0]);
   const btcToken = new Token(data[1]);
-  const feeBLOCK = new FeeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000 });
-  const feeBTC = new FeeInfo({ ticker: 'BTC', feeperbyte: 120, mintxfee: 7500, coin: 100000000 });
+  const feeBLOCK = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000 });
+  const feeBTC = new XBridgeInfo({ ticker: 'BTC', feeperbyte: 120, mintxfee: 7500, coin: 100000000 });
   it('Token', () => {
     const tm = new TokenManifest(data, [feeBLOCK, feeBTC]);
     const token = tm.getToken('BLOCK');
@@ -61,8 +61,8 @@ describe('TokenManifest Test Suite', function() {
     const tm = new TokenManifest(data, [feeBLOCK, feeBTC]);
     const blockTokenCopy = blockToken;
     const btcTokenCopy = btcToken;
-    blockTokenCopy.feeinfo = feeBLOCK;
-    btcTokenCopy.feeinfo = feeBTC;
+    blockTokenCopy.xbinfo = feeBLOCK;
+    btcTokenCopy.xbinfo = feeBTC;
     tm.getToken('BLOCK').should.deepEqual(blockTokenCopy);
     tm.getToken('BTC').should.deepEqual(btcTokenCopy);
     should.not.exist(tm.getToken(''));

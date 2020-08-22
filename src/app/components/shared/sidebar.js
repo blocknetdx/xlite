@@ -65,7 +65,6 @@ let Sidebar = ({ activeView, cloudChains, wallets, balances, setActiveView, setA
 
   const onLockClick = async function(e) {
     e.preventDefault();
-    cloudChains.stopSPV();
     setCCWalletStarted(false);
   };
 
@@ -109,7 +108,12 @@ Sidebar = connect(
   dispatch => ({
     setActiveView: activeView => dispatch(appActions.setActiveView(activeView)),
     setActiveWallet: activeWallet => dispatch(appActions.setActiveWallet(activeWallet)),
-    setCCWalletStarted: ccWalletStarted => dispatch(appActions.setCCWalletStarted(ccWalletStarted))
+    setCCWalletStarted: ccWalletStarted => {
+      if (ccWalletStarted)
+        dispatch(appActions.setActiveView(activeViews.DASHBOARD));
+      else
+        dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
+    }
   })
 )(Sidebar);
 

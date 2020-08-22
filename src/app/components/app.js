@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { activeViews } from '../constants';
@@ -10,12 +10,9 @@ import Transactions from './transactions';
 import ReceiveModal from './shared/modal-receive';
 import SendModal from './shared/modal-send';
 import Portfolio from './portfolio';
+import Spinner from './shared/spinner';
 
-let App = ({ activeView, ccWalletStarted, windowWidth, windowHeight, showReceiveModal, showSendModal, startupProcess }) => {
-
-  useEffect(() => {
-    startupProcess();
-  }, [ccWalletStarted, startupProcess]);
+let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendModal }) => {
 
   const styles = {
     container: {
@@ -67,7 +64,7 @@ let App = ({ activeView, ccWalletStarted, windowWidth, windowHeight, showReceive
       body = <Portfolio />;
       break;
     default:
-      body = <div />;
+      body = <div><Spinner /></div>;
       showNavbar = false;
   }
 
@@ -86,17 +83,14 @@ let App = ({ activeView, ccWalletStarted, windowWidth, windowHeight, showReceive
   );
 };
 App.propTypes = {
-  ccWalletStarted: PropTypes.bool,
   showReceiveModal: PropTypes.bool,
   showSendModal: PropTypes.bool,
   windowWidth: PropTypes.number,
   windowHeight: PropTypes.number,
   activeView: PropTypes.string,
-  startupProcess: PropTypes.func
 };
 App = connect(
   ({ appState }) => ({
-    ccWalletStarted: appState.ccWalletStarted,
     windowWidth: appState.windowWidth,
     windowHeight: appState.windowHeight,
     activeView: appState.activeView,

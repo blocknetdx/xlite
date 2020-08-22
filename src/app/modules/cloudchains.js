@@ -9,7 +9,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import childProcess from 'child_process';
 import { v4 as uuidV4 } from 'uuid';
-import { ccBinDirs, ccBinNames, DEFAULT_MASTER_PORT } from '../constants';
+import {ccBinDirs, ccBinNames, DEFAULT_MASTER_PORT, localStorageKeys} from '../constants';
 
 /**
  * Manage CloudChains litewallet configuration.
@@ -21,6 +21,11 @@ class CloudChains {
    * @private
    */
   _cli = null;
+  /**
+   * @type {RPCController}
+   * @private
+   */
+  _rpc = null;
 
   /**
    * @type {string}
@@ -66,6 +71,11 @@ class CloudChains {
    * @private
    */
   _selectionPatt = /selection/i;
+  /**
+   * @type {DOMStorage}
+   * @private
+   */
+  _domStorage = null;
 
   /**
    * Default path function for cloudchains installations.
@@ -86,10 +96,12 @@ class CloudChains {
   /**
    * Constructor
    * @param pathFunc {function}
+   * @param domStorage {DOMStorage}
    */
-  constructor(pathFunc) {
+  constructor(pathFunc, domStorage) {
     this._cloudChainsDir = pathFunc();
     this._cloudChainsSettingsDir = path.join(this._cloudChainsDir, 'settings');
+    this._domStorage = domStorage;
   }
 
   /**
@@ -163,6 +175,65 @@ class CloudChains {
   }
 
   /**
+   * Return the wallet created state.
+   * @return {boolean}
+   */
+  isWalletCreated() {
+    const pw = this._domStorage.getItem(localStorageKeys.PASSWORD);
+    const s = this._domStorage.getItem(localStorageKeys.SALT);
+    const m = this._domStorage.getItem(localStorageKeys.MNEMONIC);
+    return _.isString(pw) && _.isString(s) && _.isString(m)
+      && pw.length > 0 && s.length > 0 && m.length > 0;
+  }
+
+  /**
+   * Save the cloudchains wallet credentials.
+   * @param hashedPassword {string}
+   * @param salt {string}
+   * @param encryptedMnemonic {string}
+   */
+  saveWalletCredentials(hashedPassword, salt, encryptedMnemonic) {
+    this._domStorage.setItems({
+      [localStorageKeys.PASSWORD]: hashedPassword,
+      [localStorageKeys.SALT]: salt,
+      [localStorageKeys.MNEMONIC]: encryptedMnemonic,
+    });
+  }
+
+  /**
+   * Return the last known cloudchains wallet password. This is encrypted.
+   * @return {string|null}
+   */
+  getStoredPassword() {
+    const pw = this._domStorage.getItem(localStorageKeys.PASSWORD);
+    if (!pw || !_.isString(pw))
+      return null;
+    return pw;
+  }
+
+  /**
+   * Return the password salt.
+   * @return {string|null}
+   */
+  getStoredSalt() {
+    const s = this._domStorage.getItem(localStorageKeys.SALT);
+    if (!s || !_.isString(s))
+      return null;
+    return s;
+  }
+
+  /**
+   * Return the last known cloudchains wallet mnemonic. This is encrypted.
+   * @return {string|null}
+   */
+  getStoredMnemonic() {
+    const m = this._domStorage.getItem(localStorageKeys.MNEMONIC);
+    if (!m || !_.isString(m))
+      return null;
+    return m;
+  }
+
+  /**
    * Synchronously read all CloudChains token confs from disk. Returns false on error.
    * Fatal error throws. Individual token conf failures do not result in fatal error,
    * however, will return false. Returns true if no errors occurred.
@@ -199,6 +270,9 @@ class CloudChains {
     this._cloudChainsConfs = new Map();
     for (const conf of confs)
       this._cloudChainsConfs.set(conf.ticker(), conf);
+
+    // Create master rpc
+    this._rpc = new RPCController(this._masterConf.rpcPort, this._masterConf.rpcUsername, this._masterConf.rpcPassword);
 
     return success;
   }
@@ -280,11 +354,10 @@ class CloudChains {
    * @return {boolean}
    */
   async isWalletRPCRunning() {
-    if (!this._masterConf.rpcEnabled)
+    if (!this._masterConf || !this._masterConf.rpcEnabled || !this._rpc)
       return false;
-    const rpc = new RPCController(this._masterConf.rpcPort, this._masterConf.rpcUsername, this._masterConf.rpcPassword);
     try {
-      const res = await rpc.ccHelp();
+      const res = await this._rpc.ccHelp();
       return _.isString(res);
     } catch (e) {
       return false;
@@ -296,12 +369,9 @@ class CloudChains {
    * @returns {boolean}
    */
   spvIsRunning() {
-    const { _cli: cli } = this;
-    if(!cli || cli.exitCode !== null) {
-      return false;
-    } else {
-      return true;
-    }
+    if (this._isCLIAvailable())
+      return this._cli && !_.isNumber(this._cli.exitCode);
+    return false;
   }
 
   /**
@@ -344,11 +414,12 @@ class CloudChains {
 
   /**
    * Stops the CloudChains CLI
-   * @returns {Promise<void>}
+   * @returns {boolean}
    */
   stopSPV() {
-    const { _cli: cli } = this;
-    cli.kill();
+    if (this._isCLIAvailable())
+      return this._cli.kill();
+    return false;
   }
 
   /**
@@ -385,7 +456,7 @@ class CloudChains {
 
   /**
    * Enables all wallets using the CloudChains CLI param --enablerpcandconfigure
-   * @returns {Promise<string>}
+   * @returns {Promise<boolean>}
    */
   enableAllWallets() {
     return new Promise(resolve => {
@@ -413,6 +484,15 @@ class CloudChains {
         resolve(false);
       });
     });
+  }
+
+  /**
+   * Returns true if the cli is available.
+   * @return {boolean}
+   * @private
+   */
+  _isCLIAvailable() {
+    return !!(this._cli);
   }
 
 }

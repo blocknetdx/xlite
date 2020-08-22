@@ -1,6 +1,6 @@
 import {DUST_SATOSHIS,MAX_DECIMAL_PLACE} from '../constants';
-import FeeInfo from '../types/feeinfo';
 import Recipient from '../types/recipient';
+import XBridgeInfo from '../types/xbridgeinfo';
 
 import _ from 'lodash';
 import {all, create} from 'mathjs';
@@ -25,18 +25,18 @@ class TransactionBuilder {
    */
   _outputs = [];
   /**
-   * @type {FeeInfo}
+   * @type {XBridgeInfo}
    * @private
    */
   _feeInfo = null;
 
   /**
    * Constructor
-   * @param feeInfo {FeeInfo}
+   * @param feeInfo {XBridgeInfo}
    */
   constructor(feeInfo) {
     if (_.isNull(feeInfo) || _.isUndefined(feeInfo))
-      this._feeInfo = new FeeInfo({}); // rely on defaults
+      this._feeInfo = new XBridgeInfo({}); // rely on defaults
     else
       this._feeInfo = feeInfo;
   }

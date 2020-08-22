@@ -1,12 +1,14 @@
 import './modules/window-zoom-handlers';
 import * as appActions from './actions/app-actions';
+import Alert from './modules/alert';
 import App from './components/app';
 import appReducer from './reducers/app-reducer';
 import CloudChains from './modules/cloudchains';
 import ConfController from './modules/conf-controller';
 import domStorage from './modules/dom-storage';
+import {generateSalt, pbkdf2} from './modules/crypt';
 import { getLocaleData, handleError, logger, walletSorter } from './util';
-import { activeViews, HTTP_REQUEST_TIMEOUT, ipcMainListeners, MIN_UI_HEIGHT, MIN_UI_WIDTH } from './constants';
+import {activeViews, HTTP_REQUEST_TIMEOUT, ipcMainListeners, localStorageKeys, MIN_UI_HEIGHT, MIN_UI_WIDTH} from './constants';
 import Localize from './components/shared/localize';
 import TokenManifest from './modules/token-manifest';
 import WalletController from './modules/wallet-controller';
@@ -19,6 +21,7 @@ import path from 'path';
 import { Provider } from 'react-redux';
 import React from 'react';
 import ReactDOM from 'react-dom';
+const {remote} = require('electron');
 import request from 'superagent';
 
 // Handle any uncaught exceptions
@@ -42,10 +45,10 @@ if(isDev) {
   });
 
   // Hot reload
-  const {getCurrentWindow, globalShortcut} = require('electron').remote;
   const reload = () => {
-    getCurrentWindow().reload();
+    remote.getCurrentWindow().reload();
   };
+  const {globalShortcut} = remote;
   globalShortcut.register('F5', reload);
   globalShortcut.register('CommandOrControl+R', reload);
   // here is the fix bug #3778, if you know alternative ways, please write them
@@ -53,6 +56,17 @@ if(isDev) {
     globalShortcut.unregister('F5', reload);
     globalShortcut.unregister('CommandOrControl+R', reload);
   });
+
+  // Set default password in isDev mode
+  const { CC_WALLET_PASS = '' } = process.env;
+  if (CC_WALLET_PASS !== '') {
+    const salt = generateSalt(32);
+    const hashedPassword = pbkdf2(CC_WALLET_PASS, salt);
+    domStorage.setItems({
+      [localStorageKeys.PASSWORD]: hashedPassword,
+      [localStorageKeys.SALT]: salt
+    });
+  }
 }
 
 let resizeTimeout;
@@ -75,6 +89,25 @@ Localize.initialize({
   localeData: getLocaleData(locale)
 });
 
+// Default to loading screen
+store.dispatch(appActions.setActiveView(activeViews.LOADING));
+
+fs.readJson(path.resolve(__dirname, '../../package.json'))
+  .then(({ version }) => {
+    logger.info(`Starting XVault version ${version}`);
+  })
+  .catch(err => logger.error(err));
+
+// Create CloudChains conf manager
+const cloudChains = new CloudChains(CloudChains.defaultPathFunc, domStorage);
+
+// Shutdown the cli on window close if it's running.
+// Requires valid cloudChains instance.
+remote.getCurrentWindow().on('close', e => {
+  if (cloudChains.spvIsRunning())
+    cloudChains.stopSPV();
+});
+
 /**
  * Updates the conf manifest.
  * @param confController {ConfController}
@@ -89,94 +122,23 @@ async function updateConfManifest(confController) {
     await confController.updateLatest(manifestUrl, manifestConfPrefix, confController.getManifestHash(), 'manifest-latest.json', confRequest);
   }
 }
-
-fs.readJson(path.resolve(__dirname, '../../package.json'))
-  .then(({ version }) => {
-    logger.info(`Starting Xvault version ${version}`);
-  })
-  .catch(err => logger.error(err));
-
-// Create CloudChains conf manager
-const cloudChains = new CloudChains(CloudChains.defaultPathFunc);
-
-// cc is not installed
-(async function() {
-  if (!await cloudChains.isInstalled()) {
-    logger.info('No cloudchains installation found.');
-    store.dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
-    return;
-  }
-  // cc found but missing settings
-  if (!await cloudChains.hasSettings()) {
-    logger.error('cannot find CloudChains settings');
-    logger.info('Enabling all CloudChains wallets.');
-    logger.info('Enabling CloudChains master RPC server.');
-    await cloudChains.enableAllWallets();
-  }
-})();
-
-// Load configuration prior to any further initialization
-try {
-  cloudChains.loadConfs();
-} catch (e) {
-  logger.error('Problem loading configs');
-  // TODO Fatal, shutdown application?
-}
-
-// Initialize the store with the cloudchains configuration
-store.dispatch(appActions.setCloudChains(cloudChains));
-
-const startupProcess = async function() {
-  // Ask the conf controller for the latest manifest data. Also need
-  // to provide the conf controller with knowledge about available
-  // wallets so that it can limit the number of downloads to only
-  // what we need.
-  const availableWallets = cloudChains.getWalletConfs().map(c => c.ticker());
-  const confController = new ConfController(domStorage, availableWallets);
-  let confNeedsManifestUpdate = true;
-  if (confController.getManifest().length === 0) {
-    confNeedsManifestUpdate = false;
-    await updateConfManifest(confController);
-  }
-  // Create the token manifest from the raw manifest data and fee information
-  const tokenManifest = new TokenManifest(confController.getManifest(), confController.getFeeInfo());
-  store.dispatch(appActions.setManifest(tokenManifest));
-
-  if (!await cloudChains.isWalletRPCRunning()) {
-    const binFilePath = cloudChains.getCCSPVFilePath();
-    const exists = await fs.pathExists(binFilePath);
-    if(!exists) {
-      logger.error(`Unable to find CC binary at ${binFilePath}`);
-      return;
-    }
-    // No need to await and hold up the whole process for this
-    cloudChains.getCCSPVVersion()
-      .then(ccVersion => {
-        logger.info(`Using CC CLI version ${ccVersion}`);
-      })
-      .catch(err => {
-        logger.error(err);
-      });
-  }
-
-  // cc is installed and has settings
-  const { ccWalletStarted } = store.getState().appState;
-
-  // cc needs to be started
-  if(!ccWalletStarted) {
-    store.dispatch(appActions.setCCWalletCreated(true));
-    store.dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
-    return;
-  } else { // cc has already been started
-    store.dispatch(appActions.setActiveView(activeViews.DASHBOARD));
-  }
-
-  const walletController = new WalletController(cloudChains, tokenManifest, domStorage);
+/**
+ * Startup initialization should happen on login.
+ * @param walletController {WalletController}
+ * @param confController {ConfController}
+ * @param confNeedsManifestUpdate {boolean}
+ * @return {function}
+ */
+function startupInit(walletController, confController, confNeedsManifestUpdate) {
+  return async () => {
   try {
     walletController.loadWallets();
   } catch (err) {
     logger.error('fatal error, failed to load CloudChains conf files');
-    return; // TODO Failing to load CloudChains conf files fatal?
+    // Fatal error, warn user and exit program
+    await Alert.error(Localize.text('Issue'), Localize.text('Failed to load CloudChains wallet configs.'));
+    ipcRenderer.send(ipcMainListeners.CLOSE);
+    return;
   }
 
   // Notify UI of existing cached info
@@ -222,11 +184,93 @@ const startupProcess = async function() {
   // Update the manifest if necessary
   if (confNeedsManifestUpdate)
     await updateConfManifest(confController);
-};
+  };
+} // end startupInit
+
+(async function() {
+  if (!cloudChains.isInstalled() || !cloudChains.hasSettings()) {
+    logger.info('No CloudChains installation found, installing wallet configs.');
+
+    if (!await cloudChains.enableAllWallets()) {
+      // Fatal error, warn user and exit program
+      await Alert.error(Localize.text('Install Issue'),
+        Localize.text('The CloudChains Litewallet daemon failed to write to wallet configuration files. ' +
+          'Does it have the proper permissions? Please reinstall.'));
+      ipcRenderer.send(ipcMainListeners.CLOSE);
+      return;
+    }
+
+    logger.info('Enabling all CloudChains wallets.');
+    logger.info('Enabling CloudChains master RPC server.');
+
+    // cc found but missing settings
+    if (!cloudChains.hasSettings()) {
+      logger.error('No CloudChains settings found.');
+      // Fatal error, warn user and exit program
+      await Alert.error(Localize.text('Install Issue'), Localize.text('The CloudChains Litewallet daemon missing. Please reinstall.'));
+      ipcRenderer.send(ipcMainListeners.CLOSE);
+      return;
+    }
+  }
+
+  if (!await cloudChains.isWalletRPCRunning()) {
+    const binFilePath = cloudChains.getCCSPVFilePath();
+    const exists = await fs.pathExists(binFilePath);
+    if(!exists) {
+      logger.error(`Unable to find CloudChains Litewallet at ${binFilePath}`);
+      await Alert.error(Localize.text('Issue'), Localize.text(`Failed to locate the CloudChains Litewallet at ${binFilePath}.`));
+      ipcRenderer.send(ipcMainListeners.CLOSE);
+      return;
+    }
+    // No need to await and hold up the whole process for this
+    cloudChains.getCCSPVVersion()
+      .then(ccVersion => {
+        logger.info(`Using CloudChains Litewallet version ${ccVersion}`);
+      })
+      .catch(err => {
+        logger.error(err);
+      });
+  }
+
+  // Load latest configuration prior to any further initialization
+  try {
+    cloudChains.loadConfs();
+  } catch (e) {
+    logger.error('Problem loading configs');
+    // Fatal error, warn user and exit program
+    await Alert.error(Localize.text('Issue'), Localize.text('The CloudChains Litewallet configs failed to load.'));
+    ipcRenderer.send(ipcMainListeners.CLOSE);
+    return;
+  }
+
+  // Ask the conf controller for the latest manifest data. Also need
+  // to provide the conf controller with knowledge about available
+  // wallets so that it can limit the number of downloads to only
+  // what we need.
+  const availableWallets = cloudChains.getWalletConfs().map(c => c.ticker());
+  const confController = new ConfController(domStorage, availableWallets);
+  let confNeedsManifestUpdate = true;
+  if (confController.getManifest().length === 0) {
+    confNeedsManifestUpdate = false;
+    await updateConfManifest(confController);
+  }
+  // Create the token manifest from the raw manifest data and fee information
+  const tokenManifest = new TokenManifest(confController.getManifest(), confController.getXBridgeInfo());
+  // Create the wallet controller
+  const walletController = new WalletController(cloudChains, tokenManifest, domStorage);
+
+  // These calls to the store will trigger the UI startup process.
+  // i.e. the loading screen is displayed until these calls complete
+  // below.
+  store.dispatch(appActions.setManifest(tokenManifest));
+  store.dispatch(appActions.setCloudChains(cloudChains));
+  store.dispatch(appActions.setStartupInitializer(startupInit(walletController, confController, confNeedsManifestUpdate)));
+  store.dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
+})();
 
 ReactDOM.render(
   <Provider store={store}>
-    <App startupProcess={startupProcess} />
+    <App />
   </Provider>,
   document.getElementById('js-main')
 );

@@ -128,25 +128,20 @@ class WalletController {
   }
 
   /**
-   * Loads all available wallets.
+   * Loads all available wallets. Assumes that cloudchain confs are already
+   * loaded.
    * @throws {Error} on fatal error
    */
   loadWallets() {
-    if (!this._cloudChains.loadConfs()) {
-      // This indicates some confs failed, but not necessarily all confs
-      // i.e. it shouldn't be a fatal error as some wallets could be working.
-      // TODO Notify user that some confs failed to load?
-    }
-
     // Create the wallet instances for all valid cloudchains wallets
-    this._cloudChains.getWalletConfs().forEach(conf => {
+    for (const conf of this._cloudChains.getWalletConfs()) {
       const token = this._manifest.getToken(conf.ticker());
       if (!token) {
         logger.info(`failed to load wallet for token: ${conf.ticker()}`);
-        return;
+        continue;
       }
       this._wallets.set(conf.ticker(), new Wallet(token, conf, this._domStorage));
-    }, this);
+    }
   }
 
   /**

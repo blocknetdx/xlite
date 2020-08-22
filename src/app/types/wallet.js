@@ -103,9 +103,12 @@ class Wallet {
    * is enabled in the conf.
    */
   initRpcIfEnabled() {
-    if (!this.rpcEnabled())
+    if (!this.rpcEnabled() || _.isNull(this._token.xbinfo) || _.isUndefined(this._token.xbinfo))
       return;
-    this.rpc = new RPCController(this._conf.rpcPort, this._conf.rpcUsername, this._conf.rpcPassword);
+    // Set the default port to the xbridge conf port settings if the
+    // cloudchains conf port is invalid.
+    const port = this._conf.rpcPort === -1000 ? this._token.xbinfo.rpcport : this._conf.rpcPort;
+    this.rpc = new RPCController(port, this._conf.rpcUsername, this._conf.rpcPassword);
   }
 
   /**
@@ -236,7 +239,7 @@ class Wallet {
       logger.error(`failed to get rpc utxos for ${this.ticker}`, e);
       return null; // fatal
     }
-    const builder = new TransactionBuilder(this._token.feeinfo);
+    const builder = new TransactionBuilder(this._token.xbinfo);
     for (const r of recipients)
       builder.addRecipient(r);
     try {

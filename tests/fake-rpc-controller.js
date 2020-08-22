@@ -411,6 +411,14 @@ class FakeRPCController {
       }))
       .filter(t => t.time >= startTime && t.time <= endTime);
   }
+
+  /**
+   * Call the CloudChains RPC help method.
+   * @return {Promise<Object>}
+   */
+  async ccHelp() {
+    return 'Some help text';
+  }
 }
 
 export default FakeRPCController;
