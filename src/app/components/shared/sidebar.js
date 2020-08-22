@@ -7,7 +7,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import * as appActions from '../../actions/app-actions';
 import Localize from './localize';
-import { activeViews, IMAGE_DIR } from '../../constants';
+import { activeViews, IMAGE_DIR, SIDEBAR_WIDTH } from '../../constants';
 import { IconInput } from './inputs';
 import Wallet from '../../types/wallet';
 import { walletSorter } from '../../util';
@@ -70,7 +70,7 @@ let Sidebar = ({ activeView, cloudChains, wallets, balances, setActiveView, setA
   };
 
   return (
-    <div className={'lw-sidebar-container'} style={{overflowY: 'hidden', flexWrap: 'nowrap', maxHeight: '100%'}}>
+    <div className={'lw-sidebar-container'} style={{width: SIDEBAR_WIDTH, minWidth: SIDEBAR_WIDTH, overflowY: 'hidden', flexWrap: 'nowrap', maxHeight: '100%'}}>
       <SidebarButton active={activeView === activeViews.DASHBOARD} onClick={() => activeView !== activeViews.DASHBOARD ? setActiveView(activeViews.DASHBOARD) : null}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-home.png')}, ${path.join(iconsDir, 'icon-home@2x.png')} 2x`} /> <Localize context={'sidebar'}>Dashboard</Localize></SidebarButton>
       <SidebarButton active={activeView === activeViews.PORTFOLIO} onClick={() => activeView !== activeViews.PORTFOLIO ? setActiveView(activeViews.PORTFOLIO) : null}><img alt={Localize.text('Portfolio icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-wallet.png')}, ${path.join(iconsDir, 'icon-wallet@2x.png')} 2x`} /> <Localize context={'sidebar'}>Portfolio</Localize></SidebarButton>
       <SidebarButton active={activeView === activeViews.TRANSACTIONS} onClick={() => activeView !== activeViews.TRANSACTIONS ? setActiveView(activeViews.TRANSACTIONS) : null}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-history.png')}, ${path.join(iconsDir, 'icon-history@2x.png')} 2x`} /> <Localize context={'sidebar'}>Transactions</Localize></SidebarButton>

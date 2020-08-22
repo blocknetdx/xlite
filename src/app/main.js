@@ -6,7 +6,7 @@ import CloudChains from './modules/cloudchains';
 import ConfController from './modules/conf-controller';
 import domStorage from './modules/dom-storage';
 import { getLocaleData, handleError, logger, walletSorter } from './util';
-import { activeViews, HTTP_REQUEST_TIMEOUT, ipcMainListeners } from './constants';
+import { activeViews, HTTP_REQUEST_TIMEOUT, ipcMainListeners, MIN_UI_HEIGHT, MIN_UI_WIDTH } from './constants';
 import Localize from './components/shared/localize';
 import TokenManifest from './modules/token-manifest';
 import WalletController from './modules/wallet-controller';
@@ -55,9 +55,18 @@ if(isDev) {
   });
 }
 
+let resizeTimeout;
 window.addEventListener('resize', e => {
-  const { innerWidth, innerHeight } = e.target;
-  store.dispatch(appActions.setWindowSize(innerWidth, innerHeight));
+  let { innerWidth, innerHeight } = e.target;
+  if(innerWidth < MIN_UI_WIDTH)
+    innerWidth = MIN_UI_WIDTH;
+  if(innerHeight < MIN_UI_HEIGHT)
+    innerHeight = MIN_UI_HEIGHT;
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    if(innerWidth)
+    store.dispatch(appActions.setWindowSize(innerWidth, innerHeight));
+  }, 200);
 });
 
 const locale = ipcRenderer.sendSync(ipcMainListeners.GET_USER_LOCALE);
