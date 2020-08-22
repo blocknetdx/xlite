@@ -1,7 +1,7 @@
 /**
- * Fee info data structure.
+ * XBridge info data structure.
  */
-class FeeInfo {
+class XBridgeInfo {
   /**
    * @type {string}
    */
@@ -18,6 +18,10 @@ class FeeInfo {
    * @type {number}
    */
   coin = 100000000; // default 100 million
+  /**
+   * @type {number}
+   */
+  rpcport = -1000;
 
   /**
    * Constructor
@@ -28,4 +32,4 @@ class FeeInfo {
   }
 }
 
-export default FeeInfo;
+export default XBridgeInfo;

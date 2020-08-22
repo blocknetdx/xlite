@@ -1,3 +1,4 @@
+/*global describe,it,before,beforeEach*/
 import 'should';
 import {all, create} from 'mathjs';
 import {combineReducers, createStore} from 'redux';
@@ -147,8 +148,9 @@ describe('WalletController Test Suite', function() {
     };
     confController = new ConfController(domStorage, availableWallets);
     await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.true();
-    tokenManifest = new TokenManifest(confController.getManifest(), confController.getFeeInfo());
-    cloudChains = new CloudChains(ccFunc);
+    tokenManifest = new TokenManifest(confController.getManifest(), confController.getXBridgeInfo());
+    cloudChains = new CloudChains(ccFunc, domStorage);
+    cloudChains.loadConfs();
   });
 
   it('WalletController()', function() {
@@ -225,13 +227,6 @@ describe('WalletController Test Suite', function() {
     wc.loadWallets();
     wc.getWallets().should.be.an.Array();
     wc.getWallets().should.not.be.empty();
-  });
-  it('WalletController.loadWallets() should fail on bad configs', function() {
-    cloudChains._cloudChainsSettingsDir = cloudChains._cloudChainsDir;
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
-    wc.loadWallets();
-    wc.getWallets().should.be.an.Array();
-    wc.getWallets().should.be.empty();
   });
   it('WalletController.dispatchWallets()', function() {
     const combinedReducers = combineReducers({ appState: appReducer });

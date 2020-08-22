@@ -18,16 +18,16 @@ class TokenManifest {
    * Constructor. Fee info is required to associate fee data
    * with the token manifest data.
    * @param manifest {Object[]}
-   * @param feeInfo {FeeInfo[]}
+   * @param xbinfos {XBridgeInfo[]}
    */
-  constructor(manifest, feeInfo) {
+  constructor(manifest, xbinfos) {
     this._manifest = manifest;
-    const fees = new Map();
-    for (const info of feeInfo)
-      fees.set(info.ticker, info);
+    const infos = new Map();
+    for (const info of xbinfos)
+      infos.set(info.ticker, info);
     for (const t of this._manifest) {
       const token = new Token(t);
-      token.feeinfo = fees.get(token.ticker);
+      token.xbinfo = infos.get(token.ticker);
       this._tokens.set(token.ticker, token);
     }
   }

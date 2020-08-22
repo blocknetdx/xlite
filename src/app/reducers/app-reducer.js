@@ -4,7 +4,7 @@ import TokenManifest from '../modules/token-manifest';
 
 const getInitialState = () => ({
   cloudChains: null,
-  ccWalletCreated: false,
+  startupInit: null,
   ccWalletStarted: false,
   activeView: '',
   currencyMultipliers: {},
@@ -73,20 +73,15 @@ export default (state = getInitialState(), { type, payload }) => {
         ...state,
         currencyMultipliers: payload.multipliers
       };
-    case actions.SET_CC_WALLET_CREATED:
-      return {
-        ...state,
-        ccWalletCreated: payload.ccWalletCreated
-      };
-    case actions.SET_CC_WALLET_STARTED:
-      return {
-        ...state,
-        ccWalletStarted: payload.ccWalletStarted
-      };
     case actions.SET_CLOUDCHAINS:
       return {
         ...state,
         cloudChains: payload.cloudChains
+      };
+    case actions.SET_STARTUP_INIT:
+      return {
+        ...state,
+        startupInit: payload.startupInit
       };
     default:
       return state;

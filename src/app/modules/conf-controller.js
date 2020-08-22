@@ -1,7 +1,7 @@
-import FeeInfo from '../types/feeinfo';
 import {logger, requireRenderer} from '../util';
 import {localStorageKeys} from '../constants';
 import Token from '../types/token';
+import XBridgeInfo from '../types/xbridgeinfo';
 
 import _ from 'lodash';
 
@@ -55,17 +55,17 @@ class ConfController {
   }
 
   /**
-   * Get the fee info data provider.
-   * @returns {FeeInfo[]}
+   * Get the xbridge info data provider.
+   * @returns {XBridgeInfo[]}
    */
-  getFeeInfo() {
-    const info = this._domStorage.getItem(localStorageKeys.FEEINFO);
-    const fees = [];
-    if (!_.isArray(info)) // do not process bad data
-      return fees;
-    for (const fee of info)
-      fees.push(new FeeInfo(fee));
-    return fees;
+  getXBridgeInfo() {
+    const xbinfo = this._domStorage.getItem(localStorageKeys.XBRIDGE_INFO);
+    const infos = [];
+    if (!_.isArray(xbinfo)) // do not process bad data
+      return infos;
+    for (const info of xbinfo)
+      infos.push(new XBridgeInfo(info));
+    return infos;
   }
 
   /**
@@ -130,6 +130,18 @@ class ConfController {
 
     // Store manifest and hash only on successful response
     if (!_.isNull(manifest) && !_.isUndefined(manifest)) {
+      // Filter latest from manifest, only keep the latest conf versions
+      manifest.sort((a,b) => a.xbridge_conf.localeCompare(b.xbridge_conf, 'en', { numeric: true }));
+      const have = new Set();
+      for (let i = manifest.length - 1; i >= 0; i--) {
+        const token = manifest[i];
+        if (have.has(token.ticker)) {
+          manifest.splice(i, 1); // remove this conf, it's not the latest
+          continue;
+        }
+        have.add(token.ticker);
+      }
+
       this._domStorage.setItem(localStorageKeys.MANIFEST_SHA, manifestHash);
       this._domStorage.setItem(localStorageKeys.MANIFEST, manifest);
 
@@ -138,6 +150,7 @@ class ConfController {
       const reFpb = /^\s*feeperbyte\s*=\s*(\d+)\s*$/i;
       const reMtf = /^\s*mintxfee\s*=\s*(\d+)\s*$/i;
       const reCoin = /^\s*coin\s*=\s*(\d+)\s*$/i;
+      const rePort = /^\s*port\s*=\s*(\d+)\s*$/i;
       for (const t of manifest) {
         const token = new Token(t);
         if (this._availableWallets.has(token.ticker)) {
@@ -165,10 +178,29 @@ class ConfController {
             // FeePerByte=20
             // Confirmations=0
             const res = await req(manifestConfPrefix + token.xbridge_conf);
-            const xbconf = res.body.toString().split(/(?:\\r)?\\n/gm);
+            // const xbconf = res.body.toString().split(/(?:\\r)?\\n/gm); // issues
+            const xbconf = [];
+            let l = '';
+            let p = '';
+            for (const ch of res.body.toString()) {
+              const l1 = /\s/.test(ch);
+              const l2 = p+ch === '\\n' || p+ch === '\\r';
+              if (l1 || l2) {
+                if (l2) // remove the last char if it's l2 whitespace
+                  l = l.slice(0, l.length-1);
+                if (!/^\s*$/.test(l)) // if not empty/whitespace
+                  xbconf.push(l);
+                l = '';
+                p = '';
+                continue;
+              }
+              l += ch;
+              p = ch;
+            }
             let matchfpb = null;
             let matchminfee = null;
             let matchcoin = null;
+            let matchport = null;
             for (const line of xbconf) {
               if (!matchfpb)
                 matchfpb = line.match(reFpb);
@@ -176,27 +208,30 @@ class ConfController {
                 matchminfee = line.match(reMtf);
               if (!matchcoin)
                 matchcoin = line.match(reCoin);
+              if (!matchport)
+                matchport = line.match(rePort);
             }
-            if (matchfpb && matchminfee && matchcoin) {
-              const feeInfo = new FeeInfo({
+            if (matchfpb && matchminfee && matchcoin && matchport) {
+              const feeInfo = new XBridgeInfo({
                 ticker: token.ticker,
                 feeperbyte: Number(matchfpb[1]),
                 mintxfee: Number(matchminfee[1]),
                 coin: Number(matchcoin[1]),
+                rpcport: Number(matchport[1]),
               });
               fees.push(feeInfo);
             } else {
-              logger.error(`failed to read fee info for ${token.ticker}`);
+              logger.error(`failed to read xbridge info for ${token.ticker}`);
               return false;
             }
           } catch (e) {
-            logger.error(`failed to download fee info for ${token.ticker}`, e);
+            logger.error(`failed to download xbridge info for ${token.ticker}`, e);
             return false;
           }
         }
       }
       // Store fee data
-      this._domStorage.setItem(localStorageKeys.FEEINFO, fees);
+      this._domStorage.setItem(localStorageKeys.XBRIDGE_INFO, fees);
 
       return true;
     }

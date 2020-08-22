@@ -9,14 +9,14 @@ const { bignumber } = math;
 
 import CCWalletConf from '../src/app/types/ccwalletconf';
 import FakeRPCController from './fake-rpc-controller';
-import FeeInfo from '../src/app/types/feeinfo';
+import {localStorageKeys} from '../src/app/constants';
 import Recipient from '../src/app/types/recipient';
 import RPCController from '../src/app/modules/rpc-controller';
-import Token from '../src/app/types/token';
-import Wallet from '../src/app/types/wallet';
-import {unixTime} from '../src/app/util';
-import {localStorageKeys} from '../src/app/constants';
 import RPCTransaction from '../src/app/types/rpc-transaction';
+import Token from '../src/app/types/token';
+import {unixTime} from '../src/app/util';
+import Wallet from '../src/app/types/wallet';
+import XBridgeInfo from '../src/app/types/xbridgeinfo';
 
 describe('Wallet Test Suite', function() {
   let token;
@@ -39,7 +39,7 @@ describe('Wallet Test Suite', function() {
       "xbridge_conf": "blocknet--v4.0.1.conf",
       "wallet_conf": "blocknet--v4.0.1.conf"
     });
-    token.feeinfo = new FeeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000 });
+    token.xbinfo = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000, rpcport: 41414 });
     conf = new CCWalletConf(token.ticker, {
       "rpcPassword": "test",
       "fee": 1.0E-4,
@@ -73,6 +73,12 @@ describe('Wallet Test Suite', function() {
     wallet2.initRpcIfEnabled();
     wallet2.rpcEnabled().should.be.false();
     wallet2.rpc.should.be.eql(new RPCController(0, '', ''));
+  });
+  it('Wallet.initRpcIfEnabled() should set default port from token conf', function() {
+    conf.rpcPort = -1000;
+    const wallet = new Wallet(token, conf, domStorage);
+    wallet.initRpcIfEnabled();
+    wallet.rpc.should.be.eql(new RPCController(41414, 'testUser', 'test'));
   });
   it('Wallet.getBalance()', async function() {
     const fakerpc = new FakeRPCController();
@@ -371,11 +377,11 @@ describe('Wallet Test Suite', function() {
     const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
     should.not.exist(await wallet.send(recipients));
   });
-  it('Wallet.send() with bad fee info should use default', async function() {
+  it('Wallet.send() with bad xbridge info should use default', async function() {
     const fakerpc = new FakeRPCController();
     const wallet = new Wallet(token, conf, domStorage);
     wallet.rpc = fakerpc;
-    wallet._token.feeinfo = null;
+    wallet._token.xbinfo = null;
     const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
     await wallet.send(recipients).should.be.finally.String().and.not.be.equal('');
   });

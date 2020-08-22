@@ -1,14 +1,21 @@
-import { connect } from 'react-redux';
+import * as appActions from '../../actions/app-actions';
+import {activeViews} from '../../constants';
 import LoginRegister from './login-register';
-import { setActiveView, setCCWalletStarted } from '../../actions/app-actions';
+
+import { connect } from 'react-redux';
 
 export default connect(
   ({ appState }) => ({
     cloudChains: appState.cloudChains,
-    ccWalletCreated: appState.ccWalletCreated
+    startupInit: appState.startupInit,
   }),
   dispatch => ({
-    setActiveView: activeView => dispatch(setActiveView(activeView)),
-    setCCWalletStarted: ccWalletStarted => dispatch(setCCWalletStarted(ccWalletStarted))
+    setActiveView: activeView => dispatch(appActions.setActiveView(activeView)),
+    setCCWalletStarted: ccWalletStarted => {
+      if (ccWalletStarted)
+        dispatch(appActions.setActiveView(activeViews.DASHBOARD));
+      else
+        dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
+    }
   })
 )(LoginRegister);

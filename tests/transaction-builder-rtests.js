@@ -7,13 +7,13 @@ const math = create(all, {
 const { bignumber } = math;
 
 import {DUST_SATOSHIS} from '../src/app/constants'
-import FeeInfo from '../src/app/types/feeinfo';
 import Recipient from '../src/app/types/recipient';
-import TransactionBuilder from '../src/app/modules/transactionbuilder';
 import RPCUnspent from '../src/app/types/rpc-unspent';
+import TransactionBuilder from '../src/app/modules/transactionbuilder';
+import XBridgeInfo from '../src/app/types/xbridgeinfo';
 
 describe('Transaction Builder Test Suite', function() {
-  const defaultFeeInfo = new FeeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000 });
+  const defaultFeeInfo = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000 });
   const defaultRecipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
   const defaultUtxos = [
     new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
@@ -224,21 +224,21 @@ describe('Transaction Builder Test Suite', function() {
     builder.isValid().should.be.false();
   });
   it('TransactionBuilder.feeEstimate()', function() {
-    const feeInfo = new FeeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 1000, coin: 100000000 });
+    const feeInfo = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 1000, coin: 100000000 });
     const builder = new TransactionBuilder(feeInfo);
     builder.feeEstimate(1, 1).should.be.equal(4520/feeInfo.coin); // 192 * inputCount + 34 * outputCount * feePerByte
     builder.feeEstimate(1, 2).should.be.equal(5200/feeInfo.coin);
     builder.feeEstimate(2, 2).should.be.equal(9040/feeInfo.coin);
   });
-  it('TransactionBuilder.feeEstimate() default fee info', function() {
-    const feeInfo = new FeeInfo({});
+  it('TransactionBuilder.feeEstimate() default xbridge info', function() {
+    const feeInfo = new XBridgeInfo({});
     const builder = new TransactionBuilder(null);
     builder.feeEstimate(1, 1).should.be.equal(22600/feeInfo.coin);
     builder.feeEstimate(1, 2).should.be.equal(26000/feeInfo.coin);
     builder.feeEstimate(2, 2).should.be.equal(45200/feeInfo.coin);
   });
   it('TransactionBuilder.isDust()', function() {
-    const feeInfo = new FeeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000 });
+    const feeInfo = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000 });
     const builder = new TransactionBuilder(feeInfo);
     builder.isDust(100/feeInfo.coin).should.be.true();
     builder.isDust(DUST_SATOSHIS/feeInfo.coin).should.be.true();

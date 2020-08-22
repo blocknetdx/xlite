@@ -1,13 +1,11 @@
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import Localize from '../shared/localize';
-import { localStorageKeys } from '../../constants';
 import IconArrowRight from '../shared/icon-arrow-right';
 import isDev from 'electron-is-dev';
 import Logo from '../shared/logo';
 import CloudChains from '../../modules/cloudchains';
 import { Button } from '../shared/buttons';
-import domStorage from '../../modules/dom-storage';
 import { Crypt, generateSalt, pbkdf2 } from '../../modules/crypt';
 import { handleError, logger } from '../../util';
 import Spinner from '../shared/spinner';
@@ -124,7 +122,7 @@ const okIconWidth = 20;
 const OkIcon = () => <i className={'fas fa-check lw-color-positive-1'} style={{width: okIconWidth}} />;
 const NotOkIcon = () => <i className={'fas fa-times color-negative'} style={{width: okIconWidth}} />;
 
-const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => {
+const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
 
   const [ hidden, setHidden ] = useState(true);
   const [ password, setPassword ] = useState('');
@@ -144,7 +142,7 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
   // and if you also have a CC_WALLET_AUTOLOGIN environmental variable set to true, then the wallet will autologin
   useEffect(() => {
     const { CC_WALLET_PASS = '', CC_WALLET_AUTOLOGIN } = process.env;
-    if(isDev && CC_WALLET_PASS && ccWalletCreated) {
+    if(isDev && CC_WALLET_PASS && cloudChains && startupInit && (cloudChains.isWalletCreated() || cloudChains.isWalletRPCRunning())) {
       setPassword(CC_WALLET_PASS);
       if(CC_WALLET_AUTOLOGIN === 'true') {
         setTimeout(() => {
@@ -152,13 +150,17 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
         }, 100);
       }
     }
-  }, [process.env.CC_WALLET_PASS]);
+  }, [process.env.CC_WALLET_PASS, cloudChains]);
+
+  // Do not show login until we have required data
+  if (!cloudChains || !startupInit)
+    return <div><Spinner /></div>;
 
   const onLoginSubmit = async function() {
 
     setProcessing(true);
 
-    const storedPassword = domStorage.getItem(localStorageKeys.PASSWORD);
+    const storedPassword = cloudChains.getStoredPassword();
 
     const rpcRunning = await cloudChains.isWalletRPCRunning();
     if (!rpcRunning) {
@@ -169,26 +171,21 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
         return;
       }
     } else if (storedPassword) {
-      const storedSalt = domStorage.getItem(localStorageKeys.SALT);
+      const storedSalt = cloudChains.getStoredSalt();
       const hashedPassword = pbkdf2(password, storedSalt);
       if (hashedPassword !== storedPassword) {
         setErrorMessage(Localize.text('Invalid password.', 'login'));
         setProcessing(false);
         return;
       }
-    }
-
-    // Save hashed password to db
-    if (!storedPassword) {
-      const salt = generateSalt(32);
-      const hashedPassword = pbkdf2(password, salt);
-      domStorage.setItems({
-        [localStorageKeys.PASSWORD]: hashedPassword,
-        [localStorageKeys.SALT]: salt
-      });
+    } else {
+      setErrorMessage(Localize.text('Invalid password.', 'login'));
+      setProcessing(false);
+      return;
     }
 
     setCCWalletStarted(true);
+    await startupInit();
 
   };
 
@@ -219,11 +216,7 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
       return;
     }
 
-    domStorage.setItems({
-      [localStorageKeys.MNEMONIC]: encryptedMnemonic,
-      [localStorageKeys.PASSWORD]: hashedPassword,
-      [localStorageKeys.SALT]: salt
-    });
+    cloudChains.saveWalletCredentials(hashedPassword, salt, encryptedMnemonic);
 
     try {
       cloudChains.loadConfs(); // load all confs and update the master conf if necessary
@@ -243,6 +236,7 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
     }
 
     setMnemonic(m);
+    await startupInit();
   };
 
   const onMnemonicContinueClick = e => {
@@ -262,13 +256,19 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
     }
   };
 
+  // Show the login if the wallet was created or if the rpc is running
+  // and there's a known cloudchains password. Otherwise, show the
+  // registration screen.
+  const showLogin = !mnemonic && cloudChains && (cloudChains.isWalletCreated() || (cloudChains.isWalletRPCRunning() && cloudChains.getStoredPassword()));
+  const showRegistration = !showLogin && !mnemonic && cloudChains && !cloudChains.isWalletCreated();
+
   return (
     <div className={'lw-login-container'}>
       <div className={'lw-login-inner-container'}>
         <div className={'lw-login-image-container'}>
           <Logo className={'lw-login-image'} />
         </div>
-        {mnemonic ?
+        {mnemonic &&
           <div style={styles.bodyContainer}>
 
             <div className={'lw-color-secondary-3'} style={{marginBottom: 20, fontSize: 14}}><Localize context={'login'}>Below is the mnemonic seed for your wallet. Please save it securely for your records. If you forget your password or otherwise lose your wallet, you will be able to restore your wallet using these words.</Localize></div>
@@ -280,8 +280,8 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
               onClick={onMnemonicContinueClick}
               style={{marginTop: 25, height: 50}}><Localize context={'login'}>Continue</Localize></Button>
           </div>
-          :
-          ccWalletCreated ?
+        }
+        { showLogin &&
             <div style={styles.bodyContainer}>
               <LoginPasswordSubmitInput
                 hidden={hidden}
@@ -291,7 +291,8 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
                 readOnly={processing}
                 onSubmit={onLoginSubmit} />
             </div>
-            :
+        }
+        { showRegistration &&
             <div style={styles.bodyContainer}>
               <form onSubmit={onRegisterSubmit}>
                 <LoginInput placeholder={Localize.text('Enter password', 'login')}
@@ -340,7 +341,7 @@ const LoginRegister = ({ cloudChains, ccWalletCreated, setCCWalletStarted }) => 
 };
 LoginRegister.propTypes = {
   cloudChains: PropTypes.instanceOf(CloudChains),
-  ccWalletCreated: PropTypes.bool,
+  startupInit: PropTypes.func,
   setActiveView: PropTypes.func,
   setCCWalletStarted: PropTypes.func
 };
