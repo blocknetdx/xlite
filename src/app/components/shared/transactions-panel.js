@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
@@ -21,12 +22,20 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
-const TransactionsPanel = ({ selectable = false, activeWallet, altCurrency, coinSpecificTransactions = false, hideAddress = false, hideAmount = false, currencyMultipliers, transactions, wallets, style = {}, showAllButton = false, setActiveView }) => {
+const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = false, brief = false, activeWallet, altCurrency, currencyMultipliers, transactions, wallets, style = {}, showAllButton = false, setActiveView }) => {
 
   const [ selectedTx, setSelectedTx ] = useState(null);
 
-  const altMultiplier = bignumber(currencyMultipliers[activeWallet] && currencyMultipliers[activeWallet][altCurrency] ? currencyMultipliers[activeWallet][altCurrency] : 0);
-  const btcMultiplier = bignumber(currencyMultipliers[activeWallet] && currencyMultipliers[activeWallet]['BTC'] ? currencyMultipliers[activeWallet]['BTC'] : 0);
+  const filteredTxs = [...transactions.entries()]
+    .filter(([ ticker ]) => !coinSpecificTransactions ? true : ticker === activeWallet)
+    .reduce((arr, [ ticker, txs]) => {
+      return arr.concat(txs.map(tx => [ticker, tx]));
+    }, [])
+    .sort((a, b) => {
+      const dateA = a[1].time;
+      const dateB = b[1].time;
+      return dateA === dateB ? 0 : dateA > dateB ? -1 : 1;
+    });
 
   return (
     <Card style={style}>
@@ -37,20 +46,11 @@ const TransactionsPanel = ({ selectable = false, activeWallet, altCurrency, coin
         <Table>
           <TableColumn size={3}><Localize context={'transactions'}>Transaction Type</Localize></TableColumn>
           <TableColumn size={2}><Localize context={'transactions'}>Asset</Localize></TableColumn>
-          {!hideAddress ? <TableColumn size={7}><Localize context={'transactions'}>To address</Localize></TableColumn> : null}
-          {!hideAmount ? <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn> : null}
-          <TableColumn size={2}><Localize context={'transactions'}>Value</Localize> (BTC)</TableColumn>
-          {[...transactions.entries()]
-            .filter(([ ticker ]) => !coinSpecificTransactions ? true : ticker === activeWallet)
-            .reduce((arr, [ ticker, txs]) => {
-              return arr.concat(txs.map(tx => [ticker, tx]));
-            }, [])
-            .sort((a, b) => {
-              const dateA = a[1].time;
-              const dateB = b[1].time;
-              return dateA === dateB ? 0 : dateA > dateB ? -1 : 1;
-            })
-            .map(([ticker, t]) => {
+          {!brief ? <TableColumn size={7}><Localize context={'transactions'}>To address</Localize></TableColumn> : null}
+          {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn> : null}
+          {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Value (BTC)</Localize></TableColumn>
+                  : <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn>}
+          {filteredTxs.map(([ticker, t]) => {
 
               const wallet = wallets.find(w => w.ticker === ticker) || new Wallet();
 
@@ -59,6 +59,15 @@ const TransactionsPanel = ({ selectable = false, activeWallet, altCurrency, coin
               const onRowClick = () => {
                 setSelectedTx({...t, wallet});
               };
+
+              let currencyMultiplier = 0;
+              let btcMultiplier = 0;
+              if (_.has(currencyMultipliers, ticker)) {
+                if (_.has(currencyMultipliers[ticker], altCurrency))
+                  currencyMultiplier = currencyMultipliers[ticker][altCurrency];
+                if (_.has(currencyMultipliers[ticker], 'BTC'))
+                  btcMultiplier = currencyMultipliers[ticker]['BTC'];
+              }
 
               return (
                 <TableRow key={t.txId} clickable={selectable} onClick={onRowClick}>
@@ -81,25 +90,44 @@ const TransactionsPanel = ({ selectable = false, activeWallet, altCurrency, coin
                                  ]
                              ).join(', ')} />
                       </Column>
+                      {!brief ?
                       <div style={{flexGrow: 1}}>
-                        <div className={'date-label'}>{moment(new Date(t.time * 1000)).format('MMM D YYYY')}</div>
-                        <div className={'sentreceived-label'}>{sent ? Localize.text('Sent', 'transactions') : Localize.text('Received', 'transactions')}</div>
+                        <div className={'lw-table-top-label'}>{moment(new Date(t.time * 1000)).format('MMM D YYYY')}</div>
+                        <div className={'lw-table-bottom-label'}>{sent ? Localize.text('Sent', 'transactions') : Localize.text('Received', 'transactions')}</div>
                       </div>
+                              :
+                      // Brief requires displaying the sent or received state and the time
+                      <div style={{flexGrow: 1}}>
+                        <div className={'lw-table-top-label'}>{sent ? Localize.text('Sent', 'transactions') : Localize.text('Received', 'transactions')}</div>
+                        <div className={'lw-table-bottom-label'}>{moment(new Date(t.time * 1000)).format('MMM D HH:mm')}</div>
+                      </div>
+                      }
                     </Row>
                   </TableData>
                   <TableData>
                     <AssetWithImage wallet={wallet} />
                   </TableData>
-                  {!hideAddress ? <TableData className={'text-monospace'}>{t.address}</TableData> : null}
-                  {!hideAmount ? <TableData className={'text-monospace'}>{t.amount}</TableData> : null}
+                  {!brief ? <TableData className={'text-monospace'}>{t.address}</TableData> : null}
+                  {!brief ? <TableData className={'text-monospace'}>{t.amount}</TableData> : null}
+                  {!brief ?
                   <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
                     <div>
                       {sent ? '-' : '+'}{math.multiply(bignumber(t.amount), btcMultiplier).toFixed(MAX_DECIMAL_PLACE)}
                     </div>
                     <div>
-                      {sent ? '-' : '+'}${math.multiply(bignumber(t.amount), altMultiplier).toFixed(2)}
+                      {sent ? '-' : '+'}{altCurrency+' '}{math.multiply(bignumber(t.amount), currencyMultiplier).toFixed(2)}
                     </div>
                   </TableData>
+                  :  // Brief requires displaying the actual amount and currency equivalent
+                  <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'right'}}>
+                    <div className={'lw-table-top-label'}>
+                      {sent ? '-' : '+'}{bignumber(t.amount).toFixed(4)}
+                    </div>
+                    <div className={'lw-table-bottom-label'}>
+                    {sent ? '-' : '+'}{altCurrency+' '}{math.multiply(bignumber(t.amount), currencyMultiplier).toFixed(2)}
+                    </div>
+                  </TableData>
+                  }
                 </TableRow>
               );
             })
@@ -133,8 +161,7 @@ const TransactionsPanel = ({ selectable = false, activeWallet, altCurrency, coin
 TransactionsPanel.propTypes = {
   selectable: PropTypes.bool,
   coinSpecificTransactions: PropTypes.bool,
-  hideAddress: PropTypes.bool,
-  hideAmount: PropTypes.bool,
+  brief: PropTypes.bool,
   activeWallet: PropTypes.string,
   altCurrency: PropTypes.string,
   currencyMultipliers: PropTypes.object,

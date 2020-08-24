@@ -12,7 +12,7 @@ const Transactions = ({ activeView }) => {
     <div className={'lw-transactions-container'}>
       <Balance showCoinDetails={coinSpecificTransactions} />
 
-      <TransactionsPanel selectable={true} coinSpecificTransactions={coinSpecificTransactions} />
+      <TransactionsPanel selectable={true} coinSpecificTransactions={coinSpecificTransactions} brief={false} />
 
     </div>
   );

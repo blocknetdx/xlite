@@ -13,12 +13,12 @@
   flex-direction: column;
   justify-content: flex-start;
 }
-.lw-transactions-container .date-label {
+.lw-table-top-label {
   font-family: IBMPlexMono;
   font-size: 13px;
   color: $lw-secondary-1;
 }
-.lw-transactions-container .sentreceived-label {
+.lw-table-bottom-label {
   font-family: IBMPlexMono;
   font-size: 11px;
   color: $lw-secondary-3;
