@@ -33,6 +33,10 @@ $lw-row-padding-vert: 12px;
     padding-right: $lw-row-padding-horiz;
 
     .lw-table-column-heading {
+      font-family: IBMPlexSans;
+      font-weight: 500;
+      font-style: normal;
+      font-stretch: normal;
       color: $lw-secondary-2;
       text-align: center;
       line-height: 16px;

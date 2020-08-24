@@ -82,8 +82,8 @@ const TransactionsPanel = ({ selectable = false, activeWallet, altCurrency, coin
                              ).join(', ')} />
                       </Column>
                       <div style={{flexGrow: 1}}>
-                        <div>{moment(new Date(t.time * 1000)).format('MMM D YYYY')}</div>
-                        <div>{sent ? Localize.text('Sent', 'transactions') : Localize.text('Received', 'transactions')}</div>
+                        <div className={'date-label'}>{moment(new Date(t.time * 1000)).format('MMM D YYYY')}</div>
+                        <div className={'sentreceived-label'}>{sent ? Localize.text('Sent', 'transactions') : Localize.text('Received', 'transactions')}</div>
                       </div>
                     </Row>
                   </TableData>
@@ -94,7 +94,7 @@ const TransactionsPanel = ({ selectable = false, activeWallet, altCurrency, coin
                   {!hideAmount ? <TableData className={'text-monospace'}>{t.amount}</TableData> : null}
                   <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
                     <div>
-                      {sent ? '-' : '+'}{Number(math.multiply(bignumber(t.amount), btcMultiplier).toFixed(MAX_DECIMAL_PLACE))}
+                      {sent ? '-' : '+'}{math.multiply(bignumber(t.amount), btcMultiplier).toFixed(MAX_DECIMAL_PLACE)}
                     </div>
                     <div>
                       {sent ? '-' : '+'}${math.multiply(bignumber(t.amount), altMultiplier).toFixed(2)}
