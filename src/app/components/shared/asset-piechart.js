@@ -173,7 +173,9 @@ export default class AssetPieChart extends React.Component {
           const selAngle = calcAngle < 0 ? calcAngle + 2*Math.PI : calcAngle;
           const normalizedFromAngle = fromAngle < 0 ? fromAngle + 2*Math.PI : fromAngle;
           const normalizedToAngle = toAngle < 0 ? toAngle + 2*Math.PI : toAngle;
-          if (normalizedFromAngle > normalizedToAngle) {
+          if (data.length === 1) // if there's only 1 item select it regardless of angle
+            selectionFlag = true;
+          else if (normalizedFromAngle > normalizedToAngle) {
             if ((selAngle >= normalizedFromAngle && selAngle < normalizedToAngle+2*Math.PI)
               || (selAngle >= normalizedFromAngle-2*Math.PI && selAngle < normalizedToAngle))
               selectionFlag = true;
@@ -189,7 +191,7 @@ export default class AssetPieChart extends React.Component {
       }
 
       // Draw the selection over the selected pie piece
-      if (selectedAngleFrom !== 0 && selectedAngleTo !== 0) {
+      if (showSelected && (selectedAngleFrom !== 0 && selectedAngleTo !== 0 || data.length === 1)) {
         ctx.save();
         ctx.lineWidth = this._pix(2);
         ctx.strokeStyle = 'cyan';
@@ -202,18 +204,21 @@ export default class AssetPieChart extends React.Component {
         const path2 = new Path2D();
         path2.arc(origin.x, origin.y, radiusUpper, selectedAngleFrom, selectedAngleTo); // top
         ctx.stroke(path2);
-        // Draw left end cap
-        const path3 = new Path2D();
-        const p1 = {x: origin.x + radiusLower * Math.cos(selectedAngleFrom), y: origin.y + radiusLower * Math.sin(selectedAngleFrom)};
-        const p2 = {x: origin.x + radiusUpper * Math.cos(selectedAngleFrom), y: origin.y + radiusUpper * Math.sin(selectedAngleFrom)};
-        path3.moveTo(p1.x, p1.y); // draw left border
-        path3.lineTo(p2.x, p2.y);
-        // Draw right end cap
-        const p3 = {x: origin.x + radiusLower * Math.cos(selectedAngleTo), y: origin.y + radiusLower * Math.sin(selectedAngleTo)};
-        const p4 = {x: origin.x + radiusUpper * Math.cos(selectedAngleTo), y: origin.y + radiusUpper * Math.sin(selectedAngleTo)};
-        path3.moveTo(p3.x, p3.y); // draw right border
-        path3.lineTo(p4.x, p4.y);
-        ctx.stroke(path3);
+        // Only draw end caps if there's more than 1 pie piece
+        if (data.length > 1) {
+          // Draw left end cap
+          const path3 = new Path2D();
+          const p1 = {x: origin.x + radiusLower * Math.cos(selectedAngleFrom), y: origin.y + radiusLower * Math.sin(selectedAngleFrom)};
+          const p2 = {x: origin.x + radiusUpper * Math.cos(selectedAngleFrom), y: origin.y + radiusUpper * Math.sin(selectedAngleFrom)};
+          path3.moveTo(p1.x, p1.y); // draw left border
+          path3.lineTo(p2.x, p2.y);
+          // Draw right end cap
+          const p3 = {x: origin.x + radiusLower * Math.cos(selectedAngleTo), y: origin.y + radiusLower * Math.sin(selectedAngleTo)};
+          const p4 = {x: origin.x + radiusUpper * Math.cos(selectedAngleTo), y: origin.y + radiusUpper * Math.sin(selectedAngleTo)};
+          path3.moveTo(p3.x, p3.y); // draw right border
+          path3.lineTo(p4.x, p4.y);
+          ctx.stroke(path3);
+        }
         ctx.restore();
       }
     } else { // render the no-coin state
@@ -225,11 +230,15 @@ export default class AssetPieChart extends React.Component {
     // Determine center pie chart labels
     let percentLabel = '100%';
     let centerLabel = Localize.text('Portfolio', 'pie chart on portfolio screen');
-    let amountLabel = currency + ' ' + bignumber(totalAmount).toString();
+    const defaultAmount = (totalAmount < 1 ? bignumber(totalAmount).toFixed(2)
+                                           : bignumber(totalAmount).toFixed(0));
+    let amountLabel = currency + ' ' + defaultAmount;
     if (showSelected && selectedChartData) {
       percentLabel = (selectedChartData.amount/totalAmount*100).toFixed(0) + '%';
       centerLabel = selectedChartData.name;
-      amountLabel = currency + ' ' + bignumber(selectedChartData.amount).toFixed(0);
+      const amount = (selectedChartData.amount < 1 ? bignumber(selectedChartData.amount).toFixed(2)
+                                                   : bignumber(selectedChartData.amount).toFixed(0));
+      amountLabel = currency + ' ' + amount;
     }
 
     // Percent label
@@ -282,10 +291,55 @@ export default class AssetPieChart extends React.Component {
   }
 }
 
+/**
+ * Wallet color.
+ * @param ticker
+ * @return {string}
+ */
+export const chartColorForTicker = (ticker) => {
+  switch (ticker) {
+    case 'BLOCK':
+      return 'darkblue';
+    case 'BTC':
+      return 'orange';
+    case 'BCH':
+      return 'darkorange';
+    case 'DASH':
+      return 'deepskyblue';
+    case 'DGB':
+      return 'dodgerblue';
+    case 'DOGE':
+      return 'khaki';
+    case 'LTC':
+      return 'gainsboro';
+    case 'PHR':
+      return 'lime';
+    case 'PIVX':
+      return 'mediumpurple';
+    case 'POLIS':
+      return 'lightslategrey';
+    case 'RVN':
+      return 'cornflowerblue';
+    case 'SYS':
+      return 'skyblue';
+    default:
+      return '#666';
+  }
+};
+
 const data = [
-  new AssetPieChartData('BLOCK', 'Blocknet', 'USD', 6500, 'blue'),
-  new AssetPieChartData('BTC', 'Bitcoin', 'USD', 12000, 'orange'),
-  new AssetPieChartData('LTC', 'Litecoin', 'USD', 3500, 'green'),
+  new AssetPieChartData('BLOCK', 'Blocknet', 'USD', 3000, chartColorForTicker('BLOCK')),
+  new AssetPieChartData('BTC', 'Bitcoin', 'USD', 3000, chartColorForTicker('BTC')),
+  new AssetPieChartData('BCH', 'Bitcoin Cash', 'USD', 3000, chartColorForTicker('BCH')),
+  new AssetPieChartData('DASH', 'Dash', 'USD', 3000, chartColorForTicker('DASH')),
+  new AssetPieChartData('DGB', 'DigiByte', 'USD', 3000, chartColorForTicker('DGB')),
+  new AssetPieChartData('DOGE', 'Dogecoin', 'USD', 3000, chartColorForTicker('DOGE')),
+  new AssetPieChartData('LTC', 'Litecoin', 'USD', 3000, chartColorForTicker('LTC')),
+  new AssetPieChartData('PHR', 'Phore', 'USD', 3000, chartColorForTicker('PHR')),
+  new AssetPieChartData('PIVX', 'Pivx', 'USD', 3000, chartColorForTicker('PIVX')),
+  new AssetPieChartData('POLIS', 'Polis', 'USD', 3000, chartColorForTicker('POLIS')),
+  new AssetPieChartData('RVN', 'Ravencoin', 'USD', 3000, chartColorForTicker('RVN')),
+  new AssetPieChartData('SYS', 'Syscoin', 'USD', 3000, chartColorForTicker('SYS')),
 ];
 export const chartSampleData = data;
 

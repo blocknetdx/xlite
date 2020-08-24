@@ -123,6 +123,16 @@ class Wallet {
   }
 
   /**
+   * Return the blockchain name for the wallet.
+   * @return {string}
+   */
+  blockchain() {
+    if (this._token && this._token.blockchain !== '')
+      return this._token.blockchain;
+    return this.ticker;
+  }
+
+  /**
    * Get balance information. Returns null on error.
    * @return {Promise<null|string[]>}
    */

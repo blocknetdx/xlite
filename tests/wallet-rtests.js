@@ -80,6 +80,10 @@ describe('Wallet Test Suite', function() {
     wallet.initRpcIfEnabled();
     wallet.rpc.should.be.eql(new RPCController(41414, 'testUser', 'test'));
   });
+  it('Wallet.blockchain()', function() {
+    const wallet = new Wallet(token, conf, domStorage);
+    wallet.blockchain().should.be.equal(token.blockchain);
+  });
   it('Wallet.getBalance()', async function() {
     const fakerpc = new FakeRPCController();
     const wallet = new Wallet(token, conf, domStorage);

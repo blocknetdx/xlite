@@ -5,6 +5,9 @@ export default connect(
   ({ appState }) => ({
     activeWallet: appState.activeWallet,
     wallets: appState.wallets,
-    windowWidth: appState.windowWidth
+    windowWidth: appState.windowWidth,
+    altCurrency: appState.altCurrency,
+    balances: appState.balances,
+    currencyMultipliers: appState.currencyMultipliers,
   })
 )(Dashboard);
