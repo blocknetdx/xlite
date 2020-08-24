@@ -90,7 +90,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                     {!hidePercentBar ?
                       <Column justify={'center'} style={{marginTop: -14}}>
                         <div style={{marginBottom: 3, textAlign: 'left'}}>{percent}</div>
-                        <PercentBar percent={percent} />
+                        <PercentBar percent={Number(percent)} />
                       </Column>
                       :
                       percent
