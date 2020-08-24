@@ -11,20 +11,29 @@
   }
 
   .lw-balance-container {
-
     margin-top: 5px;
-
-    h2 {
-      display: inline-block;
-      font-size: 24px;
-    }
-    h4 {
-      color: $lw-secondary-2;
-      font-size: 16px;
-      margin-left: 10px;
-      display: inline-block;
-    }
-
   }
+
+  h2 {
+    display: inline-block;
+    font-size: 24px;
+    font-family: IBMPlexSans;
+    font-weight: 600;
+    font-style: normal;
+    font-stretch: normal;
+  }
+  h4 {
+    color: $lw-secondary-2;
+    font-size: 16px;
+    margin-left: 10px;
+    display: inline-block;
+    font-family: IBMPlexSans;
+    font-weight: 500;
+    font-style: normal;
+    font-stretch: normal;
+  }
+
+  .lw-balance-coindetails h2 { font-size: 18px; }
+  .lw-balance-coindetails h4 { font-size: 14px; }
 
 }

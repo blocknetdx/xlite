@@ -17,6 +17,8 @@ const math = create(all, {
 const { bignumber } = math;
 
 let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, balances, currencyMultipliers }) => {
+
+  if(showCoinDetails) { // coin details
   const wallet = activeWallet ? wallets.find(w => w.ticker === activeWallet) : null;
   const [ total, spendable ] = wallet && balances.has(wallet.ticker) ? balances.get(wallet.ticker) : ['0', '0'];
 
@@ -36,7 +38,6 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
     electron.shell.openExternal(explorerLink);
   };
 
-  if(showCoinDetails) {
     return (
       <div className={'lw-balance-outer-container d-flex flex-column justify-content-center'}>
         <div className={'d-flex flex-row justify-content-start'}>
@@ -46,7 +47,7 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
         <div className={'d-flex flex-row justify-content-between'}>
           <div className={'d-flex flex-column justify-content-start'}>
             <div style={{fontSize: 14}} className={'lw-color-secondary-2'}>{Localize.text('Total {{coin}} balance', 'balance', {coin: wallet.ticker})}:</div>
-            <div><span style={{fontSize: 18, fontWeight: 'bold'}} className={'lw-text-primary text-monospace'}>{spendable}</span><span style={{marginLeft: 10, fontSize: 14}} className={'lw-color-secondary-2 text-monospace'}>{altCurrency} {altAmount.toFixed(2)}</span></div>
+            <div className={'lw-balance-coindetails'}><h2>{total} {activeWallet}</h2> <h4>{altCurrency} {altAmount.toFixed(2)}</h4></div>
           </div>
           <div className={'d-flex flex-column justify-content-start lw-color-secondary-3'} style={{fontSize: 14, textAlign: 'right'}}>
             <div><Localize context={'balance'}>Website</Localize>: {website ? <a className={'lw-text-primary'} href={'#'}>blocknet.co</a> : <span className={'lw-text-primary'}>{Localize.text('Unknown', 'balance')}</span>}</div>
@@ -55,11 +56,24 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
         </div>
       </div>
     );
-  } else {
+  } else { // btc balance from all coins combined (not the specific coin details)
+    const BTC = 'BTC';
+    let allCoinBtc = bignumber(0);
+    for (const wallet of wallets) {
+      const currencyMultiplier = currencyMultipliers[wallet.ticker] && currencyMultipliers[wallet.ticker][BTC] ? currencyMultipliers[wallet.ticker][BTC] : 0;
+      const [ total, spendable ] = balances.has(wallet.ticker) ? balances.get(wallet.ticker) : ['0', '0'];
+      const coinBtc = math.multiply(bignumber(total), bignumber(currencyMultiplier));
+      allCoinBtc = math.add(allCoinBtc, coinBtc);
+    }
+    const totalBalance = allCoinBtc.toFixed(MAX_DECIMAL_PLACE);
+    const btcMultiplier = currencyMultipliers[BTC] && currencyMultipliers[BTC][altCurrency] ? currencyMultipliers[BTC][altCurrency] : 0;
+    const totalAltCurrency = math.multiply(allCoinBtc, bignumber(btcMultiplier)).toFixed(2);
     return (
       <div className={'lw-balance-outer-container'}>
         <div className={'lw-balance-note'}><Localize context={'balance'}>Total wallet balance</Localize></div>
-        <div className={'lw-balance-container'}><h2 title={Localize.text('Total spendable:', 'balance') + ' ' + spendable}>{wallet.ticker} <span className={'text-monospace'}>{Number(total)}</span></h2> <h4>{altCurrency} <span className={'text-monospace'}>{altAmount.toFixed(2)}</span></h4></div>
+        <div className={'lw-balance-container'}>
+          <h2>{BTC + ' ' + totalBalance}</h2> <h4>{altCurrency} {totalAltCurrency}</h4>
+        </div>
       </div>
     );
   }
