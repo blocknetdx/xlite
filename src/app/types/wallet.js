@@ -3,6 +3,7 @@ import {logger, unixTime} from '../util';
 import Recipient from './recipient';
 import RPCController from '../modules/rpc-controller';
 import RPCTransaction from './rpc-transaction';
+import Token from './token';
 import TransactionBuilder from '../modules/transactionbuilder';
 
 import _ from 'lodash';
@@ -130,6 +131,14 @@ class Wallet {
     if (this._token && this._token.blockchain !== '')
       return this._token.blockchain;
     return this.ticker;
+  }
+
+  /**
+   * Return the underlying wallet token data.
+   * @return {Token}
+   */
+  token() {
+    return new Token(this._token);
   }
 
   /**

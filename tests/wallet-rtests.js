@@ -84,6 +84,10 @@ describe('Wallet Test Suite', function() {
     const wallet = new Wallet(token, conf, domStorage);
     wallet.blockchain().should.be.equal(token.blockchain);
   });
+  it('Wallet.token()', function() {
+    const wallet = new Wallet(token, conf, domStorage);
+    wallet.token().should.be.eql(token);
+  });
   it('Wallet.getBalance()', async function() {
     const fakerpc = new FakeRPCController();
     const wallet = new Wallet(token, conf, domStorage);
