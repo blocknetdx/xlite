@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
@@ -11,6 +10,7 @@ import moment from 'moment';
 import AssetWithImage from './asset-with-image';
 import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
 import { Map } from 'immutable';
+import {multiplierForCurrency} from '../../util';
 import { all, create } from 'mathjs';
 import Wallet from '../../types/wallet';
 import TransactionDetailModal from './modal-transaction-detail';
@@ -26,15 +26,23 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
 
   const [ selectedTx, setSelectedTx ] = useState(null);
 
+  const walletLookup = new Map(wallets.map(t => [t.ticker, t]));
   const filteredTxs = [...transactions.entries()]
-    .filter(([ ticker ]) => !coinSpecificTransactions ? true : ticker === activeWallet)
+    .filter(([ ticker ]) => {
+      if (!walletLookup.has(ticker))
+        return false;
+      if (!coinSpecificTransactions)
+        return true;
+      else
+        return ticker === activeWallet;
+    })
     .reduce((arr, [ ticker, txs]) => {
       return arr.concat(txs.map(tx => [ticker, tx]));
     }, [])
     .sort((a, b) => {
       const dateA = a[1].time;
       const dateB = b[1].time;
-      return dateA === dateB ? 0 : dateA > dateB ? -1 : 1;
+      return dateA - dateB;
     });
 
   return (
@@ -52,7 +60,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                   : <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn>}
           {filteredTxs.map(([ticker, t]) => {
 
-              const wallet = wallets.find(w => w.ticker === ticker) || new Wallet();
+              const wallet = walletLookup.get(ticker);
 
               const sent = t.type === 'send';
 
@@ -60,14 +68,8 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                 setSelectedTx({...t, wallet});
               };
 
-              let currencyMultiplier = 0;
-              let btcMultiplier = 0;
-              if (_.has(currencyMultipliers, ticker)) {
-                if (_.has(currencyMultipliers[ticker], altCurrency))
-                  currencyMultiplier = currencyMultipliers[ticker][altCurrency];
-                if (_.has(currencyMultipliers[ticker], 'BTC'))
-                  btcMultiplier = currencyMultipliers[ticker]['BTC'];
-              }
+              const currencyMultiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
+              const btcMultiplier = multiplierForCurrency(ticker, 'BTC', currencyMultipliers);
 
               return (
                 <TableRow key={t.txId} clickable={selectable} onClick={onRowClick}>

@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import fs from 'fs-extra';
 import isDev from 'electron-is-dev';
 import path from 'path';
@@ -75,9 +76,17 @@ export const unixTime = () => {
   return Math.floor(new Date() / 1000);
 };
 
+export const multiplierForCurrency = (ticker, currency, currencyMultipliers) => {
+  if (_.has(currencyMultipliers, ticker) && _.has(currencyMultipliers[ticker], currency))
+    return currencyMultipliers[ticker][currency];
+  return 0;
+};
+
 export const timeout = length => new Promise(resolve => setTimeout(resolve, length));
 
 export const oneHourSeconds = 3600;
 export const oneDaySeconds = 86400;
 export const oneWeekSeconds = 604800;
 export const oneMonthSeconds = 2592000;
+
+export const oneSat = 1 / 100000000;
