@@ -238,17 +238,6 @@ describe('WalletController Test Suite', function() {
     wc.dispatchWallets(appActions.setWallets, store);
     store.getState().appState.wallets.should.be.eql(Array.from(wc._wallets.values()));
   });
-  it('WalletController.dispatchActiveWallet()', function() {
-    const combinedReducers = combineReducers({ appState: appReducer });
-    const store = createStore(combinedReducers);
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
-    wc.loadWallets();
-    store.getState().appState.activeWallet.should.be.a.String(); // state should not be valid before dispatch
-    store.getState().appState.activeWallet.should.be.equal('');
-    wc.setActiveWallet('BLOCK');
-    wc.dispatchActiveWallet(appActions.setActiveWallet, store);
-    store.getState().appState.activeWallet.should.be.equal('BLOCK');
-  });
   it('WalletController.dispatchBalances()', function() {
     const balances = new Map([['BLOCK', ['100', '10']], ['BTC', ['100', '100']]]);
     domStorage.setItem(localStorageKeys.BALANCES, balances);

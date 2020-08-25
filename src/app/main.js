@@ -146,7 +146,6 @@ function startupInit(walletController, confController, confNeedsManifestUpdate) 
   walletController.dispatchTransactions(appActions.setTransactions, store);
   walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
   walletController.dispatchWallets(appActions.setWallets, store);
-  walletController.dispatchActiveWallet(appActions.setActiveWallet, store);
 
   // Update latest balance info
   await walletController.updateAllBalances();
@@ -160,22 +159,8 @@ function startupInit(walletController, confController, confNeedsManifestUpdate) 
   await walletController.updatePriceMultipliers(currencyReq);
   walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
 
-  // Set the active wallet only if it hasn't already been set
-  // or if there's only one wallet available.
-  const wallets = walletController.getWallets();
-  if (wallets.length > 0) {
-    if (wallets.length === 1)
-      walletController.setActiveWallet(wallets[0].ticker);
-    else if (!walletController.getActiveWallet()) { // pick wallet with highest balance
-      const balances = walletController.getBalances();
-      const sortedWallets = wallets.sort(walletSorter(balances));
-      walletController.setActiveWallet(sortedWallets[0].ticker);
-    }
-  }
-
   // Active wallets
   walletController.dispatchWallets(appActions.setWallets, store);
-  walletController.dispatchActiveWallet(appActions.setActiveWallet, store);
 
   // Watch for updates
   walletController.pollUpdates(30000); // every 30 sec

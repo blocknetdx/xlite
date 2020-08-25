@@ -155,17 +155,6 @@ class WalletController {
   }
 
   /**
-   * Notify the store of the active wallet.
-   * @param action
-   * @param store
-   */
-  dispatchActiveWallet(action, store) {
-    const wallet = this.getActiveWallet();
-    if (wallet)
-      store.dispatch(action(wallet));
-  }
-
-  /**
    * Notify the store of the latest balances.
    * @param action
    * @param store
