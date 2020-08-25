@@ -1,3 +1,4 @@
+import Alert from '../../modules/alert';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
@@ -14,6 +15,7 @@ import { Map } from 'immutable';
 import { handleError } from '../../util';
 import { Button } from './buttons';
 import { Column, Row } from './flex';
+import TransactionBuilder from '../../modules/transactionbuilder';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -52,14 +54,63 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   const [ txid, setTXID ] = useState('');
 
   const availableBalance = selected && balances.has(selected) ? balances.get(selected)[1] : 0;
+  const noWallets = !wallets || wallets.length === 0 || !balances || balances.size === 0;
+
+  // Wallets with valid coin
+  const availableWallets = [];
+  if (!noWallets) {
+    for (const w of wallets) {
+      if (!w.rpcEnabled())
+        continue;
+      if (!balances.has(w.ticker))
+        continue;
+      const tb = new TransactionBuilder(w.token().xbinfo);
+      const balance = balances.get(w.ticker);
+      // balance[1] is spendable coin
+      const spendable = bignumber(balance[1]).toNumber();
+      if (isNaN(spendable))
+        continue;
+      const dust = tb.isDust(spendable);
+      if (!dust)
+        availableWallets.push(w);
+    }
+  }
 
   useEffect(() => {
-    setSelected(activeWallet);
-  }, [activeWallet]);
+    let sel = '';
+    // If no wallet is selected and there's only one wallet available then
+    // automatically select that wallet.
+    if ((activeWallet === '') && availableWallets.length === 1) {
+      sel = availableWallets[0].ticker;
+      setSelected(sel);
+    }
+    else { // select the active wallet
+      sel = activeWallet;
+      setSelected(sel);
+    }
+    // Display an alert if the user is attempting to select a wallet
+    // that's not available (i.e. has no coin).
+    const wallet = availableWallets.find(w => w.ticker === sel);
+    if (!wallet && sel !== '')
+      Alert.alert(Localize.text('Issue'), Localize.text('No {{coin}} is available.', 'sendModal', {coin: sel}));
+  }, [activeWallet, availableWallets]);
 
-  const wallet = wallets.find(w => w.ticker === selected);
+  // Use the blank modal on missing data or other errors
+  const blankModal = <div />;
 
-  const { fee, ticker = '' } = wallet || {};
+  // No wallets or balance info available don't display anything
+  if (noWallets)
+    return blankModal;
+
+  // No wallets or balance info available, display alert
+  if (noWallets) {
+    Alert.alert(Localize.text('Issue'), Localize.text('No coin available.'));
+    return blankModal;
+  }
+
+  const wallet = availableWallets.find(w => w.ticker === selected);
+  const fee = 0; // TODO Update fee after user enters an amount
+  const { ticker = '' } = wallet || {};
 
   const defaultMarginBottom = 20;
 
@@ -172,9 +223,11 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   };
 
   const onSend = async function(e) {
-    try {
-      e.preventDefault();
+    e.preventDefault();
+    if (inputAmount <= 0)
+      return;
 
+    try {
       const recipient = new Recipient({ address, amount: inputAmount, description });
       const res = await wallet.send([recipient]);
       if (!res)
@@ -197,16 +250,16 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   const fontSize = 14;
 
   return (
-    <Modal onClose={hideSendModal} showBackButton={progress > 0 && progress < 3} onBack={onBack}>
+    <Modal disableCloseOnOutsideClick={true} onClose={hideSendModal} showBackButton={progress > 0 && progress < 3} onBack={onBack}>
       <ModalHeader>{title}</ModalHeader>
       {progress === 0 ?
         <ModalBody>
 
-          <div><Localize context={'sendModal'}>Select currency to send</Localize>:</div>
-          <SelectWalletDropdown style={{marginBottom: defaultMarginBottom}} selected={selected} onSelect={t => setSelected(t)} />
+          <div className={'lw-modal-field-label'}><Localize context={'sendModal'}>Select currency to send</Localize>:</div>
+          <SelectWalletDropdown wallets={availableWallets} style={{marginBottom: defaultMarginBottom}} selected={selected} onSelect={t => setSelected(t)} />
 
           <Row justify={'space-between'}>
-            <span><Localize context={'sendModal'}>Send to address</Localize>:</span>
+            <span className={'lw-modal-field-label'}><Localize context={'sendModal'}>Send to address</Localize>:</span>
             <span className={'color-negative'}><Localize context={'sendModal'}>Required field</Localize></span>
           </Row>
           <AddressInput
@@ -218,12 +271,12 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
             onButtonClick={() => setAddress(clipboard.readText('selection'))}
             onChange={setAddress} />
 
-          <div><Localize context={'sendModal'}>Description (optional)</Localize>:</div>
+          <div className={'lw-modal-field-label'}><Localize context={'sendModal'}>Description (optional)</Localize>:</div>
           <Textarea style={{marginBottom: defaultMarginBottom}} value={description} onChange={setDescription} />
 
           <Row>
             <Row style={{flexGrow: 1, flexBasis: 1}} justify={'space-between'}>
-              <div><Localize context={'sendModal'}>Amount</Localize>:</div>
+              <div className={'lw-modal-field-label'}><Localize context={'sendModal'}>Amount</Localize>:</div>
               <a href={'#'} className={'lw-send-max-toggle'} onClick={onMaxClick}><Localize context={'sendModal'}>Send max</Localize> {maxSelected ? <i className={'fas fa-toggle-on'} /> : <i className={'fas fa-toggle-off'} />}</a>
             </Row>
             <div style={{width: 40, minWidth: 40}} />
@@ -258,8 +311,8 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
           <Row style={{fontSize, marginBottom: defaultMarginBottom * 2}}>
             <div style={{flexGrow: 1, minHeight: 10}}>
-              <div><span className={'lw-color-secondary-6'}><Localize context={'sendModal'}>Network fee</Localize>:</span> {fee} {ticker}</div>
-              <div><span className={'lw-color-secondary-6'}><Localize context={'sendModal'}>Total to send</Localize>:</span> <span style={{fontWeight: 500}}>{total.toFixed(8)} {ticker}</span></div>
+              <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Network fee</Localize>:</span> <span className={'lw-modal-description-value'}>{fee} {ticker}</span></div>
+              <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Total to send</Localize>:</span> <span className={'lw-modal-description-value-bold'}>{total.toFixed(8)} {ticker}</span></div>
             </div>
             <Button type={'button'} onClick={onContinue} disabled={!address || insufficient}><Localize context={'sendModal'}>Continue</Localize></Button>
           </Row>

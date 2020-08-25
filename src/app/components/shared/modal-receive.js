@@ -18,7 +18,7 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
   const [ address, setAddress ] = useState('');
   const [ addressDataUrl, setAddressDataUrl ] = useState('');
 
-  const wallet = wallets.find(w => w.ticker === selected);
+  const wallet = wallets ? wallets.find(w => w.ticker === selected) : null;
 
   useEffect(() => {
     setSelected(activeWallet);
@@ -28,7 +28,8 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
     if(wallet) {
       wallet.getAddresses()
         .then(arr => {
-          if(arr.length > 0) setAddress(arr[arr.length - 1]);
+          if (arr && arr.length > 0) // make sure arr is valid
+            setAddress(arr[arr.length - 1]);
         })
         .catch(handleError);
     }
@@ -46,7 +47,8 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
     }
   }, [address]);
 
-  if(!selected) return <Modal />;
+  if(!wallets) // wait for data
+    return <Modal />;
 
   const onGenerateNewAddress = async function(e) {
     try {
@@ -70,9 +72,9 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
     <Modal onClose={hideReceiveModal}>
       <ModalHeader><Localize context={'receive-modal'}>Receive</Localize></ModalHeader>
       <ModalBody>
-        <div><Localize context={'receive-modal'}>Select currency to receive</Localize>:</div>
-        <SelectWalletDropdown style={{marginBottom: 30}} selected={selected} onSelect={ticker => setSelected(ticker)} />
-        <div><Localize context={'receive-modal'}>Your address</Localize>:</div>
+        <div className={'lw-modal-field-label'}><Localize context={'receive-modal'}>Select currency to receive</Localize>:</div>
+        <SelectWalletDropdown wallets={wallets} style={{marginBottom: 30}} selected={selected} onSelect={ticker => setSelected(ticker) || setAddress('')} />
+        <div className={'lw-modal-field-label'}><Localize context={'receive-modal'}>Your address</Localize>:</div>
         <AddressInput
           value={address}
           readOnly={true}

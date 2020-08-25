@@ -165,12 +165,16 @@ $lw-input-text-color: #444444;
   padding-right: 0;
 
   input {
+    font-family: IBMPlexSans;
+    font-weight: 500;
+    font-style: normal;
+    font-stretch: normal;
     padding-left: 0;
     padding-right: 0;
     padding-top: 0;
     padding-bottom: 0;
     border-style: none;
-    font-size: 16px;
+    font-size: 14px;
     line-height: 54px;
     flex-grow: 1;
     outline: none;

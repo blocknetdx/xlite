@@ -27,10 +27,10 @@ ModalBody.propTypes = {
   className: PropTypes.string
 };
 
-export const Modal = ({ children, showBackButton = false, onBack = () => {}, onClose = () => {} }) => {
+export const Modal = ({ children, showBackButton = false, disableCloseOnOutsideClick = false, onBack = () => {}, onClose = () => {} }) => {
   const overlay = React.createRef();
   return (
-    <div ref={overlay} className={'lw-modal-overlay'} onClick={e => $(e.target).hasClass('lw-modal-overlay') ? onClose() : null}>
+    <div ref={overlay} className={'lw-modal-overlay'} onClick={e => $(e.target).hasClass('lw-modal-overlay') && !disableCloseOnOutsideClick ? onClose() : null}>
       <div className={'lw-modal-container'}>
         {showBackButton ?
           <a className={'lw-back-btn'} href={'#'} onClick={e => {
@@ -51,6 +51,7 @@ export const Modal = ({ children, showBackButton = false, onBack = () => {}, onC
 };
 Modal.propTypes = {
   showBackButton: PropTypes.bool,
+  disableCloseOnOutsideClick: PropTypes.bool,
   children: PropTypes.any,
   onClose: PropTypes.func,
   onBack: PropTypes.func
