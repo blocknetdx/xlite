@@ -2,11 +2,13 @@ import {all, create} from 'mathjs';
 import AssetPieChart, {AssetPieChartData, chartColorForTicker} from '../shared/asset-piechart';
 import React from 'react';
 import PropTypes from 'prop-types';
+import {Map as IMap} from 'immutable';
 import Wallet from '../../types/wallet';
 import Balance from '../shared/balance';
 import { Column, Row } from '../shared/flex';
 import AssetsOverviewPanel from '../shared/assets-overview-panel';
 import Chart, {chartSampleData} from '../shared/chart';
+import {oneSat} from '../../util';
 import TransactionsPanel from '../shared/transactions-panel';
 import { SIDEBAR_WIDTH } from '../../constants';
 const math = create(all, {
@@ -15,9 +17,7 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
-const Dashboard = ({ activeWallet, windowWidth, altCurrency, wallets, balances, currencyMultipliers }) => {
-
-  if(!activeWallet) return <div />;
+const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultipliers }) => {
 
   const containerHorizPadding = 25;
   const centerMargin = 30;
@@ -30,7 +30,7 @@ const Dashboard = ({ activeWallet, windowWidth, altCurrency, wallets, balances, 
   for (const [ticker, balance] of balances) {
     const [total] = balance;
     const wallet = wallets.find(w => w.ticker === ticker);
-    if (!wallet || total < 1/100000000) // at least 1 sat required to show on the pie chart
+    if (!wallet || total < oneSat) // at least 1 sat required to show on the pie chart
       continue; // skip unknown wallets or wallets with no balance
     const blockchain = wallet.blockchain();
     const currencyMultiplier = currencyMultipliers && currencyMultipliers[ticker] && currencyMultipliers[ticker][altCurrency]
@@ -66,11 +66,10 @@ const Dashboard = ({ activeWallet, windowWidth, altCurrency, wallets, balances, 
 };
 Dashboard.propTypes = {
   wallet: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
-  activeWallet: PropTypes.string,
   windowWidth: PropTypes.number,
   altCurrency: PropTypes.string,
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
-  balances: PropTypes.instanceOf(Map),
+  balances: PropTypes.instanceOf(IMap),
   currencyMultipliers: PropTypes.object,
 };
 
