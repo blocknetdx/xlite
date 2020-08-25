@@ -68,9 +68,15 @@ let Sidebar = ({ activeView, cloudChains, wallets, balances, setActiveView, setA
     setCCWalletStarted(false);
   };
 
+  const onDashboard = () => {
+    if (activeView !== activeViews.DASHBOARD) {
+      setActiveWallet('');
+      setActiveView(activeViews.DASHBOARD);
+    }
+  };
   return (
     <div className={'lw-sidebar-container'} style={{width: SIDEBAR_WIDTH, minWidth: SIDEBAR_WIDTH, overflowY: 'hidden', flexWrap: 'nowrap', maxHeight: '100%'}}>
-      <SidebarButton active={activeView === activeViews.DASHBOARD} onClick={() => activeView !== activeViews.DASHBOARD ? setActiveView(activeViews.DASHBOARD) : null}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-home.png')}, ${path.join(iconsDir, 'icon-home@2x.png')} 2x`} /> <Localize context={'sidebar'}>Dashboard</Localize></SidebarButton>
+      <SidebarButton active={activeView === activeViews.DASHBOARD} onClick={onDashboard}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-home.png')}, ${path.join(iconsDir, 'icon-home@2x.png')} 2x`} /> <Localize context={'sidebar'}>Dashboard</Localize></SidebarButton>
       <SidebarButton active={activeView === activeViews.PORTFOLIO} onClick={() => activeView !== activeViews.PORTFOLIO ? setActiveView(activeViews.PORTFOLIO) : null}><img alt={Localize.text('Portfolio icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-wallet.png')}, ${path.join(iconsDir, 'icon-wallet@2x.png')} 2x`} /> <Localize context={'sidebar'}>Portfolio</Localize></SidebarButton>
       <SidebarButton active={activeView === activeViews.TRANSACTIONS} onClick={() => activeView !== activeViews.TRANSACTIONS ? setActiveView(activeViews.TRANSACTIONS) : null}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-history.png')}, ${path.join(iconsDir, 'icon-history@2x.png')} 2x`} /> <Localize context={'sidebar'}>Transactions</Localize></SidebarButton>
       <SidebarButton><img alt={Localize.text('Settings icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-settings.png')}, ${path.join(iconsDir, 'icon-settings@2x.png')} 2x`} /> <Localize context={'sidebar'}>Settings</Localize></SidebarButton>
