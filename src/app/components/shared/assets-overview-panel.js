@@ -82,7 +82,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                   <TableData className={'text-monospace'}>{Number(altMultiplier.toFixed(MAX_DECIMAL_PLACE))}</TableData>
                   <TableData>
                     <Chart chartData={chartSampleData} simple={true} simpleStrokeColor={'#ccc'}
-                           hideAxes={true} defaultWidth={125} defaultHeight={40}
+                           hideAxes={true} defaultWidth={108} defaultHeight={26}
                            chartGridColor={'#949494'} chartScale={'week'} />
                   </TableData>
                   {!hideVolume ? <TableData></TableData> : null}
@@ -97,12 +97,12 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                     }
                   </TableData>
                   <TableData className={'text-monospace'}>{Number(totalBalance)}</TableData>
-                  <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                  <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'right'}}>
                     <div>
                       {Number(math.multiply(bignumber(Number(totalBalance)), btcMultiplier).toFixed(MAX_DECIMAL_PLACE))}
                     </div>
-                    <div className={'lw-color-secondary-3'}>
-                      {`$${altBalances[ticker].toFixed(2)}`}
+                    <div className={'lw-card-tablerow-bottom-label'}>
+                      {`${altCurrency} ${altBalances[ticker].toFixed(2)}`}
                     </div>
                   </TableData>
                 </TableRow>
