@@ -40,7 +40,7 @@ class BrowserWindow {
     if(onLoad) onLoad = onLoad.bind(this);
     if(onClose) onClose = onClose.bind(this);
 
-    browserWindow.on('close', async function() {
+    browserWindow.once('close', async function() {
       if(onClose) await onClose();
 
       // remove the window from our array of windows
