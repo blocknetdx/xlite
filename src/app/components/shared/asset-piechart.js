@@ -299,29 +299,29 @@ export default class AssetPieChart extends React.Component {
 export const chartColorForTicker = (ticker) => {
   switch (ticker) {
     case 'BLOCK':
-      return 'darkblue';
+      return '#101341';
     case 'BTC':
-      return 'orange';
+      return '#F7931A';
     case 'BCH':
-      return 'darkorange';
+      return '#8DC351';
     case 'DASH':
-      return 'deepskyblue';
+      return '#008DE4';
     case 'DGB':
-      return 'dodgerblue';
+      return '#002352';
     case 'DOGE':
-      return 'khaki';
+      return '#C3A634';
     case 'LTC':
-      return 'gainsboro';
+      return '#BFBBBB';
     case 'PHR':
-      return 'lime';
+      return '#00d188';
     case 'PIVX':
-      return 'mediumpurple';
+      return '#7d67a8';
     case 'POLIS':
-      return 'lightslategrey';
+      return '#088AC8';
     case 'RVN':
-      return 'cornflowerblue';
+      return '#384182';
     case 'SYS':
-      return 'skyblue';
+      return '#0089CF';
     default:
       return '#666';
   }
