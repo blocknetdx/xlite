@@ -259,8 +259,8 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
   // Show the login if the wallet was created or if the rpc is running
   // and there's a known cloudchains password. Otherwise, show the
   // registration screen.
-  const showLogin = !mnemonic && cloudChains && (cloudChains.isWalletCreated() || (cloudChains.isWalletRPCRunning() && cloudChains.getStoredPassword()));
-  const showRegistration = !showLogin && !mnemonic && cloudChains && !cloudChains.isWalletCreated();
+  const showLogin = cloudChains && (cloudChains.isWalletCreated() || (cloudChains.isWalletRPCRunning() && cloudChains.getStoredPassword()));
+  const showRegistration = !showLogin && cloudChains && !cloudChains.isWalletCreated();
 
   return (
     <div className={'lw-login-container'}>
