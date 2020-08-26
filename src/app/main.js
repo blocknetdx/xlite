@@ -105,7 +105,7 @@ const cloudChains = new CloudChains(CloudChains.defaultPathFunc, domStorage);
 
 // Shutdown the cli on window close if it's running.
 // Requires valid cloudChains instance.
-remote.getCurrentWindow().on('close', e => {
+remote.getCurrentWindow().once('close', e => {
   if (cloudChains.spvIsRunning())
     cloudChains.stopSPV();
 });
