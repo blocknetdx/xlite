@@ -38,6 +38,7 @@ const combinedReducers = combineReducers({
 
 const store = createStore(combinedReducers);
 if(isDev) {
+  // domStorage.clear();
   // domStorage.removeItem('TRANSACTIONS_BLOCK');
   // domStorage.removeItem('TX_LAST_FETCH_TIME_BLOCK');
   console.log('state', store.getState());
@@ -118,9 +119,9 @@ remote.getCurrentWindow().once('close', e => {
 async function updateConfManifest(confController) {
   const manifestUrl = 'https://s3.amazonaws.com/blockdxbuilds/blockchainconfig/blockchainconfigfilehashmap.json';
   const manifestConfPrefix = 'https://s3.amazonaws.com/blockdxbuilds/blockchainconfig/files/xbridge-confs/';
-  const manifestHeadReq = async () => { return await request.head(manifestUrl).timeout(HTTP_REQUEST_TIMEOUT); };
+  const manifestHeadReq = async () => { return await request.head(manifestUrl).timeout(30000); };
   if (await confController.needsUpdate(manifestHeadReq)) {
-    const confRequest = async (url) => { return await request.get(url).timeout(HTTP_REQUEST_TIMEOUT).responseType('blob'); };
+    const confRequest = async (url) => { return await request.get(url).accept('text/plain').timeout(HTTP_REQUEST_TIMEOUT); };
     await confController.updateLatest(manifestUrl, manifestConfPrefix, confController.getManifestHash(), 'manifest-latest.json', confRequest);
   }
 }

@@ -181,9 +181,7 @@ class CloudChains {
   isWalletCreated() {
     const pw = this._domStorage.getItem(localStorageKeys.PASSWORD);
     const s = this._domStorage.getItem(localStorageKeys.SALT);
-    const m = this._domStorage.getItem(localStorageKeys.MNEMONIC);
-    return _.isString(pw) && _.isString(s) && _.isString(m)
-      && pw.length > 0 && s.length > 0 && m.length > 0;
+    return _.isString(pw) && _.isString(s) && pw.length > 0 && s.length > 0;
   }
 
   /**

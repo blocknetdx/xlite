@@ -111,7 +111,7 @@ class ConfController {
     try {
       // Get manifest
       const res = await req(manifestUrl);
-      manifestData = JSON.parse(res.body.toString());
+      manifestData = JSON.parse(res.text);
     } catch (err) {
       logger.error('failed to download latest manifest hash', err);
       return false;
@@ -122,14 +122,14 @@ class ConfController {
       // Download manifest data (array of token objects)
       const manifestDataUrl = manifestData[manifestKey][1];
       const res = await req(manifestDataUrl);
-      manifest = JSON.parse(res.body.toString());
+      manifest = JSON.parse(res.text);
     } catch (err) {
       logger.error('failed to download latest manifest json', err);
       return false;
     }
 
     // Store manifest and hash only on successful response
-    if (!_.isNull(manifest) && !_.isUndefined(manifest)) {
+    if (_.isArray(manifest)) {
       // Filter latest from manifest, only keep the latest conf versions
       manifest.sort((a,b) => a.xbridge_conf.localeCompare(b.xbridge_conf, 'en', { numeric: true }));
       const have = new Set();
@@ -178,11 +178,10 @@ class ConfController {
             // FeePerByte=20
             // Confirmations=0
             const res = await req(manifestConfPrefix + token.xbridge_conf);
-            // const xbconf = res.body.toString().split(/(?:\\r)?\\n/gm); // issues
             const xbconf = [];
             let l = '';
             let p = '';
-            for (const ch of res.body.toString()) {
+            for (const ch of res.text) {
               const l1 = /\s/.test(ch);
               const l2 = p+ch === '\\n' || p+ch === '\\r';
               if (l1 || l2) {
@@ -226,7 +225,7 @@ class ConfController {
             }
           } catch (e) {
             logger.error(`failed to download xbridge info for ${token.ticker}`, e);
-            return false;
+            continue;
           }
         }
       }
