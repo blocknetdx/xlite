@@ -84,6 +84,13 @@ class Wallet {
   _domStorage = null;
 
   /**
+   * Stores cached utxos and last time they were fetched.
+   * @type {{fetchTime: number, utxos: RPCUnspent[]}}
+   * @private
+   */
+  _cachedUtxos = {fetchTime: 0, utxos: []};
+
+  /**
    * Constructs a wallet
    * @param token {Token}
    * @param conf {CCWalletConf}
@@ -228,6 +235,41 @@ class Wallet {
   }
 
   /**
+   * Return cached coins. Fetch if last cache time expired.
+   * @param cacheExpirySeconds {number} Number of seconds until cache expires
+   * @return {Promise<RPCUnspent[]>}
+   */
+  async getCachedUnspent(cacheExpirySeconds) {
+    if (this.rpc.isNull()) {
+      logger.error(`failed to get balance info for ${this.ticker} because rpc is disabled`);
+      return this._cachedUtxos.utxos;
+    }
+
+    const t = this._cachedUtxos.fetchTime;
+    const now = unixTime();
+    if (now - t >= cacheExpirySeconds) {
+      try {
+        const utxos = await this.rpc.listUnspent();
+        this._cachedUtxos.fetchTime = unixTime();
+        this._cachedUtxos.utxos = utxos;
+      } catch(err) {
+        logger.error(`failed to list utxos for ${this.ticker}`, err);
+      }
+    }
+
+    return this._cachedUtxos.utxos;
+  }
+
+  /**
+   * Return the transaction explorer link.
+   * @param txid {string}
+   * @return {string}
+   */
+  getExplorerLinkForTx(txid) {
+    return `https://chainz.cryptoid.info/${this.ticker.toLowerCase()}/tx.dws?${txid}.htm`;
+  }
+
+  /**
    * Sends the amount to the specified address.
    * @param recipients {Recipient[]}
    * @returns {Promise<null|string>} Returns txid on success, null on error
@@ -243,7 +285,7 @@ class Wallet {
     }
     // Validate recipients
     for (const r of recipients) {
-      if (!(r instanceof Recipient)) {
+      if (!(r instanceof Recipient) || !r.isValid()) {
         logger.error(`failed to send ${this.ticker} because bad recipient ${r}`);
         return null;
       }
@@ -284,14 +326,15 @@ class Wallet {
     try {
       signedRawTransaction = await this.rpc.signRawTransaction(rawTransaction);
     } catch (e) {
-      logger.error(`failed to sign raw transaction for ${this.ticker}`, e);
+      logger.error(`failed to sign raw transaction for ${this.ticker}: ${JSON.stringify(rawTransaction)}`, e);
       return null; // fatal
     }
     let txid = null;
     try {
       txid = await this.rpc.sendRawTransaction(signedRawTransaction);
+      logger.info(`sent transaction for ${this.ticker}: ${signedRawTransaction}`);
     } catch (e) {
-      logger.error(`failed to send raw transaction for ${this.ticker}`, e);
+      logger.error(`failed to send raw transaction for ${this.ticker}: ${JSON.stringify(signedRawTransaction)}`, e);
       return null; // fatal
     }
 
@@ -376,7 +419,7 @@ class Wallet {
    * @private
    */
   _addTransactionsToStorage(txs) {
-    if (!_.isArray(txs))
+    if (!_.isArray(txs) || txs.length === 0)
       return false; // do not store bad data
 
     // Only store unique transactions where the latest transactions
@@ -384,9 +427,9 @@ class Wallet {
     const data = this._getTransactionsFromStorage(); // fetch all
     const unique = new Map();
     for (const t of data)
-      unique.set(t.txId, t);
+      unique.set(t.key(), t);
     for (const t of txs) // new transaction overwrites old
-      unique.set(t.txId, t);
+      unique.set(t.key(), t);
 
     const newData = Array.from(unique.values());
     this._domStorage.setItem(this._getTransactionStorageKey(), newData);
@@ -421,8 +464,10 @@ class Wallet {
     const existingTxs = this._getTransactionsFromStorage(startTime, lastFetchTime);
     let txs = [];
     try {
-      // Fetch all transactions from last_fetch_time+1 to user specified end time.
-      txs = await this.rpc.listTransactions(lastFetchTime+1, endTime);
+      // Fetch all transactions from last fetch time minus forgiveness seconds
+      // to user specified end time.
+      const forgivenessTimeSeconds = 120;
+      txs = await this.rpc.listTransactions(lastFetchTime-forgivenessTimeSeconds, endTime); // Accounting for CC Daemon delays
     } catch (e) {
       logger.error('', e);
       return existingTxs; // return known transactions on error

@@ -392,6 +392,7 @@ class RPCController {
     const res = await this._makeRequest('listtransactions', [startTime, endTime]);
     return res.map(t => new RPCTransaction({
       txId: t.txid,
+      n: t.vout,
       address: t.address,
       amount: t.amount,
       blockHash: t.blockhash,

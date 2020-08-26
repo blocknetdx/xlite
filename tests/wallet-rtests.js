@@ -13,6 +13,7 @@ import {localStorageKeys} from '../src/app/constants';
 import Recipient from '../src/app/types/recipient';
 import RPCController from '../src/app/modules/rpc-controller';
 import RPCTransaction from '../src/app/types/rpc-transaction';
+import RPCUnspent from '../src/app/types/rpc-unspent';
 import Token from '../src/app/types/token';
 import {unixTime} from '../src/app/util';
 import Wallet from '../src/app/types/wallet';
@@ -334,6 +335,42 @@ describe('Wallet Test Suite', function() {
     const fakeNewAddr = await fakerpc.getNewAddress();
     const addr = await wallet.generateNewAddress();
     addr.should.be.eql(fakeNewAddr);
+  });
+  it('Wallet.getCachedUnspent()', async function() {
+    const fakerpc = new FakeRPCController();
+    const wallet = new Wallet(token, conf, domStorage);
+    wallet.rpc = fakerpc;
+    (await wallet.getCachedUnspent(60)).should.be.eql(await fakerpc.listUnspent());
+  });
+  it('Wallet.getCachedUnspent() should return cache when not expired', async function() {
+    const fakerpc = new FakeRPCController();
+    const wallet = new Wallet(token, conf, domStorage);
+    wallet.rpc = fakerpc;
+    const utxo = new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 });
+    wallet._cachedUtxos.fetchTime = unixTime() - 10;
+    wallet._cachedUtxos.utxos = [utxo];
+    (await wallet.getCachedUnspent(60)).should.be.eql([utxo]);
+    wallet._cachedUtxos.fetchTime = unixTime() - 59;
+    wallet._cachedUtxos.utxos = [utxo];
+    (await wallet.getCachedUnspent(60)).should.be.eql([utxo]);
+  });
+  it('Wallet.getCachedUnspent() should not return cache when expired', async function() {
+    const fakerpc = new FakeRPCController();
+    const wallet = new Wallet(token, conf, domStorage);
+    const utxo = new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 });
+    fakerpc.listUnspent = async () => [utxo];
+    wallet.rpc = fakerpc;
+    wallet._cachedUtxos.fetchTime = unixTime() - 100;
+    wallet._cachedUtxos.utxos = [];
+    (await wallet.getCachedUnspent(60)).should.be.eql([utxo]);
+    wallet._cachedUtxos.fetchTime = unixTime() - 60;
+    wallet._cachedUtxos.utxos = [];
+    (await wallet.getCachedUnspent(60)).should.be.eql([utxo]);
+  });
+  it('Wallet.getExplorerLinkForTx()', async function() {
+    const wallet = new Wallet(token, conf, domStorage);
+    wallet.getExplorerLinkForTx('a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0')
+      .should.be.equal('https://chainz.cryptoid.info/block/tx.dws?a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0.htm')
   });
   it('Wallet.send() to one recipient should succeed', async function() {
     const fakerpc = new FakeRPCController();
