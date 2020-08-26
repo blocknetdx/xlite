@@ -81,6 +81,7 @@ export const altCurrencies = {
 };
 
 export const MAX_DECIMAL_PLACE = 8;
+export const MAX_DECIMAL_CURRENCY = 2;
 
 export const DUST_SATOSHIS = 5460;
 

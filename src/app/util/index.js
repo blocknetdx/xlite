@@ -1,10 +1,18 @@
+import {DATA_DIR, DEFAULT_LOCALE, MAX_DECIMAL_CURRENCY} from '../constants';
+import Localize from '../components/shared/localize';
+
 import _ from 'lodash';
+import {all, create} from 'mathjs';
+import {createLogger, format, transports} from 'winston';
 import fs from 'fs-extra';
 import isDev from 'electron-is-dev';
 import path from 'path';
-import { createLogger, format, transports } from 'winston';
-import { DATA_DIR, DEFAULT_LOCALE } from '../constants';
-import Localize from '../components/shared/localize';
+
+const math = create(all, {
+  number: 'BigNumber',
+  precision: 64
+});
+const { bignumber } = math;
 
 export const getLocaleData = locale => {
   const localesPath = path.resolve(__dirname, '../../../locales');
@@ -80,6 +88,24 @@ export const multiplierForCurrency = (ticker, currency, currencyMultipliers) => 
   if (_.has(currencyMultipliers, ticker) && _.has(currencyMultipliers[ticker], currency))
     return currencyMultipliers[ticker][currency];
   return 0;
+};
+
+/**
+ * Rounds the value up to the next cent.
+ * @param val {number|string|bignumber}
+ * @return {string} Two decimal places precision
+ */
+export const currencyLinter = val => {
+  if (_.isNull(val) || _.isUndefined(val))
+    val = 0;
+  if (_.isString(val) && !/^[\d\\.]+$/.test(val)) // if not a string number
+    val = 0;
+  if (isNaN(Number(val)))
+    val = 0;
+  const bn = bignumber(val);
+  if (bn.toNumber() > 0 && bn.toNumber() < 1/100) // 0.01 is the smallest
+    return bignumber(1/100).toFixed(MAX_DECIMAL_CURRENCY);
+  return bn.toFixed(MAX_DECIMAL_CURRENCY);
 };
 
 export const timeout = length => new Promise(resolve => setTimeout(resolve, length));
