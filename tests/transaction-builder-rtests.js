@@ -76,6 +76,14 @@ describe('Transaction Builder Test Suite', function() {
     builder.isValid().should.be.true();
     builder.getRecipients().should.be.eql(defaultRecipients);
   });
+  it('TransactionBuilder.getFees()', function() {
+    const builder = new TransactionBuilder(defaultFeeInfo);
+    for (const r of defaultRecipients)
+      builder.addRecipient(r);
+    builder.getFees().should.be.equal(0);
+    builder.fundTransaction(defaultUtxos);
+    builder.getFees().should.be.greaterThan(0);
+  });
   it('TransactionBuilder.fundTransaction()', function() {
     const builder = new TransactionBuilder(defaultFeeInfo);
     for (const r of defaultRecipients)

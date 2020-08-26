@@ -29,6 +29,12 @@ class TransactionBuilder {
    * @private
    */
   _feeInfo = null;
+  /**
+   * Track the calculated fees.
+   * @type {number}
+   * @private
+   */
+  _fees = 0;
 
   /**
    * Constructor
@@ -83,6 +89,14 @@ class TransactionBuilder {
    */
   getRecipients() {
     return this._recipients.slice();
+  }
+
+  /**
+   * Returns the fees.
+   * @return {number}
+   */
+  getFees() {
+    return this._fees;
   }
 
   /**
@@ -204,6 +218,7 @@ class TransactionBuilder {
     this._addChangeIfNecessary(totalSelectedAmount, amountNotIncludingFees + fees, changeAddress, outputs);
     this._selectedInputs = selInputs;
     this._outputs = outputs;
+    this._fees = fees;
   }
 
   /**
