@@ -242,13 +242,16 @@ class TransactionBuilder {
 
     // Check subtract fees
     let totalSendAmount = amountNotIncludingFees + fees;
-    if (totalAvailable < totalSendAmount && subtractFees) {
-      totalSendAmount = fees; // re-calc below with reduced send amounts
-      const reduceOutputAmountsBy = fees/outputs.length;
-      for (const output of outputs) {
-        output.amount -= reduceOutputAmountsBy;
-        totalSendAmount += output.amount;
-      }
+    if (totalAvailable < totalSendAmount) {
+      if (subtractFees) {
+        totalSendAmount = fees; // re-calc below with reduced send amounts
+        const reduceOutputAmountsBy = fees/outputs.length;
+        for (const output of outputs) {
+          output.amount -= reduceOutputAmountsBy;
+          totalSendAmount += output.amount;
+        }
+      } else
+        throw new Error('Not enough funds (2)');
     }
 
     this._addChangeIfNecessary(totalSelectedAmount, totalSendAmount, changeAddress, outputs);
