@@ -7,7 +7,7 @@ import CloudChains from './modules/cloudchains';
 import ConfController from './modules/conf-controller';
 import domStorage from './modules/dom-storage';
 import {generateSalt, pbkdf2} from './modules/crypt';
-import { getLocaleData, handleError, logger, walletSorter } from './util';
+import {getLocaleData, handleError, logger} from './util';
 import {activeViews, HTTP_REQUEST_TIMEOUT, ipcMainListeners, localStorageKeys, MIN_UI_HEIGHT, MIN_UI_WIDTH} from './constants';
 import Localize from './components/shared/localize';
 import TokenManifest from './modules/token-manifest';
@@ -38,6 +38,8 @@ const combinedReducers = combineReducers({
 
 const store = createStore(combinedReducers);
 if(isDev) {
+  // domStorage.removeItem('TRANSACTIONS_BLOCK');
+  // domStorage.removeItem('TX_LAST_FETCH_TIME_BLOCK');
   console.log('state', store.getState());
   store.subscribe(() => {
     const state = store.getState();
@@ -163,8 +165,13 @@ function startupInit(walletController, confController, confNeedsManifestUpdate) 
   walletController.dispatchWallets(appActions.setWallets, store);
 
   // Watch for updates
-  walletController.pollUpdates(30000); // every 30 sec
-  walletController.pollPriceMultipliers(currencyReq, 300000); // every 5 min
+  walletController.pollUpdates(30000, () => { // every 30 sec
+    walletController.dispatchBalances(appActions.setBalances, store);
+    walletController.dispatchTransactions(appActions.setTransactions, store);
+  });
+  walletController.pollPriceMultipliers(currencyReq, 300000, () => { // every 5 min
+    walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
+  });
 
   // Update the manifest if necessary
   if (confNeedsManifestUpdate)

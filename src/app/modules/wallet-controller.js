@@ -254,13 +254,14 @@ class WalletController {
   /**
    * Start polling for cloudchains wallet updates.
    * @param interval {number}
+   * @param handler {function}
    */
-  pollUpdates(interval) {
+  pollUpdates(interval, handler) {
     if (this._pollInterval !== null)
       clearTimeout(this._pollInterval);
     this._pollInterval = setTimeout((async function() {
       await this.updateAllBalances();
-      this.pollUpdates(interval);
+      this.pollUpdates(interval, handler);
     }).bind(this), interval);
   }
 
@@ -268,13 +269,14 @@ class WalletController {
    * Start polling for cloudchains wallet updates.
    * @param currencyReq {function(string, Array<string>)}
    * @param interval {number}
+   * @param handler {function}
    */
-  pollPriceMultipliers(currencyReq, interval) {
+  pollPriceMultipliers(currencyReq, interval, handler) {
     if (this._pollMultipliersInterval !== null)
       clearTimeout(this._pollMultipliersInterval);
     this._pollMultipliersInterval = setTimeout((async function() {
       await this.updatePriceMultipliers(currencyReq);
-      this.pollPriceMultipliers(currencyReq, interval);
+      this.pollPriceMultipliers(currencyReq, interval, handler);
     }).bind(this), interval);
   }
 
