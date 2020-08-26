@@ -10,7 +10,7 @@ import moment from 'moment';
 import AssetWithImage from './asset-with-image';
 import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
 import { Map } from 'immutable';
-import {multiplierForCurrency} from '../../util';
+import {multiplierForCurrency, currencyLinter} from '../../util';
 import { all, create } from 'mathjs';
 import Wallet from '../../types/wallet';
 import TransactionDetailModal from './modal-transaction-detail';
@@ -39,10 +39,10 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
     .reduce((arr, [ ticker, txs]) => {
       return arr.concat(txs.map(tx => [ticker, tx]));
     }, [])
-    .sort((a, b) => {
+    .sort((a, b) => { // descending
       const dateA = a[1].time;
       const dateB = b[1].time;
-      return dateA - dateB;
+      return dateB - dateA;
     });
 
   return (
@@ -59,20 +59,18 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
           {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Value (BTC)</Localize></TableColumn>
                   : <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn>}
           {filteredTxs.map(([ticker, t]) => {
-
               const wallet = walletLookup.get(ticker);
-
-              const sent = t.type === 'send';
+              const sent = t.isSend();
 
               const onRowClick = () => {
-                setSelectedTx({...t, wallet});
+                setSelectedTx({tx: t, wallet});
               };
 
               const currencyMultiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
               const btcMultiplier = multiplierForCurrency(ticker, 'BTC', currencyMultipliers);
 
               return (
-                <TableRow key={t.txId} clickable={selectable} onClick={onRowClick}>
+                <TableRow key={t.key()} clickable={selectable} onClick={onRowClick}>
                   <TableData style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
                     <Row>
                       <Column justify={'center'}>
@@ -113,11 +111,11 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                   {!brief ? <TableData className={'text-monospace'}>{t.amount}</TableData> : null}
                   {!brief ?
                   <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
-                    <div>
+                    <div className={'lw-table-top-label'}>
                       {sent ? '-' : '+'}{math.multiply(bignumber(t.amount), btcMultiplier).toFixed(MAX_DECIMAL_PLACE)}
                     </div>
-                    <div>
-                      {sent ? '-' : '+'}{altCurrency+' '}{math.multiply(bignumber(t.amount), currencyMultiplier).toFixed(2)}
+                    <div className={'lw-table-bottom-label'}>
+                      {sent ? '-' : '+'}{altCurrency+' '}{currencyLinter(math.multiply(bignumber(t.amount), currencyMultiplier))}
                     </div>
                   </TableData>
                   :  // Brief requires displaying the actual amount and currency equivalent
@@ -126,7 +124,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                       {sent ? '-' : '+'}{bignumber(t.amount).toFixed(4)}
                     </div>
                     <div className={'lw-table-bottom-label'}>
-                    {sent ? '-' : '+'}{altCurrency+' '}{math.multiply(bignumber(t.amount), currencyMultiplier).toFixed(2)}
+                    {sent ? '-' : '+'}{altCurrency+' '}{currencyLinter(math.multiply(bignumber(t.amount), currencyMultiplier))}
                     </div>
                   </TableData>
                   }
