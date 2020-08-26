@@ -6,6 +6,12 @@ class RPCTransaction {
   txId = '';
 
   /**
+   * The prevout index position.
+   * @type {number}
+   */
+  n = -1;
+
+  /**
    * @type {string}
    */
   address = '';
@@ -87,6 +93,30 @@ class RPCTransaction {
     Object.assign(this, data);
   }
 
+  /**
+   * Return a unique string identifier or key for the transaction.
+   * txid + vout
+   * @return {string}
+   */
+  key() {
+    return this.txId + ':' + this.n;
+  }
+
+  /**
+   * Return true if this is a "send" transaction.
+   * @return {boolean}
+   */
+  isSend() {
+    return this.category === 'send';
+  }
+
+  /**
+   * Return true if this is a "receive" transaction.
+   * @return {boolean}
+   */
+  isReceive() {
+    return this.category === 'receive';
+  }
 }
 
 export default RPCTransaction;
