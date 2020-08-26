@@ -154,7 +154,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
     }
 
     const nfees = tb.getFees();
-    const ntotal = math.add(bn, bignumber(tb.getFees())).toNumber();
+    const ntotal = math.add(bn, bignumber(nfees)).toNumber();
     setFees(nfees);
     setTotal(ntotal);
     setMaxSelected(availableBalance <= ntotal);
@@ -184,7 +184,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
           setInputAmount(amount.toFixed(MAX_DECIMAL_PLACE));
         updateTotals(amount.toNumber());
       }
-      setAltInputAmount(currencyLinter(val));
+      setAltInputAmount(val);
     } catch(err) {
       handleError(err);
     }
@@ -211,7 +211,6 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
       if(altInputAmountStr !== altInputAmount)
         setAltInputAmount(currencyLinter(altInputAmountNum));
       if(maxSelected) setMaxSelected(false);
-      updateTotals();
     } catch(err) {
       handleError(err);
     }
@@ -222,21 +221,19 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
       e.preventDefault();
       if(!maxSelected) { // maximum was previously not selected
         try {
-          let fe = 0;
           let avail = _.isNumber(Number(availableBalance)) ? bignumber(availableBalance).toNumber() : 0;
           if (avail === 0)
             throw new Error('No coin');
           const tb = new TransactionBuilder(wallet.token().xbinfo);
-          tb.addRecipient(new Recipient({address, amount: avail, description }));
-          tb.fundTransaction(coins);
-          fe = tb.getFees();
-          avail -= fe;
+          tb.addRecipient(new Recipient({address: 'dummy', amount: avail, description }));
+          tb.fundTransaction(coins, true);
+          avail -= tb.getFees();
           const multiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
           const alt = math.multiply(bignumber(avail), bignumber(multiplier));
           setInputAmount(avail.toFixed(MAX_DECIMAL_PLACE));
           setAltInputAmount(currencyLinter(alt));
           updateTotals(avail);
-        } catch {
+        } catch (e) {
           setInputAmount('0');
           setAltInputAmount(currencyLinter('0'));
           updateTotals(0);
@@ -248,7 +245,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
     }
   };
 
-  const insufficient = math.compare(bignumber(total), bignumber(availableBalance)) > 0;
+  const insufficient = availableBalance < total;
 
   const onContinue = e => {
     e.preventDefault();

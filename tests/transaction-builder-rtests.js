@@ -84,6 +84,36 @@ describe('Transaction Builder Test Suite', function() {
     builder.fundTransaction(defaultUtxos);
     builder.getFees().should.be.greaterThan(0);
   });
+  it('TransactionBuilder.getFees() single utxo', function() {
+    const utxos = [
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+    ];
+    const recipients = [
+      new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: utxos[0].amount - 1, description: '' })
+    ];
+    const builder = new TransactionBuilder(defaultFeeInfo);
+    for (const r of recipients)
+      builder.addRecipient(r);
+    builder.getFees().should.be.equal(0);
+    builder.fundTransaction(utxos);
+    builder.getFees().should.be.greaterThan(0);
+  });
+  it('TransactionBuilder.getFees() exact utxo subtract fees', function() {
+    const utxos = [
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+    ];
+    const recipients = [
+      new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: utxos[0].amount, description: '' })
+    ];
+    const builder = new TransactionBuilder(defaultFeeInfo);
+    for (const r of recipients)
+      builder.addRecipient(r);
+    builder.getFees().should.be.equal(0);
+    builder.fundTransaction(utxos, true);
+    builder.getFees().should.be.greaterThan(0);
+    builder.getOutputs().length.should.be.equal(1);
+    builder.getOutputs()[0].amount.should.be.equal(recipients[0].amount - builder.getFees());
+  });
   it('TransactionBuilder.fundTransaction()', function() {
     const builder = new TransactionBuilder(defaultFeeInfo);
     for (const r of defaultRecipients)
@@ -115,6 +145,49 @@ describe('Transaction Builder Test Suite', function() {
     should.doesNotThrow(() => { builder.fundTransaction(utxos); }, Error);
     builder.isValid().should.be.true();
     builder.getInputs().should.be.eql([utxos[0]]); // expecting the larger input to be selected
+  });
+  it('TransactionBuilder.fundTransaction() subtract fees from recipients single utxo', function() {
+    const utxos = [
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+    ];
+    const totalAmount = utxos.map(utxo => utxo.amount).reduce((total, cur) => total + cur);
+    const recipient1 = new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: totalAmount/2, description: '' });
+    const recipient2 = new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: totalAmount/2, description: '' });
+    recipient1.isValid().should.be.true();
+    recipient2.isValid().should.be.true();
+    const builder = new TransactionBuilder(defaultFeeInfo);
+    builder.addRecipient(recipient1);
+    builder.addRecipient(recipient2);
+    should.doesNotThrow(() => { builder.fundTransaction(utxos, true); }, Error);
+    builder.isValid().should.be.true();
+    const fees = builder.getFees();
+    const feesPerRecipient = fees/2;
+    const outputs = builder.getOutputs();
+    outputs.length.should.be.equal(2);
+    for (const output of outputs)
+      output.amount.should.be.equal(totalAmount/2 - feesPerRecipient); // make sure each recipient shares in fees
+  });
+  it('TransactionBuilder.fundTransaction() subtract fees from recipients multiple utxos', function() {
+    const utxos = [
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 1.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
+    ];
+    const totalAmount = utxos.map(utxo => utxo.amount).reduce((total, cur) => total + cur);
+    const recipient1 = new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: totalAmount/2, description: '' });
+    const recipient2 = new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: totalAmount/2, description: '' });
+    recipient1.isValid().should.be.true();
+    recipient2.isValid().should.be.true();
+    const builder = new TransactionBuilder(defaultFeeInfo);
+    builder.addRecipient(recipient1);
+    builder.addRecipient(recipient2);
+    should.doesNotThrow(() => { builder.fundTransaction(utxos, true); }, Error);
+    builder.isValid().should.be.true();
+    const fees = builder.getFees();
+    const feesPerRecipient = fees/2;
+    const outputs = builder.getOutputs();
+    outputs.length.should.be.equal(2);
+    for (const output of outputs)
+      output.amount.should.be.equal(totalAmount/2 - feesPerRecipient); // make sure each recipient shares in fees
   });
   it('TransactionBuilder.fundTransaction() Algo A', function() {
     const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];

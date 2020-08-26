@@ -53,7 +53,14 @@ class TransactionBuilder {
    * @return {boolean}
    */
   isValid() {
-    return this._outputs.length > 0 && this._feeInfo && this._selectedInputs.length > 0;
+    const r = this._outputs.length > 0 && this._feeInfo && this._selectedInputs.length > 0;
+    if (!r)
+      return false;
+    for (const output of this._outputs) { // validate output amounts
+      if (isNaN(output.amount) || output.amount < 0)
+        return false;
+    }
+    return true;
   }
 
   /**
@@ -105,15 +112,17 @@ class TransactionBuilder {
    * @param recipient {Recipient}
    */
   addRecipient(recipient) {
-    this._recipients.push(recipient);
+    // Add a copy
+    this._recipients.push(new Recipient(recipient));
   }
 
   /**
    * Creates a raw transaction from utxos.
-   * @param inputs Array<RPCUnspent> Available utxos
+   * @param inputs {RPCUnspent[]} Available utxos
+   * @param subtractFees {boolean}
    * @throws {Error}
    */
-  fundTransaction(inputs) {
+  fundTransaction(inputs, subtractFees = false) {
     if (!_.isArray(inputs))
       throw new Error('No coin was found');
 
@@ -128,8 +137,11 @@ class TransactionBuilder {
       throw new Error('Not enough coin to fund the transaction');
 
     let amountNotIncludingFees = 0;
-    for (const recipient of this._recipients)
+    for (const recipient of this._recipients) {
+      if (!recipient.isValid())
+        throw new Error(`Bad recipient ${recipient.address} ${recipient.amount}`);
       amountNotIncludingFees = amountNotIncludingFees + recipient.amount;
+    }
 
     // Stores utxos by amount in a lookup. Allows us to look
     // for exact match utxos.
@@ -142,7 +154,8 @@ class TransactionBuilder {
       mapUtxos.set(amount, utxo); // populate utxo lookup
     }
 
-    if (totalAvailable <= amountNotIncludingFees)
+    if ((!subtractFees && totalAvailable <= amountNotIncludingFees) // not enough for fees, subtract fees is not requested
+      || (subtractFees && totalAvailable < amountNotIncludingFees)) // not enough for fees, subtract fees is requested
       throw new Error('Not enough funds');
 
     // Copy of recipients
@@ -152,16 +165,27 @@ class TransactionBuilder {
     let fees = this.feeEstimate(1, outputs.length);
 
     // Exact utxo match (no change required)
-    if (mapUtxos.get(amountNotIncludingFees + fees)) {
+    if (subtractFees && mapUtxos.get(amountNotIncludingFees)) {
+      this._selectedInputs.push(mapUtxos.get(amountNotIncludingFees));
+      const reduceOutputAmountsBy = fees/outputs.length;
+      for (const output of outputs)
+        output.amount -= reduceOutputAmountsBy;
+      this._outputs = outputs;
+      this._fees = fees;
+      return; // done
+    } else if (mapUtxos.get(amountNotIncludingFees + fees)) {
       this._selectedInputs.push(mapUtxos.get(amountNotIncludingFees + fees));
       this._outputs = outputs;
+      this._fees = fees;
       return; // done
     }
 
     fees = this.feeEstimate(1, outputs.length + 1); // +1 for change
 
     // If there's only 1 utxo available and it's enough to cover the
-    // transaction + fees then use it.
+    // transaction + fees then use it. Note, that if subtract fees
+    // is specified it should never get in this code path because
+    // the exact match will happen above.
     if (utxos.length === 1) {
       const utxo = utxos[0];
       const amount = utxo.amount;
@@ -171,6 +195,7 @@ class TransactionBuilder {
       this._selectedInputs.push(utxo);
       this._addChangeIfNecessary(amount, required, utxo.address, outputs);
       this._outputs = outputs;
+      this._fees = fees;
       return; // done
     }
 
@@ -215,7 +240,18 @@ class TransactionBuilder {
       }
     }
 
-    this._addChangeIfNecessary(totalSelectedAmount, amountNotIncludingFees + fees, changeAddress, outputs);
+    // Check subtract fees
+    let totalSendAmount = amountNotIncludingFees + fees;
+    if (totalAvailable < totalSendAmount && subtractFees) {
+      totalSendAmount = fees; // re-calc below with reduced send amounts
+      const reduceOutputAmountsBy = fees/outputs.length;
+      for (const output of outputs) {
+        output.amount -= reduceOutputAmountsBy;
+        totalSendAmount += output.amount;
+      }
+    }
+
+    this._addChangeIfNecessary(totalSelectedAmount, totalSendAmount, changeAddress, outputs);
     this._selectedInputs = selInputs;
     this._outputs = outputs;
     this._fees = fees;
