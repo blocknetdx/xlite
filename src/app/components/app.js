@@ -64,7 +64,7 @@ let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendMo
       body = <Portfolio />;
       break;
     default:
-      body = <div><Spinner /></div>;
+      body = <div className={'lw-loading-spinner'}><Spinner style={{'font-size': '5em'}} /></div>;
       showNavbar = false;
   }
 
