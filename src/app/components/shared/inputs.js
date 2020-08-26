@@ -47,7 +47,7 @@ AddressInput.propTypes = {
 const CurrencyInput = ({ value, placeholder = '', required = false, disabled = false, readOnly = false, currency = '', style = {}, inputStyle = {}, onChange, onBlur }) => {
   return (
     <div className={'lw-address-input-container'} style={style}>
-      <input style={inputStyle} placeholder={placeholder} readOnly={readOnly} disabled={disabled} required={required} type={'text'} value={value} spellCheck={false} onChange={onChange} onBlur={onBlur} />
+      <input style={inputStyle} placeholder={placeholder} readOnly={readOnly} disabled={disabled} required={required} type={'number'} value={value} spellCheck={false} onChange={onChange} onBlur={onBlur} />
       <div style={{paddingLeft: 10, paddingRight: 10}}>{currency.toUpperCase()}</div>
     </div>
   );

@@ -1,21 +1,24 @@
-import Alert from '../../modules/alert';
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
-import React, { useEffect, useState } from 'react';
-import { clipboard, shell } from 'electron';
-import { Modal, ModalBody, ModalHeader } from './modal';
-import Localize from './localize';
 import * as appActions from '../../actions/app-actions';
-import Recipient from '../../types/recipient';
-import SelectWalletDropdown from './select-wallet-dropdown';
-import Wallet from '../../types/wallet';
 import { AddressInput, CurrencyInput, Textarea } from './inputs';
-import { all, create } from 'mathjs';
-import { Map } from 'immutable';
-import { handleError } from '../../util';
+import Alert from '../../modules/alert';
 import { Button } from './buttons';
 import { Column, Row } from './flex';
+import {handleError, multiplierForCurrency, currencyLinter} from '../../util';
+import Localize from './localize';
+import {MAX_DECIMAL_CURRENCY, MAX_DECIMAL_PLACE} from '../../constants';
+import {Modal, ModalBody, ModalHeader} from './modal';
+import Recipient from '../../types/recipient';
+import SelectWalletDropdown from './select-wallet-dropdown';
 import TransactionBuilder from '../../modules/transactionbuilder';
+import Wallet from '../../types/wallet';
+
+import _ from 'lodash';
+import { all, create } from 'mathjs';
+import { clipboard, shell } from 'electron';
+import { connect } from 'react-redux';
+import {Map as IMap} from 'immutable';
+import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -52,6 +55,8 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   const [ altInputAmount, setAltInputAmount ] = useState('');
   const [ confirmTimer, setConfirmTimer ] = useState(0);
   const [ txid, setTXID ] = useState('');
+  const [ fees, setFees ] = useState(0);
+  const [ total, setTotal ] = useState(0);
 
   const availableBalance = selected && balances.has(selected) ? balances.get(selected)[1] : 0;
   const noWallets = !wallets || wallets.length === 0 || !balances || balances.size === 0;
@@ -109,20 +114,62 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   }
 
   const wallet = availableWallets.find(w => w.ticker === selected);
-  const fee = 0; // TODO Update fee after user enters an amount
   const { ticker = '' } = wallet || {};
-
   const defaultMarginBottom = 20;
+
+  // Fetch coins for this session
+  let coins = [];
+  if (wallet) {
+    (async () => {
+      coins = await wallet.getCachedUnspent(60);
+    })();
+  }
+
+  // Updates the total amounts at the bottom of the form (sent total and fees)
+  const updateTotals = (amount) => {
+    if (!wallet) { // if wallet is invalid
+      setFees(0);
+      setTotal(0);
+      setMaxSelected(false);
+      return;
+    }
+    if (_.isNull(amount) || _.isUndefined(amount))
+      amount = 0;
+    if (_.isString(amount) && !/^[\d\\.]+$/.test(amount)) // if not a string number
+      amount = 0;
+    let bn = bignumber(amount);
+    if (isNaN(bn.toNumber()) || bn.toNumber() < 0)
+      bn = bignumber(0);
+
+    // Use transaction builder to determine fees
+    const tb = new TransactionBuilder(wallet.token().xbinfo);
+    tb.addRecipient(new Recipient({address, amount: bn.toNumber(), description }));
+    try {
+      tb.fundTransaction(coins);
+    } catch (e) {
+      setFees(0);
+      setTotal(bn.toNumber());
+      setMaxSelected(false);
+      return;
+    }
+
+    const nfees = tb.getFees();
+    const ntotal = math.add(bn, bignumber(tb.getFees())).toNumber();
+    setFees(nfees);
+    setTotal(ntotal);
+    setMaxSelected(availableBalance <= ntotal);
+  };
 
   const onInputAmountChange = val => {
     try {
-      if(currencyMultipliers[ticker] && currencyMultipliers[ticker][altCurrency]) {
-        const multiplier = currencyMultipliers[ticker][altCurrency];
+      const multiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
+      if (multiplier > 0) {
         const alt = math.multiply(bignumber(multiplier), bignumber(Number(val)));
-        const fixed = alt.toFixed(2);
-        if(fixed !== 'NaN') setAltInputAmount(fixed);
+        if (!isNaN(alt.toNumber()))
+          setAltInputAmount(currencyLinter(alt.toNumber()));
       }
       setInputAmount(val);
+      updateTotals(val);
     } catch(err) {
       handleError(err);
     }
@@ -130,13 +177,14 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
   const onAltInputAmountChange = val => {
     try {
-      if(currencyMultipliers[ticker] && currencyMultipliers[ticker][altCurrency]) {
-        const multiplier = currencyMultipliers[ticker][altCurrency];
+      const multiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
+      if (multiplier > 0) {
         const amount = math.divide(bignumber(Number(val)), bignumber(multiplier));
-        const fixed = amount.toFixed(8);
-        if(fixed !== 'NaN') setInputAmount(fixed);
+        if (!isNaN(amount.toNumber()))
+          setInputAmount(amount.toFixed(MAX_DECIMAL_PLACE));
+        updateTotals(amount.toNumber());
       }
-      setAltInputAmount(val);
+      setAltInputAmount(currencyLinter(val));
     } catch(err) {
       handleError(err);
     }
@@ -146,9 +194,10 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
     try {
       e.preventDefault();
       const inputAmountNum = Number(inputAmount);
-      const inputAmountStr = inputAmountNum.toFixed(8);
+      const inputAmountStr = inputAmountNum.toFixed(MAX_DECIMAL_PLACE);
       if(inputAmountStr !== inputAmount) setInputAmount(inputAmountStr);
       if(maxSelected) setMaxSelected(false);
+      updateTotals(inputAmountStr);
     } catch(err) {
       handleError(err);
     }
@@ -158,9 +207,11 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
     try {
       e.preventDefault();
       const altInputAmountNum = Number(altInputAmount);
-      const altInputAmountStr = altInputAmountNum.toFixed(2);
-      if(altInputAmountStr !== altInputAmount) setAltInputAmount(altInputAmountStr);
+      const altInputAmountStr = altInputAmountNum.toFixed(MAX_DECIMAL_CURRENCY);
+      if(altInputAmountStr !== altInputAmount)
+        setAltInputAmount(currencyLinter(altInputAmountNum));
       if(maxSelected) setMaxSelected(false);
+      updateTotals();
     } catch(err) {
       handleError(err);
     }
@@ -170,11 +221,26 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
     try {
       e.preventDefault();
       if(!maxSelected) { // maximum was previously not selected
-        const diff = math.subtract(bignumber(availableBalance), bignumber(fee));
-        const multiplier = currencyMultipliers[ticker][altCurrency];
-        const alt = math.multiply(diff, bignumber(multiplier));
-        setInputAmount(diff.toFixed(8));
-        setAltInputAmount(alt.toFixed(2));
+        try {
+          let fe = 0;
+          let avail = _.isNumber(Number(availableBalance)) ? bignumber(availableBalance).toNumber() : 0;
+          if (avail === 0)
+            throw new Error('No coin');
+          const tb = new TransactionBuilder(wallet.token().xbinfo);
+          tb.addRecipient(new Recipient({address, amount: avail, description }));
+          tb.fundTransaction(coins);
+          fe = tb.getFees();
+          avail -= fe;
+          const multiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
+          const alt = math.multiply(bignumber(avail), bignumber(multiplier));
+          setInputAmount(avail.toFixed(MAX_DECIMAL_PLACE));
+          setAltInputAmount(currencyLinter(alt));
+          updateTotals(avail);
+        } catch {
+          setInputAmount('0');
+          setAltInputAmount(currencyLinter('0'));
+          updateTotals(0);
+        }
       }
       setMaxSelected(!maxSelected);
     } catch(err) {
@@ -182,8 +248,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
     }
   };
 
-  const total = fee ? math.add(bignumber(Number(fee)), bignumber(Number(inputAmount || '0'))) : bignumber(0);
-  const insufficient = math.compare(total, bignumber(availableBalance)) > 0;
+  const insufficient = math.compare(bignumber(total), bignumber(availableBalance)) > 0;
 
   const onContinue = e => {
     e.preventDefault();
@@ -224,11 +289,12 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
   const onSend = async function(e) {
     e.preventDefault();
-    if (inputAmount <= 0)
-      return;
+    const bn = bignumber(inputAmount);
+    if (bn.toNumber() <= 0 || isNaN(bn.toNumber()))
+      return; // TODO Warn user about problem with input amount
 
     try {
-      const recipient = new Recipient({ address, amount: inputAmount, description });
+      const recipient = new Recipient({ address, amount: bn.toNumber(), description });
       const res = await wallet.send([recipient]);
       if (!res)
         throw new Error('Failed to send wallet transaction');
@@ -243,7 +309,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
   const onViewOnExplorer = e => {
     e.preventDefault();
-    shell.openExternal(`https://live.blockcypher.com/${wallet.ticker.toLowerCase()}/tx/${txid}`);
+    shell.openExternal(wallet.getExplorerLinkForTx(txid));
   };
 
   const minHeight = 538;
@@ -311,8 +377,8 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
           <Row style={{fontSize, marginBottom: defaultMarginBottom * 2}}>
             <div style={{flexGrow: 1, minHeight: 10}}>
-              <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Network fee</Localize>:</span> <span className={'lw-modal-description-value'}>{fee} {ticker}</span></div>
-              <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Total to send</Localize>:</span> <span className={'lw-modal-description-value-bold'}>{total.toFixed(8)} {ticker}</span></div>
+              <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Network fee</Localize>:</span> <span className={'lw-modal-description-value'}>{fees} {ticker}</span></div>
+              <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Total to send</Localize>:</span> <span className={'lw-modal-description-value-bold'}>{total.toFixed(MAX_DECIMAL_PLACE)} {ticker}</span></div>
             </div>
             <Button type={'button'} onClick={onContinue} disabled={!address || insufficient}><Localize context={'sendModal'}>Continue</Localize></Button>
           </Row>
@@ -344,8 +410,8 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
               </div>
               <div style={{flexGrow: 1, flexBasis: 1}}>
                 <div><strong>{inputAmount} {ticker}</strong></div>
-                <div style={{marginBottom: defaultMarginBottom}}><strong>{Number(fee).toFixed(8)} {ticker}</strong></div>
-                <div><strong>{total.toFixed(8)} {ticker}</strong></div>
+                <div style={{marginBottom: defaultMarginBottom}}><strong>{Number(fees).toFixed(MAX_DECIMAL_PLACE)} {ticker}</strong></div>
+                <div><strong>{total.toFixed(MAX_DECIMAL_PLACE)} {ticker}</strong></div>
               </div>
             </Row>
 
@@ -396,7 +462,7 @@ SendModal.propTypes = {
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   altCurrency: PropTypes.string,
   currencyMultipliers: PropTypes.object,
-  balances: PropTypes.instanceOf(Map),
+  balances: PropTypes.instanceOf(IMap),
   hideSendModal: PropTypes.func
 };
 
