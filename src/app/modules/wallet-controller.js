@@ -240,6 +240,8 @@ class WalletController {
     const balances = this.getBalances();
     let dataChanged = false;
     for (const wallet of this.getWallets()) {
+      if (!wallet.rpcEnabled()) // Only query wallets that have rpc
+        continue;
       if (await this._updateBalanceInfo(wallet.ticker, balances))
         dataChanged = true;
       // Trigger fetch on the latest transactions

@@ -151,26 +151,13 @@ describe('CloudChains Test Suite', function() {
       domStorage.setItem(localStorageKeys.MNEMONIC, 'one_two_three');
       cc.isWalletCreated().should.be.false();
     });
-    it('CloudChains.isWalletCreated() should fail on missing mnemonic', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
-      domStorage.setItem(localStorageKeys.PASSWORD, 'one_two_three');
-      domStorage.setItem(localStorageKeys.SALT, 'one_two_three');
-      domStorage.setItem(localStorageKeys.MNEMONIC, null);
-      cc.isWalletCreated().should.be.false();
-    });
     it('CloudChains.isWalletCreated() should fail on empty values', function() {
       const cc = new CloudChains(ccFunc, domStorage);
       domStorage.setItem(localStorageKeys.PASSWORD, '');
       domStorage.setItem(localStorageKeys.SALT, 'one_two_three');
-      domStorage.setItem(localStorageKeys.MNEMONIC, 'one_two_three');
       cc.isWalletCreated().should.be.false();
       domStorage.setItem(localStorageKeys.PASSWORD, 'one_two_three');
       domStorage.setItem(localStorageKeys.SALT, '');
-      domStorage.setItem(localStorageKeys.MNEMONIC, 'one_two_three');
-      cc.isWalletCreated().should.be.false();
-      domStorage.setItem(localStorageKeys.PASSWORD, 'one_two_three');
-      domStorage.setItem(localStorageKeys.SALT, 'one_two_three');
-      domStorage.setItem(localStorageKeys.MNEMONIC, '');
       cc.isWalletCreated().should.be.false();
     });
     it('CloudChains.saveWalletCredentials()', function() {

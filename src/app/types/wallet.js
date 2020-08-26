@@ -153,7 +153,7 @@ class Wallet {
    * @return {Promise<null|string[]>}
    */
   async getBalance() {
-    if (this.rpc.isNull()) {
+    if (this.rpc.isNull() || !this.rpcEnabled()) {
       logger.error(`failed to get balance info for ${this.ticker} because rpc is disabled`);
       return null;
     }
@@ -203,7 +203,7 @@ class Wallet {
    * @return {Promise<null|string[]>}
    */
   async getAddresses() {
-    if (this.rpc.isNull()) {
+    if (this.rpc.isNull() || !this.rpcEnabled()) {
       logger.error(`failed to get addresses for ${this.ticker} because rpc is disabled`);
       return null;
     }
@@ -221,7 +221,7 @@ class Wallet {
    * @return {Promise<string>}
    */
   async generateNewAddress() {
-    if (this.rpc.isNull()) {
+    if (this.rpc.isNull() || !this.rpcEnabled()) {
       logger.error(`failed to generate address for ${this.ticker} because rpc is disabled`);
       return '';
     }
@@ -240,7 +240,7 @@ class Wallet {
    * @return {Promise<RPCUnspent[]>}
    */
   async getCachedUnspent(cacheExpirySeconds) {
-    if (this.rpc.isNull()) {
+    if (this.rpc.isNull() || !this.rpcEnabled()) {
       logger.error(`failed to get balance info for ${this.ticker} because rpc is disabled`);
       return this._cachedUtxos.utxos;
     }
@@ -275,7 +275,7 @@ class Wallet {
    * @returns {Promise<null|string>} Returns txid on success, null on error
    */
   async send(recipients) {
-    if (this.rpc.isNull()) {
+    if (this.rpc.isNull() || !this.rpcEnabled()) {
       logger.error(`failed to send ${this.ticker} because rpc is disabled`);
       return null;
     }
@@ -447,13 +447,13 @@ class Wallet {
    * @return {Promise<RPCTransaction[]>}
    */
   async _fetchTransactions(startTime=0, endTime=0) {
-    if (endTime === 0)
-      endTime = unixTime();
-
-    if (this.rpc.isNull()) {
+    if (this.rpc.isNull() || !this.rpcEnabled()) {
       logger.error(`failed to get transactions for ${this.ticker} because rpc is disabled`);
       return this._getTransactionsFromStorage(startTime, endTime);
     }
+
+    if (endTime === 0)
+      endTime = unixTime();
 
     // If we don't need to fetch from rpc then return what we know
     const lastFetchTime = this._getLastTransactionFetchTime();
