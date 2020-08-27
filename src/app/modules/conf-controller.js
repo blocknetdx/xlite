@@ -45,7 +45,7 @@ class ConfController {
    * @return {Promise<boolean>}
    */
   async init(manifestFilesDir) {
-    if (this.getManifest().length !== 0)
+    if (this.getManifest().length !== 0 && this.getXBridgeInfo().length !== 0)
       return false; // no init required
 
     try {
@@ -198,11 +198,8 @@ class ConfController {
     }
 
     // Store manifest and hash only on successful response
-    if (_.isArray(manifest)) {
+    if (_.isArray(manifest) && manifest.length > 0) {
       this._filterManifest(manifest);
-
-      this._domStorage.setItem(localStorageKeys.MANIFEST_SHA, manifestHash);
-      this._domStorage.setItem(localStorageKeys.MANIFEST, manifest);
 
       // Pull the wallet confs for available wallets and get fee information.
       const xbridgeInfos = [];
@@ -225,8 +222,15 @@ class ConfController {
         } else
           logger.error(`failed to read xbridge info for ${token.ticker}`);
       }
+
       // Store xbridge data
-      this._domStorage.setItem(localStorageKeys.XBRIDGE_INFO, xbridgeInfos);
+      this._domStorage.setItem(localStorageKeys.MANIFEST_SHA, manifestHash);
+      this._domStorage.setItem(localStorageKeys.MANIFEST, manifest);
+      const existing = this.getXBridgeInfo();
+      const unique = new Map(existing.map(xb => [xb.ticker, xb]));
+      for (const xbinfo of xbridgeInfos) // overwrite existing, add new
+        unique.set(xbinfo.ticker, xbinfo);
+      this._domStorage.setItem(localStorageKeys.XBRIDGE_INFO, Array.from(unique.values()));
 
       return true;
     }

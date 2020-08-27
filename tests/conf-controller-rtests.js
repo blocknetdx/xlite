@@ -9,11 +9,12 @@ import XBridgeInfo from '../src/app/types/xbridgeinfo';
 
 describe('ConfController Test Suite', function() {
   const availableWallets = ['BLOCK', 'BTC'];
+  const defaultXBridgeConfDir = path.resolve(__dirname, '../blockchain-configuration-files');
   let confController;
   beforeEach(async function() {
     domStorage.clear();
     confController = new ConfController(domStorage, availableWallets);
-    await confController.init(path.resolve(__dirname, '../blockchain-configuration-files'));
+    await confController.init(defaultXBridgeConfDir);
   });
 
   it('ConfController()', function() {
@@ -93,6 +94,33 @@ describe('ConfController Test Suite', function() {
     const feeBTC = new XBridgeInfo({ ticker: 'BTC', feeperbyte: 120, mintxfee: 7500, coin: 100000000, rpcport: 8332 });
     confController.getXBridgeInfo().sort(sortFn).should.be.eql([feeBLOCK, feeBTC].sort(sortFn));
   });
+  it('ConfController.updateLatest() should not remove old xbridge confs', async function() {
+    const req = async (url) => {
+      if (url === 'manifest-url') {
+        const o = {};
+        o.text = '{"manifest-latest.json":["b705da5df7d83ba3de48eb20fdc3cbf519ef6cc7","manifest-latest.json"]}';
+        return o;
+      } else if (url === 'manifest-latest.json') {
+        const o = {};
+        o.text = '[{"blockchain":"Blocknet","ticker":"TBLOCK","ver_id":"blocknet--v4.0.1","ver_name":"Blocknetv4","conf_name":"blocknet.conf","dir_name_linux":"blocknet","dir_name_mac":"Blocknet","dir_name_win":"Blocknet","repo_url":"https://github.com/blocknetdx/blocknet","versions":["v4.3.0"],"xbridge_conf":"blocknet--v4.0.1.conf","wallet_conf":"blocknet--v4.0.1.conf"},{"blockchain":"Bitcoin","ticker":"TBTC","ver_id":"bitcoin--v0.15.1","ver_name":"Bitcoinv0.15.x","conf_name":"bitcoin.conf","dir_name_linux":"bitcoin","dir_name_mac":"Bitcoin","dir_name_win":"Bitcoin","repo_url":"https://github.com/bitcoin/bitcoin","versions":["v0.15.1","v0.15.2"],"xbridge_conf":"bitcoin--v0.15.1.conf","wallet_conf":"bitcoin--v0.15.1.conf"}]';
+        return o;
+      } else if (url === 'xbridge-confs/blocknet--v4.0.1.conf') {
+        const o = {};
+        o.text = '[TBLOCK]\\nTitle=Blocknet\\nAddress=\\nIp=127.0.0.1\\nPort=41414\\nUsername=\\nPassword=\\nAddressPrefix=26\\nScriptPrefix=28\\nSecretPrefix=154\\nCOIN=100000000\\nMinimumAmount=0\\nTxVersion=1\\nDustAmount=0\\nCreateTxMethod=BTC\\nGetNewKeySupported=true\\nImportWithNoScanSupported=true\\nMinTxFee=10000\\nBlockTime=60\\nFeePerByte=20\\nConfirmations=0';
+        return o;
+      } else if (url === 'xbridge-confs/bitcoin--v0.15.1.conf') {
+        const o = {};
+        o.text = '[TBTC]\\nTitle=Bitcoin\\nAddress=\\nIp=127.0.0.1\\nPort=8332\\nUsername=\\nPassword=\\nAddressPrefix=0\\nScriptPrefix=5\\nSecretPrefix=128\\nCOIN=100000000\\nMinimumAmount=0\\nTxVersion=2\\nDustAmount=0\\nCreateTxMethod=BTC\\nMinTxFee=7500\\nBlockTime=600\\nGetNewKeySupported=false\\nImportWithNoScanSupported=false\\nFeePerByte=120\\nConfirmations=1';
+        return o;
+      }
+    };
+    const confContr = new ConfController(domStorage, availableWallets.concat(['TBLOCK', 'TBTC']));
+    await confContr.init(defaultXBridgeConfDir);
+    await confContr.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.true();
+    confContr.getXBridgeInfo().length.should.be.equal(4);
+    should.exist(confContr.getXBridgeInfo().find(xb => xb.ticker === 'TBLOCK'));
+    should.exist(confContr.getXBridgeInfo().find(xb => xb.ticker === 'TBTC'));
+  });
   it('ConfController.updateLatest() should filter out old configs', async function() {
     const req = async (url) => {
       if (url === 'manifest-url') {
@@ -149,8 +177,10 @@ describe('ConfController Test Suite', function() {
         return o;
       }
     };
-    await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req);
-    should.not.exist(confController.getXBridgeInfo().find(xb => xb.ticker === 'BLOCK'));
+    domStorage.clear();
+    const confContr = new ConfController(domStorage, availableWallets);
+    await confContr.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req);
+    should.not.exist(confContr.getXBridgeInfo().find(xb => xb.ticker === 'BLOCK'));
   });
   it('ConfController.updateLatest() should fail on missing port info', async function() {
     const req = async (url) => {
@@ -172,8 +202,10 @@ describe('ConfController Test Suite', function() {
         return o;
       }
     };
-    await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req);
-    should.not.exist(confController.getXBridgeInfo().find(xb => xb.ticker === 'BTC'));
+    domStorage.clear();
+    const confContr = new ConfController(domStorage, availableWallets);
+    await confContr.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req);
+    should.not.exist(confContr.getXBridgeInfo().find(xb => xb.ticker === 'BTC'));
   });
   it('ConfController.updateLatest() should fail on bad manifest url', async function() {
     // return bad json here
