@@ -4,6 +4,8 @@ import Token from '../types/token';
 import XBridgeInfo from '../types/xbridgeinfo';
 
 import _ from 'lodash';
+import fs from 'fs-extra';
+import path from 'path';
 
 /**
  * Class for getting manifest and wallet data
@@ -21,6 +23,11 @@ class ConfController {
    */
   _availableWallets = new Set();
 
+  _reFpb = /^\s*feeperbyte\s*=\s*(\d+)\s*$/i;
+  _reMtf = /^\s*mintxfee\s*=\s*(\d+)\s*$/i;
+  _reCoin = /^\s*coin\s*=\s*(\d+)\s*$/i;
+  _rePort = /^\s*port\s*=\s*(\d+)\s*$/i;
+
   /**
    * Constructor
    * @param domStorage {DOMStorage}
@@ -30,6 +37,68 @@ class ConfController {
     requireRenderer();
     this._domStorage = domStorage;
     this._availableWallets = new Set(wallets);
+  }
+
+  /**
+   * Initialize the manifest data providers.
+   * @param manifestFilesDir {string} Path to the blockchain-configuration-files
+   * @return {Promise<boolean>}
+   */
+  async init(manifestFilesDir) {
+    if (this.getManifest().length !== 0)
+      return false; // no init required
+
+    try {
+      if (!await fs.pathExists(manifestFilesDir))
+        return false;
+    } catch (e) {
+      logger.error('failed to init blockchain config files', e);
+      return false; // fatal
+    }
+
+    // Read prepackaged manifest
+    let manifest = null;
+    const manifestFile = path.join(manifestFilesDir, 'manifest-latest.json');
+    try {
+      manifest = await fs.readJson(manifestFile);
+    } catch (e) {
+      logger.error(`failed to read blockchain config file ${manifestFile}`, e);
+      return false; // fatal
+    }
+
+    if (!manifest)
+      return false; // fatal, valid manifest required to proceed
+
+    // Remove stale entries
+    this._filterManifest(manifest);
+    this._domStorage.setItem(localStorageKeys.MANIFEST, manifest);
+
+    const xbridgeInfos = [];
+    const xbconfDir = path.join(manifestFilesDir, 'xbridge-confs');
+
+    // Read prepackaged xbridge confs
+    for (const t of manifest) {
+      const token = new Token(t);
+      if (!this._availableWallets.has(token.ticker))
+        continue; // skip unsupported tokens
+
+      let xbtext = '';
+      try {
+        xbtext = await fs.readFile(path.join(xbconfDir, token.xbridge_conf), 'utf8');
+      } catch (e) {
+        continue; // skip bad confs
+      }
+      const xbInfo = this._parseXBridgeConf(xbtext);
+      if (xbInfo) {
+        xbInfo.ticker = token.ticker;
+        xbridgeInfos.push(xbInfo);
+      } else
+        logger.error(`failed to read xbridge info for ${token.ticker}`);
+    }
+
+    // Store xbridge data
+    this._domStorage.setItem(localStorageKeys.XBRIDGE_INFO, xbridgeInfos);
+    return true;
   }
 
   /**
@@ -130,107 +199,34 @@ class ConfController {
 
     // Store manifest and hash only on successful response
     if (_.isArray(manifest)) {
-      // Filter latest from manifest, only keep the latest conf versions
-      manifest.sort((a,b) => a.xbridge_conf.localeCompare(b.xbridge_conf, 'en', { numeric: true }));
-      const have = new Set();
-      for (let i = manifest.length - 1; i >= 0; i--) {
-        const token = manifest[i];
-        if (have.has(token.ticker)) {
-          manifest.splice(i, 1); // remove this conf, it's not the latest
-          continue;
-        }
-        have.add(token.ticker);
-      }
+      this._filterManifest(manifest);
 
       this._domStorage.setItem(localStorageKeys.MANIFEST_SHA, manifestHash);
       this._domStorage.setItem(localStorageKeys.MANIFEST, manifest);
 
       // Pull the wallet confs for available wallets and get fee information.
-      const fees = [];
-      const reFpb = /^\s*feeperbyte\s*=\s*(\d+)\s*$/i;
-      const reMtf = /^\s*mintxfee\s*=\s*(\d+)\s*$/i;
-      const reCoin = /^\s*coin\s*=\s*(\d+)\s*$/i;
-      const rePort = /^\s*port\s*=\s*(\d+)\s*$/i;
+      const xbridgeInfos = [];
       for (const t of manifest) {
         const token = new Token(t);
-        if (this._availableWallets.has(token.ticker)) {
-          try {
-            // Sample data (without //):
-            // [BLOCK]
-            // Title=Blocknet
-            // Address=
-            // Ip=127.0.0.1
-            // Port=41414
-            // Username=
-            // Password=
-            // AddressPrefix=26
-            // ScriptPrefix=28
-            // SecretPrefix=154
-            // COIN=100000000
-            // MinimumAmount=0
-            // TxVersion=1
-            // DustAmount=0
-            // CreateTxMethod=BTC
-            // GetNewKeySupported=true
-            // ImportWithNoScanSupported=true
-            // MinTxFee=10000
-            // BlockTime=60
-            // FeePerByte=20
-            // Confirmations=0
-            const res = await req(manifestConfPrefix + token.xbridge_conf);
-            const xbconf = [];
-            let l = '';
-            let p = '';
-            for (const ch of res.text) {
-              const l1 = /\s/.test(ch);
-              const l2 = p+ch === '\\n' || p+ch === '\\r';
-              if (l1 || l2) {
-                if (l2) // remove the last char if it's l2 whitespace
-                  l = l.slice(0, l.length-1);
-                if (!/^\s*$/.test(l)) // if not empty/whitespace
-                  xbconf.push(l);
-                l = '';
-                p = '';
-                continue;
-              }
-              l += ch;
-              p = ch;
-            }
-            let matchfpb = null;
-            let matchminfee = null;
-            let matchcoin = null;
-            let matchport = null;
-            for (const line of xbconf) {
-              if (!matchfpb)
-                matchfpb = line.match(reFpb);
-              if (!matchminfee)
-                matchminfee = line.match(reMtf);
-              if (!matchcoin)
-                matchcoin = line.match(reCoin);
-              if (!matchport)
-                matchport = line.match(rePort);
-            }
-            if (matchfpb && matchminfee && matchcoin && matchport) {
-              const feeInfo = new XBridgeInfo({
-                ticker: token.ticker,
-                feeperbyte: Number(matchfpb[1]),
-                mintxfee: Number(matchminfee[1]),
-                coin: Number(matchcoin[1]),
-                rpcport: Number(matchport[1]),
-              });
-              fees.push(feeInfo);
-            } else {
-              logger.error(`failed to read xbridge info for ${token.ticker}`);
-              return false;
-            }
-          } catch (e) {
-            logger.error(`failed to download xbridge info for ${token.ticker}`, e);
-            continue;
-          }
+        if (!this._availableWallets.has(token.ticker))
+          continue; // skip unknown tokens
+
+        let res;
+        try {
+          res = await req(manifestConfPrefix + token.xbridge_conf);
+        } catch (e) {
+          logger.error(`failed to download xbridge info for ${token.ticker}`, e);
+          continue;
         }
+        const xbInfo = this._parseXBridgeConf(res.text);
+        if (xbInfo) {
+          xbInfo.ticker = token.ticker;
+          xbridgeInfos.push(xbInfo);
+        } else
+          logger.error(`failed to read xbridge info for ${token.ticker}`);
       }
-      // Store fee data
-      this._domStorage.setItem(localStorageKeys.XBRIDGE_INFO, fees);
+      // Store xbridge data
+      this._domStorage.setItem(localStorageKeys.XBRIDGE_INFO, xbridgeInfos);
 
       return true;
     }
@@ -238,6 +234,99 @@ class ConfController {
     return false;
   }
 
+  /**
+   * Read and parse the xbridge conf.
+   * Sample data:
+   * [BLOCK]
+   * Title=Blocknet
+   * Address=
+   * Ip=127.0.0.1
+   * Port=41414
+   * Username=
+   * Password=
+   * AddressPrefix=26
+   * ScriptPrefix=28
+   * SecretPrefix=154
+   * COIN=100000000
+   * MinimumAmount=0
+   * TxVersion=1
+   * DustAmount=0
+   * CreateTxMethod=BTC
+   * GetNewKeySupported=true
+   * ImportWithNoScanSupported=true
+   * MinTxFee=10000
+   * BlockTime=60
+   * FeePerByte=20
+   * Confirmations=0
+   *
+   * @param data
+   * @return {XBridgeInfo|null}
+   * @private
+   */
+  _parseXBridgeConf(data) {
+    const xbconf = [];
+    let l = '';
+    let p = '';
+    for (const ch of data) {
+      const l1 = /\s/.test(ch);
+      const l2 = p+ch === '\\n' || p+ch === '\\r';
+      if (l1 || l2) {
+        if (l2) // remove the last char if it's l2 whitespace
+          l = l.slice(0, l.length-1);
+        if (!/^\s*$/.test(l)) // if not empty/whitespace
+          xbconf.push(l);
+        l = '';
+        p = '';
+        continue;
+      }
+      l += ch;
+      p = ch;
+    }
+
+    let matchfpb = null;
+    let matchminfee = null;
+    let matchcoin = null;
+    let matchport = null;
+    for (const line of xbconf) {
+      if (!matchfpb)
+        matchfpb = line.match(this._reFpb);
+      if (!matchminfee)
+        matchminfee = line.match(this._reMtf);
+      if (!matchcoin)
+        matchcoin = line.match(this._reCoin);
+      if (!matchport)
+        matchport = line.match(this._rePort);
+    }
+    if (matchfpb && matchminfee && matchcoin && matchport) {
+      return new XBridgeInfo({
+        feeperbyte: Number(matchfpb[1]),
+        mintxfee: Number(matchminfee[1]),
+        coin: Number(matchcoin[1]),
+        rpcport: Number(matchport[1]),
+      });
+    }
+
+    return null;
+  }
+
+  /**
+   * Removes all non-latest manifest entries.
+   * @param manifest
+   * @private
+   */
+  _filterManifest(manifest) {
+    // Filter latest from manifest, only keep the latest conf versions
+    manifest.sort((a,b) => a.xbridge_conf.localeCompare(b.xbridge_conf, 'en', { numeric: true }));
+    const have = new Set();
+    for (let i = manifest.length - 1; i >= 0; i--) {
+      const token = manifest[i];
+      if (have.has(token.ticker)) {
+        manifest.splice(i, 1); // remove this conf, it's not the latest
+        continue;
+      }
+      have.add(token.ticker);
+    }
+  }
 }
 
 export default ConfController;

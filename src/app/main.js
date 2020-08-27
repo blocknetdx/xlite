@@ -38,9 +38,9 @@ const combinedReducers = combineReducers({
 
 const store = createStore(combinedReducers);
 if(isDev) {
-  // domStorage.clear();
-  // domStorage.removeItem('TRANSACTIONS_BLOCK');
-  // domStorage.removeItem('TX_LAST_FETCH_TIME_BLOCK');
+  // domStorage.clear(); // <- clear all stored data
+  // domStorage.removeItem('TRANSACTIONS_BLOCK'); // <- clear BLOCK transactions
+  // domStorage.removeItem('TX_LAST_FETCH_TIME_BLOCK'); // <- clear BLOCK transaction fetch time
   console.log('state', store.getState());
   store.subscribe(() => {
     const state = store.getState();
@@ -242,6 +242,7 @@ function startupInit(walletController, confController, confNeedsManifestUpdate) 
   // what we need.
   const availableWallets = cloudChains.getWalletConfs().map(c => c.ticker());
   const confController = new ConfController(domStorage, availableWallets);
+  await confController.init(path.resolve(__dirname, '../blockchain-configuration-files'));
   let confNeedsManifestUpdate = true;
   if (confController.getManifest().length === 0) {
     confNeedsManifestUpdate = false;

@@ -1,55 +1,66 @@
+/* global describe,it,beforeEach */
 import 'should';
+import path from 'path';
 import ConfController from '../src/app/modules/conf-controller';
 import domStorage from '../src/app/modules/dom-storage';
 import {localStorageKeys} from '../src/app/constants';
-import XBridgeInfo from '../src/app/types/xbridgeinfo';
 import Token from '../src/app/types/token';
+import XBridgeInfo from '../src/app/types/xbridgeinfo';
 
 describe('ConfController Test Suite', function() {
-  beforeEach(function() {
+  const availableWallets = ['BLOCK', 'BTC'];
+  let confController;
+  beforeEach(async function() {
     domStorage.clear();
+    confController = new ConfController(domStorage, availableWallets);
+    await confController.init(path.resolve(__dirname, '../blockchain-configuration-files'));
   });
 
-  const availableWallets = ['BLOCK', 'BTC'];
+  it('ConfController()', function() {
+    confController._domStorage.should.be.eql(domStorage);
+    confController._availableWallets.should.be.eql(new Set(availableWallets));
+  });
+  it('ConfController.init()', async function() {
+    domStorage.clear();
+    const confContr = new ConfController(domStorage, availableWallets);
+    confContr.getManifest().should.be.eql([]); // check that [] is default prior to load
+    const confDir = path.resolve(__dirname, '../blockchain-configuration-files');
+    await confContr.init(confDir);
+    confContr.getManifest().length.should.be.greaterThan(0);
+  });
   it('ConfController.getManifest()', function() {
     const data = [{'manifest_should_exist': true}];
     domStorage.setItem(localStorageKeys.MANIFEST, data);
-    const confController = new ConfController(domStorage, availableWallets);
     confController.getManifest().should.eql(data);
   });
   it('ConfController.getManifest() with bad data should return empty []', function() {
     domStorage.setItem(localStorageKeys.MANIFEST, '{"manifest_should_exist": true}');
-    const confController = new ConfController(domStorage, availableWallets);
     confController.getManifest().should.eql([]);
   });
   it('ConfController.getManifestHash()', function() {
     domStorage.setItem(localStorageKeys.MANIFEST_SHA, '0123456789');
-    const confController = new ConfController(domStorage, availableWallets);
     confController.getManifestHash().should.equal('0123456789');
   });
   it('ConfController.getFeeInfo()', function() {
     const feeBLOCK = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000 });
     const feeBTC = new XBridgeInfo({ ticker: 'BTC', feeperbyte: 120, mintxfee: 7500, coin: 100000000 });
     domStorage.setItem(localStorageKeys.XBRIDGE_INFO, [feeBLOCK, feeBTC]);
-    const confController = new ConfController(domStorage, availableWallets);
     confController.getXBridgeInfo()[0].should.be.instanceof(XBridgeInfo);
     confController.getXBridgeInfo().should.eql([feeBLOCK, feeBTC]);
   });
-  it('ConfController.needsUpdate() with stale manifest should not match', async function() {
-    const confController = new ConfController(domStorage, availableWallets);
-    await confController.needsUpdate(async () => { return {headers: {'x-amz-meta-x-manifest-hash': '0123456789'}}; }).should.be.finally.true();
+  it('ConfController.needsUpdate() with stale manifest should be true', async function() {
+    const flag = await confController.needsUpdate(async () => { return {headers: {'x-amz-meta-x-manifest-hash': '0123456789'}}; });
+    flag.should.be.true();
   });
-  it('ConfController.needsUpdate() with recent manifest should match', async function() {
+  it('ConfController.needsUpdate() with recent manifest should be false', async function() {
     domStorage.setItem(localStorageKeys.MANIFEST_SHA, '0123456789');
-    const confController = new ConfController(domStorage, availableWallets);
-    await confController.needsUpdate(async () => { return {headers: {'x-amz-meta-x-manifest-hash': '0123456789'}}; }).should.be.finally.false();
+    const flag = await confController.needsUpdate(async () => { return {headers: {'x-amz-meta-x-manifest-hash': '0123456789'}}; });
+    flag.should.be.false();
   });
   it('ConfController.fetchManifestHash() should match', async function() {
-    const confController = new ConfController(domStorage, availableWallets);
     await confController.fetchManifestHash(async () => { return {headers: {'x-amz-meta-x-manifest-hash': '0123456789'}}; }).should.be.finally.equal('0123456789');
   });
   it('ConfController.fetchManifestHash() bad request should be empty', async function() {
-    const confController = new ConfController(domStorage, availableWallets);
     await confController.fetchManifestHash(async () => { return {}; }).should.be.finally.equal('');
   });
   it('ConfController.updateLatest() should pass on valid input', async function() {
@@ -73,7 +84,6 @@ describe('ConfController Test Suite', function() {
       }
     };
     const sortFn = (a,b) => a.ticker.localeCompare(b.ticker);
-    const confController = new ConfController(domStorage, availableWallets);
     await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.true();
     domStorage.getItem(localStorageKeys.MANIFEST_SHA).should.be.equal('0123456789');
     const res = await req('manifest-latest.json');
@@ -111,7 +121,6 @@ describe('ConfController Test Suite', function() {
         return o;
       }
     };
-    const confController = new ConfController(domStorage, availableWallets);
     await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.true();
     const manifest = confController.getManifest();
     for (const t of manifest) {
@@ -120,7 +129,7 @@ describe('ConfController Test Suite', function() {
         token.xbridge_conf.should.be.equal('bitcoin--v0.100.1.conf');
     }
   });
-  it('ConfController.updateLatest() should fail on bad xbridge info', async function() {
+  it('ConfController.updateLatest() should skip wallet with bad xbridge info', async function() {
     const req = async (url) => {
       if (url === 'manifest-url') {
         const o = {};
@@ -132,7 +141,7 @@ describe('ConfController Test Suite', function() {
         return o;
       } else if (url === 'xbridge-confs/blocknet--v4.0.1.conf') {
         const o = {};
-        o.text = '';
+        o.text = ''; // <- bad info here
         return o;
       } else if (url === 'xbridge-confs/bitcoin--v0.15.1.conf') {
         const o = {};
@@ -140,9 +149,8 @@ describe('ConfController Test Suite', function() {
         return o;
       }
     };
-    const confController = new ConfController(domStorage, availableWallets);
-    await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.false();
-    confController.getXBridgeInfo().length.should.equal(0);
+    await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req);
+    should.not.exist(confController.getXBridgeInfo().find(xb => xb.ticker === 'BLOCK'));
   });
   it('ConfController.updateLatest() should fail on missing port info', async function() {
     const req = async (url) => {
@@ -158,20 +166,18 @@ describe('ConfController Test Suite', function() {
         const o = {};
         o.text = '[BLOCK]\\nTitle=Blocknet\\nAddress=\\nIp=127.0.0.1\\nPort=41414\\nUsername=\\nPassword=\\nAddressPrefix=26\\nScriptPrefix=28\\nSecretPrefix=154\\nCOIN=100000000\\nMinimumAmount=0\\nTxVersion=1\\nDustAmount=0\\nCreateTxMethod=BTC\\nGetNewKeySupported=true\\nImportWithNoScanSupported=true\\nMinTxFee=10000\\nBlockTime=60\\nFeePerByte=20\\nConfirmations=0';
         return o;
-      } else if (url === 'xbridge-confs/bitcoin--v0.15.1.conf') {
+      } else if (url === 'xbridge-confs/bitcoin--v0.15.1.conf') { // <- bad port here
         const o = {};
         o.text = '[BTC]\\nTitle=Bitcoin\\nAddress=\\nIp=127.0.0.1\\nPort=\\nUsername=\\nPassword=\\nAddressPrefix=0\\nScriptPrefix=5\\nSecretPrefix=128\\nCOIN=100000000\\nMinimumAmount=0\\nTxVersion=2\\nDustAmount=0\\nCreateTxMethod=BTC\\nMinTxFee=7500\\nBlockTime=600\\nGetNewKeySupported=false\\nImportWithNoScanSupported=false\\nFeePerByte=120\\nConfirmations=1';
         return o;
       }
     };
-    const confController = new ConfController(domStorage, availableWallets);
-    await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.false();
-    confController.getXBridgeInfo().length.should.equal(0);
+    await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req);
+    should.not.exist(confController.getXBridgeInfo().find(xb => xb.ticker === 'BTC'));
   });
   it('ConfController.updateLatest() should fail on bad manifest url', async function() {
     // return bad json here
     const req = async (url) => { return ''; };
-    const confController = new ConfController(domStorage, availableWallets);
     await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.false();
   });
   it('ConfController.updateLatest() should fail on bad manifest hash file', async function() {
@@ -184,7 +190,6 @@ describe('ConfController Test Suite', function() {
       }
       return '';
     };
-    const confController = new ConfController(domStorage, availableWallets);
     await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.false();
   });
 });
