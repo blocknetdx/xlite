@@ -59,17 +59,17 @@ if(isDev) {
     globalShortcut.unregister('F5', reload);
     globalShortcut.unregister('CommandOrControl+R', reload);
   });
+}
 
-  // Set default password in isDev mode
-  const { CC_WALLET_PASS = '' } = process.env;
-  if (CC_WALLET_PASS !== '') {
-    const salt = generateSalt(32);
-    const hashedPassword = pbkdf2(CC_WALLET_PASS, salt);
-    domStorage.setItems({
-      [localStorageKeys.PASSWORD]: hashedPassword,
-      [localStorageKeys.SALT]: salt
-    });
-  }
+// Set env password
+const { CC_WALLET_PASS = '' } = process.env;
+if (CC_WALLET_PASS !== '') {
+  const salt = generateSalt(32);
+  const hashedPassword = pbkdf2(CC_WALLET_PASS, salt);
+  domStorage.setItems({
+    [localStorageKeys.PASSWORD]: hashedPassword,
+    [localStorageKeys.SALT]: salt
+  });
 }
 
 let resizeTimeout;
