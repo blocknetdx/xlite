@@ -81,8 +81,11 @@ window.addEventListener('resize', e => {
     innerHeight = MIN_UI_HEIGHT;
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
-    if(innerWidth)
-    store.dispatch(appActions.setWindowSize(innerWidth, innerHeight));
+    if(innerWidth) {
+      store.dispatch(appActions.setWindowSize(innerWidth, innerHeight));
+      // Store screen size in main process storage
+      ipcRenderer.send(ipcMainListeners.SCREEN_SIZE, {width: innerWidth, height: innerHeight});
+    }
   }, 200);
 });
 

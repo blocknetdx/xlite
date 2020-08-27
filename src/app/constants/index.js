@@ -43,7 +43,8 @@ export const localStorageKeys = {
 
 export const storageKeys = {
   LOCALE: 'LOCALE',
-  ZOOM_FACTOR: 'ZOOM_FACTOR'
+  ZOOM_FACTOR: 'ZOOM_FACTOR',
+  SCREEN_SIZE: 'SCREEN_SIZE',
 };
 
 export const ipcMainListeners = {
@@ -54,6 +55,7 @@ export const ipcMainListeners = {
   GET_ZOOM_FACTOR: 'GET_ZOOM_FACTOR',
   SET_ZOOM_FACTOR: 'SET_ZOOM_FACTOR',
   CLOSE: 'CLOSE',
+  SCREEN_SIZE: 'SCREEN_SIZE',
 };
 
 export const ipcRendererListeners = {

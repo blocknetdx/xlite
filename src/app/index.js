@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { app, ipcMain,  Menu } from 'electron';
 import isDev from 'electron-is-dev';
 import contextMenu from 'electron-context-menu';
@@ -77,4 +78,9 @@ ipcMain.on(ipcMainListeners.GET_USER_LOCALE, e => {
 
 ipcMain.on(ipcMainListeners.CLOSE, e => {
   app.quit();
+});
+
+ipcMain.on(ipcMainListeners.SCREEN_SIZE, (e, args) => {
+  if (_.has(args, 'width') && _.has(args, 'height'))
+    storage.setItem(storageKeys.SCREEN_SIZE, args);
 });
