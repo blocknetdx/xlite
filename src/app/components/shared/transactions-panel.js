@@ -52,7 +52,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
       </CardHeader>
       <CardBody>
         <Table>
-          <TableColumn size={3}><Localize context={'transactions'}>Transaction Type</Localize></TableColumn>
+          <TableColumn size={3}><Localize context={'transactions'}>Transaction</Localize></TableColumn>
           <TableColumn size={2}><Localize context={'transactions'}>Asset</Localize></TableColumn>
           {!brief ? <TableColumn size={7}><Localize context={'transactions'}>To address</Localize></TableColumn> : null}
           {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn> : null}
