@@ -29,13 +29,14 @@ const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultip
   const pieChartData = [];
   for (const [ticker, balance] of balances) {
     const [total] = balance;
+    const bnTotal = bignumber(total);
     const wallet = wallets.find(w => w.ticker === ticker);
-    if (!wallet || total < oneSat) // at least 1 sat required to show on the pie chart
+    if (!wallet || isNaN(bnTotal.toNumber()) || bnTotal.toNumber() < oneSat) // at least 1 sat required to show on the pie chart
       continue; // skip unknown wallets or wallets with no balance
     const blockchain = wallet.blockchain();
     const currencyMultiplier = currencyMultipliers && currencyMultipliers[ticker] && currencyMultipliers[ticker][altCurrency]
                                  ? currencyMultipliers[ticker][altCurrency] : 0;
-    const currencyAmount = math.multiply(bignumber(total), bignumber(currencyMultiplier));
+    const currencyAmount = math.multiply(bnTotal, bignumber(currencyMultiplier));
     const pieData = new AssetPieChartData(ticker, blockchain, altCurrency, currencyAmount.toNumber(), chartColorForTicker(ticker));
     pieChartData.push(pieData);
   }
