@@ -4,6 +4,7 @@ import {all, create} from 'mathjs';
 import {combineReducers, createStore} from 'redux';
 import fs from 'fs-extra';
 import {Map as IMap} from 'immutable';
+import moment from 'moment';
 import os from 'os';
 import path from 'path';
 
@@ -14,6 +15,7 @@ import ConfController from '../src/app/modules/conf-controller';
 import domStorage from '../src/app/modules/dom-storage';
 import FakeRPCController from './fake-rpc-controller';
 import {localStorageKeys} from '../src/app/constants';
+import {multiplierForCurrency, oneDaySeconds, oneHourSeconds, oneWeekSeconds, unixTime} from '../src/app/util';
 import RPCTransaction from '../src/app/types/rpc-transaction';
 import Token from '../src/app/types/token';
 import TokenManifest from '../src/app/modules/token-manifest';
@@ -190,6 +192,76 @@ describe('WalletController Test Suite', function() {
     const txs = wc.getTransactions().get('BLOCK').sort(sortFn);
     const fakeTxs = (await fakerpc.listTransactions()).sort(sortFn);
     txs.should.be.eql(fakeTxs);
+  });
+  it('WalletController.getBalanceOverTime() including cache test', async function() {
+    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    wc.loadWallets();
+    const et = unixTime();
+    const fakerpc = new FakeRPCController();
+    const txs = [
+      new RPCTransaction({ txId: 'E', address: 'afjdsakjfksdajk', amount: 2.001589, category: 'receive', time: et - oneHourSeconds }),
+      new RPCTransaction({ txId: 'D', address: 'afjdsakjfksdajk', amount: 5.000, category: 'send', time: et - oneHourSeconds*5 }),
+      new RPCTransaction({ txId: 'C', address: 'afjdsakjfksdajk', amount: 1.000, category: 'send', time: et - oneDaySeconds }),
+      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 10.000, category: 'receive', time: et - oneDaySeconds*3 }),
+      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 15.000, category: 'receive', time: et - oneWeekSeconds }),
+    ];
+    fakerpc.listTransactions = async () => { return txs; };
+    const blockWallet = wc.getWallet('BLOCK');
+    blockWallet.rpc = fakerpc;
+    await blockWallet.updateTransactions();
+    const currencyMultipliers = {'BLOCK': {'USD': 1.50}};
+    const balances = await wc.getBalanceOverTime('week', 'USD', currencyMultipliers);
+    const st = moment.unix(et-oneWeekSeconds).startOf('day');
+    const expecting = Math.ceil((et-st.unix())/oneHourSeconds);
+    balances.length.should.be.equal(expecting);
+    const getBalance = (transactions) => {
+      let balancesTotal = 0;
+      for (const tx of transactions) {
+        if (tx.isReceive())
+          balancesTotal += tx.amount * multiplierForCurrency('BLOCK', 'USD', currencyMultipliers);
+        else
+          balancesTotal -= tx.amount * multiplierForCurrency('BLOCK', 'USD', currencyMultipliers);
+      }
+      return balancesTotal;
+    };
+    balances[balances.length-1][1].should.be.equal(getBalance((await fakerpc.listTransactions())));
+    // Expecting cache to be pulled when calls are one after the other
+    const copyTxs = txs.slice();
+    txs.push(new RPCTransaction({ txId: 'Another tx', address: 'afjdsakjfksdajk', amount: 100.50, category: 'receive', time: et - 60 }));
+    await blockWallet.updateTransactions();
+    const nbalances = await wc.getBalanceOverTime('week', 'USD', currencyMultipliers);
+    nbalances[nbalances.length-1][1].should.be.equal(getBalance(copyTxs)); // expecting to receive old cached data
+  });
+  it('WalletController.getBalanceOverTime() should exclude data outside timeframe', async function() {
+    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    wc.loadWallets();
+    const blockWallet = wc.getWallet('BLOCK');
+    const et = unixTime();
+    const fakerpc = new FakeRPCController();
+    const txs = [
+      new RPCTransaction({ txId: 'E', address: 'afjdsakjfksdajk', amount: 1.99999999, category: 'receive', time: et - oneHourSeconds }),
+      new RPCTransaction({ txId: 'D', address: 'afjdsakjfksdajk', amount: 5.000, category: 'send', time: et - oneHourSeconds*5 }),
+      new RPCTransaction({ txId: 'C', address: 'afjdsakjfksdajk', amount: 10.000, category: 'send', time: et - oneDaySeconds }),
+      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 20.000, category: 'receive', time: et - oneDaySeconds*3 }),
+      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 30.000, category: 'receive', time: et - oneWeekSeconds }),
+    ];
+    fakerpc.listTransactions = async () => { return txs; };
+    blockWallet.rpc = fakerpc;
+    await blockWallet.updateTransactions();
+    const currencyMultipliers = {'BLOCK': {'USD': 1}}; // use 1 for easier debugging
+    const balances = await wc.getBalanceOverTime('day', 'USD', currencyMultipliers);
+    const getBalance = (transactions) => {
+      let balancesTotal = 0;
+      for (const tx of transactions) {
+        if (tx.isReceive())
+          balancesTotal += tx.amount * multiplierForCurrency('BLOCK', 'USD', currencyMultipliers);
+        else
+          balancesTotal -= tx.amount * multiplierForCurrency('BLOCK', 'USD', currencyMultipliers);
+      }
+      return balancesTotal;
+    };
+    balances[0][1].should.be.equal(50); // Expecting initial balance (A,B txs are outside starting timeframe)
+    balances[balances.length-1][1].should.be.equal(getBalance((await fakerpc.listTransactions())));
   });
   it('WalletController.getActiveWallet()', function() {
     const wc = new WalletController(cloudChains, tokenManifest, domStorage);

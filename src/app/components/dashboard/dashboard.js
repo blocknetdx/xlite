@@ -7,8 +7,8 @@ import Wallet from '../../types/wallet';
 import Balance from '../shared/balance';
 import { Column, Row } from '../shared/flex';
 import AssetsOverviewPanel from '../shared/assets-overview-panel';
-import Chart, {chartSampleData} from '../shared/chart';
-import {oneSat} from '../../util';
+import Chart from '../shared/chart';
+import {multiplierForCurrency, oneSat} from '../../util';
 import TransactionsPanel from '../shared/transactions-panel';
 import { SIDEBAR_WIDTH } from '../../constants';
 const math = create(all, {
@@ -17,7 +17,7 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
-const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultipliers }) => {
+const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultipliers, balanceOverTime }) => {
 
   const containerHorizPadding = 25;
   const centerMargin = 30;
@@ -40,15 +40,21 @@ const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultip
     pieChartData.push(pieData);
   }
 
+  // TODO Wire up the filter buttons, chart supports year/half-year/month/week/day
+  const chartScale = 'half-year';
+  let chartData = [[0, 0]];
+  if (multiplierForCurrency('BTC', altCurrency, currencyMultipliers) > 0)
+    chartData = balanceOverTime(chartScale, altCurrency, currencyMultipliers);
+
   return (
     <div className={'lw-dashboard-container'} style={{paddingLeft: containerHorizPadding, paddingRight: containerHorizPadding}}>
       <Row style={{height: chartContainerHeight, minHeight: chartContainerHeight, maxHeight: chartContainerHeight}}>
         <Column>
           <Balance />
-          <Chart className={'lw-dashboard-chart'} chartData={chartSampleData} simple={false} simpleStrokeColor={'#ccc'}
+          <Chart className={'lw-dashboard-chart'} chartData={chartData} currency={altCurrency} simple={false} simpleStrokeColor={'#ccc'}
                  hideAxes={false} defaultWidth={chartWidth} defaultHeight={chartHeight}
                  gradientTopColor={'#00ffff'} gradientBottomColor={'rgba(0, 71, 255, 0)'}
-                 chartGridColor={'#949494'} chartScale={'half-year'} style={{ flexGrow: 1 }} />
+                 chartGridColor={'#949494'} chartScale={chartScale} style={{ flexGrow: 1 }} />
         </Column>
         <Column className={'d-flex flex-column justify-content-center align-items-center'} style={{paddingTop: 15, marginLeft: centerMargin, width: transactionsPanelWidth, minWidth: transactionsPanelWidth, maxWidth: transactionsPanelWidth}}>
           <AssetPieChart className={'lw-portfolio-piechart'} defaultWidth={262} chartData={pieChartData} lineWidth={12} />
@@ -71,6 +77,7 @@ Dashboard.propTypes = {
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   balances: PropTypes.instanceOf(IMap),
   currencyMultipliers: PropTypes.object,
+  balanceOverTime: PropTypes.func, // function('day|week|month|half-year|year', currency, currencyMultiplier)
 };
 
 export default Dashboard;

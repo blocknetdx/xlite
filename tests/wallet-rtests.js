@@ -222,9 +222,9 @@ describe('Wallet Test Suite', function() {
     const fakerpc = new FakeRPCController();
     fakerpc.listTransactions = () => {
       return [
-        new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: '10.000', time: 1000 }),
-        new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: '10.000', time: 2000 }),
-        new RPCTransaction({ txId: 'c', address: 'afjdsakjfksdajk', amount: '10.000', time: 3000 }),
+        new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000, time: 1000 }),
+        new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 10.000, time: 2000 }),
+        new RPCTransaction({ txId: 'c', address: 'afjdsakjfksdajk', amount: 10.000, time: 3000 }),
       ];
     };
     const wallet = new Wallet(token, conf, domStorage);
@@ -239,8 +239,8 @@ describe('Wallet Test Suite', function() {
     const fakeTxs = await fakerpc.listTransactions();
     await wallet.updateTransactions();
     const addTxs = [
-      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: '10.000' }),
-      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: '11.000' }),
+      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000 }),
+      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 11.000 }),
     ];
     wallet._addTransactionsToStorage(addTxs).should.be.true();
     wallet.getTransactions().should.eql(fakeTxs.concat(addTxs));
@@ -261,12 +261,12 @@ describe('Wallet Test Suite', function() {
     const fakeTxs = await fakerpc.listTransactions();
     await wallet.updateTransactions();
     const addTxs = [
-      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: '10.000' }),
-      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: '11.000' }),
+      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000 }),
+      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 11.000 }),
     ];
     const duplTxs = [
-      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: '10.000' }),
-      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: '11.000' }),
+      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000 }),
+      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 11.000 }),
     ];
     wallet._addTransactionsToStorage(addTxs.concat(duplTxs)).should.be.true();
     wallet.getTransactions().should.eql(fakeTxs.concat(addTxs));
@@ -294,8 +294,8 @@ describe('Wallet Test Suite', function() {
     const wallet = new Wallet(token, conf, domStorage);
     wallet.rpc = fakerpc;
     const addTxs = [
-      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: '10.000', time: 10000 }),
-      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: '11.000', time: 10000 }),
+      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000, time: 10000 }),
+      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 11.000, time: 10000 }),
     ];
     wallet._addTransactionsToStorage(addTxs).should.be.true();
     wallet._setLastTransactionFetchTime(20000);
@@ -307,8 +307,8 @@ describe('Wallet Test Suite', function() {
     const wallet = new Wallet(token, conf, domStorage);
     wallet.rpc = fakerpc;
     const addTxs = [
-      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: '10.000', time: 10000 }),
-      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: '11.000', time: 10000 }),
+      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000, time: 10000 }),
+      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 11.000, time: 10000 }),
     ];
     wallet._addTransactionsToStorage(addTxs).should.be.true();
     await wallet._fetchTransactions().should.finally.be.eql(addTxs);

@@ -114,5 +114,7 @@ export const oneHourSeconds = 3600;
 export const oneDaySeconds = 86400;
 export const oneWeekSeconds = 604800;
 export const oneMonthSeconds = 2592000;
+export const halfYearSeconds = 15768000;
+export const oneYearSeconds = 31536000;
 
 export const oneSat = 1 / 100000000;

@@ -133,3 +133,14 @@ export const setStartupInitializer = startupInit => ({
     startupInit
   }
 });
+
+/**
+ * @param walletController {WalletController}
+ * @returns {{payload: {walletController: WalletController}, type: string}}
+ */
+export const setWalletController = walletController => ({
+  type: actions.SET_WALLET_CONTROLLER,
+  payload: {
+    walletController
+  }
+});

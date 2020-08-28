@@ -261,6 +261,7 @@ function startupInit(walletController, confController, confNeedsManifestUpdate) 
   // below.
   store.dispatch(appActions.setManifest(tokenManifest));
   store.dispatch(appActions.setCloudChains(cloudChains));
+  store.dispatch(appActions.setWalletController(walletController));
   store.dispatch(appActions.setStartupInitializer(startupInit(walletController, confController, confNeedsManifestUpdate)));
   store.dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
 })();
