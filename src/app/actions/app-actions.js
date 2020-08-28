@@ -144,3 +144,14 @@ export const setWalletController = walletController => ({
     walletController
   }
 });
+
+/**
+ * @param show {boolean}
+ * @returns {{payload: {show: boolean}, type: string}}
+ */
+export const setShowSettings = show => ({
+  type: actions.SET_SHOW_SETTINGS,
+  payload: {
+    show
+  }
+});

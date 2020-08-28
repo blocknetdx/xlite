@@ -19,6 +19,7 @@ const getInitialState = () => ({
   showReceiveModal: false,
   showSendModal: false,
   walletController: null,
+  showSettings: false
 });
 
 export default (state = getInitialState(), { type, payload }) => {
@@ -88,6 +89,11 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         walletController: payload.walletController
+      };
+    case actions.SET_SHOW_SETTINGS:
+      return {
+        ...state,
+        showSettings: payload.show
       };
     default:
       return state;
