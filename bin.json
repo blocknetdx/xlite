@@ -1,5 +1,5 @@
 {
   "linux": "https://cloudchainsinc.com/downloads/cc-release-0.3.42-linux.zip",
-  "mac": "",
+  "mac": "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/Cloudchains-SPV",
   "win": "https://cloudchainsinc.com/downloads/cc-release-0.3.42-windows.zip"
 }
