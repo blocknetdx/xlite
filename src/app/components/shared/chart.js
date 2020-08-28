@@ -22,6 +22,7 @@ export default class Chart extends React.Component {
     className: PropTypes.string,
     style: PropTypes.object,
     chartData: PropTypes.arrayOf(Array),
+    currency : PropTypes.string,
     simple: PropTypes.bool,
     simpleStrokeColor: PropTypes.string,
     hideAxes: PropTypes.bool,
@@ -41,13 +42,13 @@ export default class Chart extends React.Component {
   componentDidMount() {
     this.renderCanvas();
     // redraw canvas hack to correctly render fonts
-    setTimeout(() => this.renderCanvas(), 100);
+    setTimeout(() => this.renderCanvas(), 250);
   }
 
   componentDidUpdate(prevProps) {
     const { defaultWidth } = this.props;
     if(prevProps.defaultWidth !== defaultWidth) {
-      this.renderCanvas();
+      setTimeout(() => this.renderCanvas(), 250);
     }
   }
 
@@ -55,13 +56,23 @@ export default class Chart extends React.Component {
    * Renders the chart canvas and performs all drawing operations.
    */
   renderCanvas() {
-    const { chartData, simple, simpleStrokeColor, hideAxes, defaultWidth, defaultHeight,
+    const { chartData, currency, simple, simpleStrokeColor, hideAxes, defaultWidth, defaultHeight,
       gradientTopColor, gradientBottomColor, chartGridColor, chartScale } = this.props;
     const canvas = this.canvas.current;
     const ctx = canvas.getContext('2d');
     const w = defaultWidth * window.devicePixelRatio;
     const h = defaultHeight * window.devicePixelRatio;
-    const xAxisPadding = !simple ? this._pix(38) : 0;    // no axis labels for simple chart
+    // Determine extra x-axis padding required. Find the length of largest amount (string)
+    let largestAmount = 0;
+    for (const [time, amount] of chartData) {
+      if (amount > largestAmount)
+        largestAmount = amount;
+    }
+    let largestAmountLen = largestAmount <= 100 ? largestAmount.toFixed(2).length
+                                                : largestAmount.toFixed(0).length;
+    if (largestAmountLen < 4)
+      largestAmountLen = 4;
+    const xAxisPadding = !simple ? this._pix(30 + largestAmountLen*8) : 0;    // no axis labels for simple chart
     const yAxisTopPadding = !simple ? this._pix(15) : 0; // ^
     const yAxisBotPadding = !simple ? this._pix(25) : 0; // ^
     const chartWidth = w - xAxisPadding;
@@ -202,7 +213,9 @@ export default class Chart extends React.Component {
       ctx.font = 'normal normal normal ' + this._pix(10) + 'px IBMPlexMonoMedium';
       for (let i = 1; i <= yAxisTicks; i++) {
         const y = yaxisGridLinesYAxis[i-1];
-        ctx.fillText((y_max/yAxisTicks*i).toFixed(0), xAxisPadding - axisTickWidth - this._pix(4), y + this._pix(3));
+        const size = y_max/yAxisTicks*i;
+        ctx.fillText((i === yAxisTicks ? currency + ' ' : '') + (y_max/yAxisTicks*i).toFixed(size <= 100 ? 2 : 0),
+          xAxisPadding - axisTickWidth - this._pix(4), y + this._pix(3));
       }
       ctx.restore();
 
@@ -364,7 +377,7 @@ export const chartSampleData = data;
 /** Sample chart
 ReactDOM.render(
   <Provider store={store}>
-    <Chart className={'lw-dashboard-chart'} chartData={chartSampleData} simple={false} simpleStrokeColor={'#ccc'}
+    <Chart className={'lw-dashboard-chart'} chartData={chartSampleData} currency={'USD'} simple={false} simpleStrokeColor={'#ccc'}
            hideAxes={false} defaultWidth={800} defaultHeight={800*9/16}
            gradientTopColor={'#00ffff'} gradientBottomColor={'rgba(0, 71, 255, 0)'}
            chartGridColor={'#949494'} chartScale={'day'} />
@@ -374,7 +387,7 @@ ReactDOM.render(
 // Simple chart
 ReactDOM.render(
   <Provider store={store}>
-    <Chart className={'lw-dashboard-chart'} chartData={chartSampleData} simple={true} simpleStrokeColor={'#ccc'}
+    <Chart className={'lw-dashboard-chart'} chartData={chartSampleData} currency={'USD'} simple={true} simpleStrokeColor={'#ccc'}
            hideAxes={true} defaultWidth={150} defaultHeight={150*9/16} chartGridColor={'#949494'}
            chartScale={'week'} />
   </Provider>,

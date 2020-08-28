@@ -1,18 +1,20 @@
+import { activeViews } from '../constants';
+import Dashboard from './dashboard';
+import Login from './login-register';
+import { Navbar } from './shared/navbar';
+import Portfolio from './portfolio';
+import ReceiveModal from './shared/modal-receive';
+import SendModal from './shared/modal-send';
+import Sidebar from './shared/sidebar';
+import Spinner from './shared/spinner';
+import Transactions from './transactions';
+import WalletController from '../modules/wallet-controller';
+
 import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { activeViews } from '../constants';
-import Login from './login-register';
-import Dashboard from './dashboard';
-import { Navbar } from './shared/navbar';
-import Sidebar from './shared/sidebar';
-import Transactions from './transactions';
-import ReceiveModal from './shared/modal-receive';
-import SendModal from './shared/modal-send';
-import Portfolio from './portfolio';
-import Spinner from './shared/spinner';
 
-let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendModal }) => {
+let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendModal, walletController }) => {
 
   const styles = {
     container: {
@@ -45,6 +47,7 @@ let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendMo
   let body;
 
   let showNavbar = true;
+  const balanceOverTime = walletController ? walletController.getBalanceOverTime.bind(walletController) : () => [[0, 0]];
 
   switch(activeView) {
     case activeViews.LOGIN_REGISTER:
@@ -52,7 +55,7 @@ let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendMo
       showNavbar = false;
       break;
     case activeViews.DASHBOARD:
-      body = <Dashboard />;
+      body = <Dashboard balanceOverTime={balanceOverTime} />;
       break;
     case activeViews.TRANSACTIONS:
       body = <Transactions />;
@@ -61,7 +64,7 @@ let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendMo
       body = <Transactions />;
       break;
     case activeViews.PORTFOLIO:
-      body = <Portfolio />;
+      body = <Portfolio balanceOverTime={balanceOverTime} />;
       break;
     default:
       body = <div className={'lw-loading-spinner'}><Spinner style={{fontSize: '5em'}} /></div>;
@@ -88,6 +91,7 @@ App.propTypes = {
   windowWidth: PropTypes.number,
   windowHeight: PropTypes.number,
   activeView: PropTypes.string,
+  walletController: PropTypes.instanceOf(WalletController),
 };
 App = connect(
   ({ appState }) => ({
@@ -95,7 +99,8 @@ App = connect(
     windowHeight: appState.windowHeight,
     activeView: appState.activeView,
     showReceiveModal: appState.showReceiveModal,
-    showSendModal: appState.showSendModal
+    showSendModal: appState.showSendModal,
+    walletController: appState.walletController,
   })
 )(App);
 

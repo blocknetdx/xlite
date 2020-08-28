@@ -1,11 +1,11 @@
 import {altCurrencies} from '../constants';
 import {localStorageKeys} from '../constants';
-import {logger} from '../util';
-import RPCTransaction from '../types/rpc-transaction';
+import {oneDaySeconds, oneMonthSeconds, oneWeekSeconds, halfYearSeconds, oneYearSeconds, logger, multiplierForCurrency, unixTime, oneHourSeconds} from '../util';
 import Wallet from '../types/wallet';
 
 import _ from 'lodash';
 import {Map as IMap} from 'immutable';
+import moment from 'moment';
 
 /**
  * Manages wallets
@@ -48,6 +48,20 @@ class WalletController {
    * @private
    */
   _pollMultipliersInterval = null;
+
+  /**
+   * Stores a cache of balance values.
+   * @type {Map<string, [number, number]>} Map<timeframe, [unix_time, currency_val]>
+   * @private
+   */
+  _balanceOverTimeCache = new Map();
+
+  /**
+   * Stores a cache of balance values.
+   * @type {Map<string, number>} Map<timeframe, last_fetch_time>
+   * @private
+   */
+  _balanceOverTimeFetchCache = new Map();
 
   /**
    * Constructs a WalletController instance
@@ -97,13 +111,127 @@ class WalletController {
 
   /**
    * Return transaction data.
+   * @param start Start time in unix epoch
+   * @param end End time in unix epoch
    * @return {Map<string, RPCTransaction[]>}
    */
-  getTransactions() {
+  getTransactions(start = 0, end = 0) {
     const data = new Map();
     for (const [ticker, wallet] of this._wallets)
-      data.set(ticker, wallet.getTransactions());
+      data.set(ticker, wallet.getTransactions(start, end));
     return data;
+  }
+
+  /**
+   * Return balance data over time.
+   * @param timeframe {string} day|week|month|half-year|year
+   * @param currency {string} The currency (USD, BTC)
+   * @param currencyMultipliers {Object} {ticker: {...currencies: multiplier}}
+   * @return {[{Number}, {Number}]} [unix_time, balance]
+   */
+  getBalanceOverTime(timeframe, currency, currencyMultipliers) {
+    const endTime = unixTime();
+    let startTime = endTime;
+
+    // Check cache first
+    if (this._balanceOverTimeFetchCache.has(timeframe)
+      && endTime - this._balanceOverTimeFetchCache.get(timeframe) <= 120) // 2 mins
+        return this._balanceOverTimeCache.get(timeframe);
+
+    let period;
+    switch (timeframe) {
+      case 'day':
+        startTime -= oneDaySeconds;
+        period = oneHourSeconds;
+        break;
+      case 'week':
+        startTime -= oneWeekSeconds;
+        period = oneHourSeconds;
+        break;
+      case 'month':
+        startTime -= oneMonthSeconds;
+        period = oneDaySeconds;
+        break;
+      case 'year':
+        startTime -= oneYearSeconds;
+        period = oneDaySeconds;
+        break;
+      case 'half-year': // default to half-year
+      default:
+        startTime -= halfYearSeconds;
+        period = oneDaySeconds;
+    }
+
+    // Round down to start of day
+    let m = moment.unix(startTime);
+    m = m.startOf('day');
+    startTime = m.unix();
+
+    // Create a list of balances over a total timeframe group in time periods
+    // based on user's timeframe filter.
+    const coinBalances = new Map();
+    const data = this.getTransactions();
+    for (const [ticker, transactions] of data) {
+      if (transactions.length === 0)
+        continue; // skip, no transactions
+
+      // Currency multiplier for ticker
+      const multiplier = multiplierForCurrency(ticker, currency, currencyMultipliers);
+
+      // Sort by tx time ascending
+      transactions.sort((a,b) => a.time - b.time);
+      // TODO Need to cache the running balance on disk to prevent expensive lookups here
+      // Determine the running balance
+      let runningBalance = 0;
+      for (let i = 0; i < transactions.length; i++) {
+        const tx = transactions[i];
+        if (tx.time >= startTime) {
+          // remove all items up to index
+          transactions.splice(0, i);
+          break; // done, sorted array ensures nothing missing
+        }
+        if (tx.isSend())
+          runningBalance -= Math.abs(tx.amount) * multiplier;
+        if (tx.isReceive())
+          runningBalance += Math.abs(tx.amount) * multiplier;
+      }
+
+      // Only advance the search index if a transaction falls within the time period
+      const balances = [];
+      let tx_idx = 0;
+      for (let i = startTime; i <= endTime; i += period) {
+        for (let j = tx_idx; j < transactions.length; j++, tx_idx++) {
+          const tx = transactions[tx_idx];
+          if (tx.time >= i + period)
+            break;
+          if (tx.isSend())
+            runningBalance -= Math.abs(tx.amount) * multiplier;
+          if (tx.isReceive())
+            runningBalance += Math.abs(tx.amount) * multiplier;
+        }
+        if (runningBalance < 0)
+          runningBalance = 0;
+        balances.push([i, runningBalance]);
+      }
+      coinBalances.set(ticker, balances);
+    }
+
+    if (coinBalances.size === 0)
+      return [[startTime, 0]];
+
+    const allBalances = [];
+    const periods = coinBalances.get(coinBalances.keys().next().value).length;
+    for (let i = 0; i < periods; i++) {
+      let runningBalance = 0;
+      for (const [ticker, balances] of coinBalances)
+        runningBalance += balances[i][1]; // [1] = balance in currency
+      allBalances.push([startTime + i * period, runningBalance]);
+    }
+
+    // cache
+    this._balanceOverTimeCache.set(timeframe, allBalances);
+    this._balanceOverTimeFetchCache.set(timeframe, unixTime());
+    return allBalances;
   }
 
   /**

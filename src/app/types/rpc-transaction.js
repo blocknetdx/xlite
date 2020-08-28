@@ -17,9 +17,9 @@ class RPCTransaction {
   address = '';
 
   /**
-   * @type {string}
+   * @type {number}
    */
-  amount = '';
+  amount = 0;
 
   /**
    * @type {string}

@@ -17,7 +17,8 @@ const getInitialState = () => ({
   balances: Map(),
   transactions: Map(),
   showReceiveModal: false,
-  showSendModal: false
+  showSendModal: false,
+  walletController: null,
 });
 
 export default (state = getInitialState(), { type, payload }) => {
@@ -82,6 +83,11 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         startupInit: payload.startupInit
+      };
+    case actions.SET_WALLET_CONTROLLER:
+      return {
+        ...state,
+        walletController: payload.walletController
       };
     default:
       return state;
