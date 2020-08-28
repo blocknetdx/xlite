@@ -47,6 +47,7 @@ build_mac:
   script:
     - "npm install --no-audit"
     - "npm run download-binaries-mac"
+    - "chmod +x bin/mac/Cloudchains-SPV"
     - "npm run build-native-mac"
   artifacts:
     name: "XVault-$CI_COMMIT_REF_NAME-mac"
