@@ -19,7 +19,13 @@ const getInitialState = () => ({
   showReceiveModal: false,
   showSendModal: false,
   walletController: null,
-  showSettings: false
+  showSettings: false,
+  showPreferencesModal: false,
+  showSecurityModal: false,
+  showBackupModal: false,
+  showAboutModal: false,
+  xVaultVersion: '',
+  ccVersion: ''
 });
 
 export default (state = getInitialState(), { type, payload }) => {
@@ -94,6 +100,36 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         showSettings: payload.show
+      };
+    case actions.SET_SHOW_PREFERENCES_MODAL:
+      return {
+        ...state,
+        showPreferencesModal: payload.show
+      };
+    case actions.SET_SHOW_SECURITY_MODAL:
+      return {
+        ...state,
+        showSecurityModal: payload.show
+      };
+    case actions.SET_SHOW_BACKUP_MODAL:
+      return {
+        ...state,
+        showBackupModal: payload.show
+      };
+    case actions.SET_SHOW_ABOUT_MODAL:
+      return {
+        ...state,
+        showAboutModal: payload.show
+      };
+    case actions.SET_XVAULT_VERSION:
+      return {
+        ...state,
+        xVaultVersion: payload.version
+      };
+    case actions.SET_CC_VERSION:
+      return {
+        ...state,
+        ccVersion: payload.version
       };
     default:
       return state;

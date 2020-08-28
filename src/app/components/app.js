@@ -13,8 +13,12 @@ import WalletController from '../modules/wallet-controller';
 import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import AboutModal from './shared/modal-about';
+import SecurityModal from './shared/modal-security';
+import PreferencesModal from './shared/modal-preferences';
+import BackupModal from './shared/modal-backup';
 
-let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendModal, walletController }) => {
+let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendModal, showPreferencesModal, showSecurityModal, showBackupModal, showAboutModal, walletController }) => {
 
   const styles = {
     container: {
@@ -82,6 +86,10 @@ let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendMo
       </div>
       {showReceiveModal ? <ReceiveModal /> : null}
       {showSendModal ? <SendModal /> : null}
+      {showPreferencesModal ? <PreferencesModal /> : null}
+      {showSecurityModal ? <SecurityModal /> : null}
+      {showBackupModal ? <BackupModal /> : null}
+      {showAboutModal ? <AboutModal /> : null}
     </div>
   );
 };
@@ -91,6 +99,10 @@ App.propTypes = {
   windowWidth: PropTypes.number,
   windowHeight: PropTypes.number,
   activeView: PropTypes.string,
+  showPreferencesModal: PropTypes.bool,
+  showSecurityModal: PropTypes.bool,
+  showBackupModal: PropTypes.bool,
+  showAboutModal: PropTypes.bool,
   walletController: PropTypes.instanceOf(WalletController),
 };
 App = connect(
@@ -100,6 +112,10 @@ App = connect(
     activeView: appState.activeView,
     showReceiveModal: appState.showReceiveModal,
     showSendModal: appState.showSendModal,
+    showPreferencesModal: appState.showPreferencesModal,
+    showSecurityModal: appState.showSecurityModal,
+    showBackupModal: appState.showBackupModal,
+    showAboutModal: appState.showAboutModal,
     walletController: appState.walletController,
   })
 )(App);

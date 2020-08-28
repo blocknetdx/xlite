@@ -155,3 +155,69 @@ export const setShowSettings = show => ({
     show
   }
 });
+
+/**
+ * @param show {boolean}
+ * @returns {{payload: {show: boolean}, type: string}}
+ */
+export const setShowPreferencesModal = show => ({
+  type: actions.SET_SHOW_PREFERENCES_MODAL,
+  payload: {
+    show
+  }
+});
+
+/**
+ * @param show {boolean}
+ * @returns {{payload: {show: boolean}, type: string}}
+ */
+export const setShowSecurityModal = show => ({
+  type: actions.SET_SHOW_SECURITY_MODAL,
+  payload: {
+    show
+  }
+});
+
+/**
+ * @param show {boolean}
+ * @returns {{payload: {show: boolean}, type: string}}
+ */
+export const setShowBackupModal = show => ({
+  type: actions.SET_SHOW_BACKUP_MODAL,
+  payload: {
+    show
+  }
+});
+
+/**
+ * @param show {boolean}
+ * @returns {{payload: {show: boolean}, type: string}}
+ */
+export const setShowAboutModal = show => ({
+  type: actions.SET_SHOW_ABOUT_MODAL,
+  payload: {
+    show
+  }
+});
+
+/**
+ * @param version {string}
+ * @returns {{payload: {version: string}, type: string}}
+ */
+export const setXVaultVersion = version => ({
+  type: actions.SET_XVAULT_VERSION,
+  payload: {
+    version
+  }
+});
+
+/**
+ * @param version {string}
+ * @returns {{payload: {version: string}, type: string}}
+ */
+export const setCCVersion = version => ({
+  type: actions.SET_CC_VERSION,
+  payload: {
+    version
+  }
+});

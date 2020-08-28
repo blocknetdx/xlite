@@ -64,7 +64,7 @@ SidebarButton.propTypes = {
 
 const iconsDir = path.join(IMAGE_DIR, 'icons');
 
-let Sidebar = ({ activeView, cloudChains, wallets, balances, showSettings, setActiveView, setActiveWallet, setCCWalletStarted, setShowSettings }) => {
+let Sidebar = ({ activeView, cloudChains, wallets, balances, showSettings, setActiveView, setActiveWallet, setCCWalletStarted, setShowSettings, showPreferencesModal, showSecurityModal, showBackupModal, showAboutModal }) => {
 
   const onLockClick = async function(e) {
     e.preventDefault();
@@ -82,10 +82,10 @@ let Sidebar = ({ activeView, cloudChains, wallets, balances, showSettings, setAc
 
       <div className={`lw-sidebar-settings-panel ${showSettings ? '' : 'hidden'}`}>
         <SidebarButton onClick={() => setShowSettings(false)} style={{color: '#a4afb7'}}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${path.join(iconsDir, 'icon-back.png')}, ${path.join(iconsDir, 'icon-back@2x.png')} 2x`} /> <Localize context={'universal'}>Back</Localize></SidebarButton>
-        <SidebarButton onClick={() => {}}><i className={'fas fa-cog'} /> <Localize context={'sidebar'}>Preferences</Localize></SidebarButton>
-        <SidebarButton onClick={() => {}}><i className={'fas fa-shield-alt'} /> <Localize context={'sidebar'}>Security</Localize></SidebarButton>
-        <SidebarButton onClick={() => {}}><i className={'fas fa-cloud-download-alt'} /> <Localize context={'sidebar'}>Backup</Localize></SidebarButton>
-        <SidebarButton onClick={() => {}}><i className={'fas fa-info-circle'} /> <Localize context={'sidebar'}>About</Localize></SidebarButton>
+        <SidebarButton onClick={() => showPreferencesModal()}><i className={'fas fa-cog'} /> <Localize context={'sidebar'}>Preferences</Localize></SidebarButton>
+        <SidebarButton onClick={() => showSecurityModal()}><i className={'fas fa-shield-alt'} /> <Localize context={'sidebar'}>Security</Localize></SidebarButton>
+        <SidebarButton onClick={() => showBackupModal()}><i className={'fas fa-cloud-download-alt'} /> <Localize context={'sidebar'}>Backup</Localize></SidebarButton>
+        <SidebarButton onClick={() => showAboutModal()}><i className={'fas fa-info-circle'} /> <Localize context={'sidebar'}>About</Localize></SidebarButton>
         <SidebarButton onClick={() => shell.openExternal('https://docs.blocknet.co/')}><i className={'fas fa-question-circle'} /> <Localize context={'sidebar'}>Setup guides</Localize></SidebarButton>
       </div>
 
@@ -117,7 +117,11 @@ Sidebar.propTypes = {
   setActiveView: PropTypes.func,
   setActiveWallet: PropTypes.func,
   setCCWalletStarted: PropTypes.func,
-  setShowSettings: PropTypes.func
+  setShowSettings: PropTypes.func,
+  showPreferencesModal: PropTypes.func,
+  showSecurityModal: PropTypes.func,
+  showBackupModal: PropTypes.func,
+  showAboutModal: PropTypes.func
 };
 Sidebar = connect(
   ({ appState }) => ({
@@ -136,7 +140,11 @@ Sidebar = connect(
       else
         dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
     },
-    setShowSettings: show => dispatch(appActions.setShowSettings(show))
+    setShowSettings: show => dispatch(appActions.setShowSettings(show)),
+    showPreferencesModal: () => dispatch(appActions.setShowPreferencesModal(true)),
+    showSecurityModal: () => dispatch(appActions.setShowSecurityModal(true)),
+    showBackupModal: () => dispatch(appActions.setShowBackupModal(true)),
+    showAboutModal: () => dispatch(appActions.setShowAboutModal(true)),
   })
 )(Sidebar);
 

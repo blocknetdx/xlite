@@ -101,6 +101,7 @@ store.dispatch(appActions.setActiveView(activeViews.LOADING));
 fs.readJson(path.resolve(__dirname, '../../package.json'))
   .then(({ version }) => {
     logger.info(`Starting XVault version ${version}`);
+    store.dispatch(appActions.setXVaultVersion(version));
   })
   .catch(err => logger.error(err));
 
@@ -222,6 +223,7 @@ function startupInit(walletController, confController, confNeedsManifestUpdate) 
     cloudChains.getCCSPVVersion()
       .then(ccVersion => {
         logger.info(`Using CloudChains Litewallet version ${ccVersion}`);
+        store.dispatch(appActions.setCCVersion(ccVersion));
       })
       .catch(err => {
         logger.error(err);
