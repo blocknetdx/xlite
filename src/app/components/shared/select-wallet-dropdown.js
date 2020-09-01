@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import $ from 'jquery';
 import Localize from './localize';
-import Wallet from '../../types/wallet';
+import Wallet from '../../types/wallet-r';
 
 const SelectWalletDropdown = ({ selected = '', style = {}, wallets, onSelect }) => {
 

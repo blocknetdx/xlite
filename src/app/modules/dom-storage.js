@@ -1,13 +1,10 @@
-import { requireRenderer } from '../util';
 
 /**
  * Class for accessing localStorage
  */
 class DOMStorage {
 
-  constructor() {
-    requireRenderer();
-  }
+  constructor() { }
 
   /**
    * @param value {any}

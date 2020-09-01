@@ -1,10 +1,12 @@
-import {IMAGE_DIR, localStorageKeys} from '../constants';
-import {logger, unixTime} from '../util';
-import Recipient from './recipient';
-import RPCController from '../modules/rpc-controller';
-import RPCTransaction from './rpc-transaction';
-import Token from './token';
-import TransactionBuilder from '../modules/transactionbuilder';
+import {IMAGE_DIR} from '../constants';
+import {logger} from './logger';
+import Recipient from '../../app/types/recipient';
+import RPCController from './rpc-controller';
+import RPCTransaction from '../../app/types/rpc-transaction';
+import {storageKeys} from '../constants';
+import Token from '../../app/types/token';
+import TransactionBuilder from '../../app/modules/transactionbuilder';
+import {unixTime} from '../../app/util';
 
 import _ from 'lodash';
 import {all, create} from 'mathjs';
@@ -15,7 +17,6 @@ const math = create(all, {
   number: 'BigNumber',
   precision: 64
 });
-
 const { bignumber } = math;
 
 /**
@@ -79,9 +80,9 @@ class Wallet {
   _token = null;
 
   /**
-   * @type {DOMStorage}
+   * @type {Object} // TODO Integrate wallet db
    */
-  _domStorage = null;
+  _storage = null;
 
   /**
    * Stores cached utxos and last time they were fetched.
@@ -94,12 +95,12 @@ class Wallet {
    * Constructs a wallet
    * @param token {Token}
    * @param conf {CCWalletConf}
-   * @param domStorage {DOMStorage}
+   * @param storage {Object}
    */
-  constructor(token, conf, domStorage) {
+  constructor(token, conf, storage) {
     this._token = token;
     this._conf = conf;
-    this._domStorage = domStorage;
+    this._storage = storage;
     this.ticker = token.ticker;
     this.name = token.blockchain;
     this.imagePath = Wallet.getImage(token.ticker);
@@ -332,7 +333,7 @@ class Wallet {
     let txid = null;
     try {
       txid = await this.rpc.sendRawTransaction(signedRawTransaction);
-      logger.info(`sent transaction for ${this.ticker}: ${signedRawTransaction}`);
+      logger.info(`sent transaction for ${this.ticker}: ${JSON.stringify(signedRawTransaction)}`);
     } catch (e) {
       logger.error(`failed to send raw transaction for ${this.ticker}: ${JSON.stringify(signedRawTransaction)}`, e);
       return null; // fatal
@@ -356,7 +357,7 @@ class Wallet {
    * @private
    */
   _getLastTransactionFetchTime() {
-    const fetchTime = this._domStorage.getItem(this._getTransactionFetchTimeStorageKey());
+    const fetchTime = this._storage.getItem(this._getTransactionFetchTimeStorageKey());
     if (!_.isNumber(fetchTime) || fetchTime < 0)
       return 0;
     return fetchTime;
@@ -370,7 +371,7 @@ class Wallet {
   _setLastTransactionFetchTime(fetchTime) {
     if (fetchTime < 0)
       fetchTime = 0;
-    this._domStorage.setItem(this._getTransactionFetchTimeStorageKey(), fetchTime);
+    this._storage.setItem(this._getTransactionFetchTimeStorageKey(), fetchTime);
   }
 
   /**
@@ -379,7 +380,7 @@ class Wallet {
    * @return {string}
    */
   _getTransactionStorageKey() {
-    return localStorageKeys.TRANSACTIONS + '_' + this.ticker;
+    return storageKeys.TRANSACTIONS + '_' + this.ticker;
   }
 
   /**
@@ -388,7 +389,7 @@ class Wallet {
    * @return {string}
    */
   _getTransactionFetchTimeStorageKey() {
-    return localStorageKeys.TX_LAST_FETCH_TIME + '_' + this.ticker;
+    return storageKeys.TX_LAST_FETCH_TIME + '_' + this.ticker;
   }
 
   /**
@@ -406,7 +407,7 @@ class Wallet {
     if (endTime < startTime)
       endTime = startTime;
 
-    const data = this._domStorage.getItem(this._getTransactionStorageKey());
+    const data = this._storage.getItem(this._getTransactionStorageKey());
     if (!_.isArray(data))
       return [];
     return data.map(t => new RPCTransaction(t))
@@ -432,7 +433,7 @@ class Wallet {
       unique.set(t.key(), t);
 
     const newData = Array.from(unique.values());
-    this._domStorage.setItem(this._getTransactionStorageKey(), newData);
+    this._storage.setItem(this._getTransactionStorageKey(), newData);
     return true;
   }
 
@@ -466,7 +467,7 @@ class Wallet {
     try {
       // Fetch all transactions from last fetch time minus forgiveness seconds
       // to user specified end time.
-      const forgivenessTimeSeconds = 120;
+      const forgivenessTimeSeconds = 3600;
       txs = await this.rpc.listTransactions(lastFetchTime-forgivenessTimeSeconds, endTime); // Accounting for CC Daemon delays
     } catch (e) {
       logger.error('', e);

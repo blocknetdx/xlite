@@ -46,10 +46,9 @@ export default class Chart extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { defaultWidth } = this.props;
-    if(prevProps.defaultWidth !== defaultWidth) {
+    const { defaultWidth, chartData } = this.props;
+    if(prevProps.defaultWidth !== defaultWidth || !_.isEqual(prevProps.chartData, chartData))
       setTimeout(() => this.renderCanvas(), 250);
-    }
   }
 
   /**

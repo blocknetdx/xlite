@@ -1,14 +1,23 @@
-import { IMAGE_DIR } from '../../constants';
 import Localize from './localize';
-import path from 'path';
+
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+
+const {api} = window;
 
 const Logo = ({ className = '' }) => {
+  const [ imageDir, setImageDir ] = useState('');
+
+  useEffect(() => {
+    api.general_getImageDir('').then(dir => {
+      setImageDir(dir);
+    });
+  });
+
   return (
     <img className={className}
-         srcSet={`${path.join(IMAGE_DIR, 'logo.png')}, ${path.join(IMAGE_DIR, 'logo@2x.png')} 2x, ${path.join(IMAGE_DIR, 'logo@3x.png')} 3x`}
-         alt={Localize.text('Xvault logo', 'login')} />
+         srcSet={imageDir ? `${imageDir}/logo.png, ${imageDir}/logo@2x.png 2x, ${imageDir}/logo@3x.png 3x` : null}
+         alt={Localize.text('XVault logo', 'login')} />
   );
 };
 Logo.propTypes = {

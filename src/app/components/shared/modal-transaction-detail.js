@@ -1,13 +1,10 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { Modal, ModalBody, ModalHeader } from './modal';
 import Localize from './localize';
 import { Column, Row } from './flex';
 import {currencyLinter, multiplierForCurrency} from '../../util';
-import path from 'path';
-import { IMAGE_DIR } from '../../constants';
 import { all, create } from 'mathjs';
-import electron from 'electron';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -15,9 +12,18 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
+const {api} = window;
+
 const Divider = () => <div style={{flexGrow: 1, height: 1, backgroundColor: 'rgba(0, 0, 0, 0.2)'}} />;
 
 const TransactionDetailModal = ({ altCurrency, currencyMultipliers, selectedTx, onClose }) => {
+  const [ imageDir, setImageDir ] = useState('');
+
+  useEffect(() => {
+    api.general_getImageDir('').then(dir => {
+      setImageDir(dir);
+    });
+  });
 
   const { ticker } = selectedTx.wallet;
   const selectedAltMultiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
@@ -25,7 +31,7 @@ const TransactionDetailModal = ({ altCurrency, currencyMultipliers, selectedTx, 
 
   const onViewOnExplorer = e => {
     e.preventDefault();
-    electron.shell.openExternal(selectedTx.wallet.getExplorerLinkForTx(selectedTx.tx.txId));
+    api.general_openUrl(selectedTx.wallet.getExplorerLinkForTx(selectedTx.tx.txId));
   };
 
   return (
@@ -38,11 +44,11 @@ const TransactionDetailModal = ({ altCurrency, currencyMultipliers, selectedTx, 
       <ModalBody className={'lw-modal-transaction-body'}>
         <Row justify={'center'}>
           <img alt={Localize.text('Transaction icon', 'transactions')}
-               srcSet={selectedTx.tx.isSend() ?
-                 `${path.join(IMAGE_DIR, 'icons', 'icon-sent-large.png')}, ${path.join(IMAGE_DIR, 'icons', 'icon-sent-large@2x.png')} 2x, ${path.join(IMAGE_DIR, 'icons', 'icon-sent-large@3x.png')} 3x`
+               srcSet={imageDir ? (selectedTx.tx.isSend() ?
+                 `${imageDir}/icons/icon-sent-large.png, ${imageDir}/icons/icon-sent-large@2x.png 2x, ${imageDir}/icons/icon-sent-large@3x.png 3x`
                  :
-                 `${path.join(IMAGE_DIR, 'icons', 'icon-received-large.png')}, ${path.join(IMAGE_DIR, 'icons', 'icon-received-large@2x.png')} 2x, ${path.join(IMAGE_DIR, 'icons', 'icon-received-large@3x.png')} 3x`
-               }
+                 `${imageDir}/icons/icon-received-large.png, ${imageDir}/icons/icon-received-large@2x.png 2x, ${imageDir}/icons/icon-received-large@3x.png 3x`
+               ) : null}
                className={'lw-modal-transaction-image'} />
         </Row>
         <Row justify={'center'}>

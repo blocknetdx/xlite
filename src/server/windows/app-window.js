@@ -1,11 +1,12 @@
 import BrowserWindow from '../modules/browser-window';
-import {MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, storageKeys} from '../constants';
+import {MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH} from '../../app/constants';
+import {storageKeys} from '../constants';
 
 import _ from 'lodash';
 import electron from 'electron';
 import path from 'path';
 
-const openAppWindow = (storage, devtools) => {
+const openAppWindow = (file, storage, devtools) => {
   let { height, width } = electron.screen.getPrimaryDisplay().workAreaSize;
   // Set last known screen size, otherwise use the default size
   let screenWidth;
@@ -30,12 +31,25 @@ const openAppWindow = (storage, devtools) => {
   windowOptions.height = Math.floor(screenHeight);
 
   return new BrowserWindow({
-    filePath: path.resolve(__dirname, '../../index.html'),
+    filePath: file,
     toggleDevTools: devtools,
     isMainWindow: true,
     windowOptions: windowOptions,
     webPreferences: {
-      zoomFactor: 1.0
+      worldSafeExecuteJavaScript: true,
+      allowRunningInsecureContent: false,
+      contextIsolation: true,
+      enableRemoteModule: false,
+      nativeWindowOpen: false,
+      nodeIntegration: false,
+      nodeIntegrationInWorker: false,
+      nodeIntegrationInSubFrames: false,
+      safeDialogs: true,
+      sandbox: true,
+      webSecurity: true,
+      webviewTag: false,
+      zoomFactor: 1.0,
+      preload: path.join(__dirname, '../../app/api.js'),
     },
     onLoad() {
       this._window.webContents.setZoomFactor(storage.getItem(storageKeys.ZOOM_FACTOR));

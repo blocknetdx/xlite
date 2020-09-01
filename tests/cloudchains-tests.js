@@ -7,11 +7,12 @@ import os from 'os';
 import path from 'path';
 
 import CCWalletConf from '../src/app/types/ccwalletconf';
-import CloudChains from '../src/app/modules/cloudchains';
-import {DEFAULT_MASTER_PORT, platforms, ccBinDirs, ccBinNames, localStorageKeys} from '../src/app/constants';
-import domStorage from '../src/app/modules/dom-storage';
+import CloudChains from '../src/server/modules/cloudchains';
+import {DEFAULT_MASTER_PORT, platforms, ccBinDirs, ccBinNames} from '../src/app/constants';
 import fakeExecFile from './fake-exec-file';
 import FakeRPCController from './fake-rpc-controller';
+import SimpleStorage from '../src/server/modules/storage';
+import {storageKeys} from '../src/server/constants';
 
 describe('CCWalletConf Test Suite', function() {
   const confDataBLOCK = {
@@ -48,9 +49,10 @@ describe('CloudChains Test Suite', function() {
   const dir = path.join(tmp, 'CloudChains');
   const settingsDir = path.join(dir, 'settings');
   const ccFunc = () => { return dir; };
+  const storage = new SimpleStorage(); // memory only
 
   it('CloudChains.constructor()', function() {
-    const cc = new CloudChains(ccFunc, domStorage);
+    const cc = new CloudChains(ccFunc, storage);
     cc.getCloudChainsDir().should.be.equal(dir);
     cc._cloudChainsDir.should.be.equal(dir);
     cc.getSettingsDir().should.be.equal(settingsDir);
@@ -61,9 +63,10 @@ describe('CloudChains Test Suite', function() {
     beforeEach(function() {
       if (fs.pathExistsSync(dir))
         fs.removeSync(dir);
+      storage.clear();
     });
     it('CloudChains.isInstalled()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.isInstalled().should.be.false();
       cc.hasSettings().should.be.false();
       fs.mkdirpSync(settingsDir); // create directories outside app
@@ -72,12 +75,12 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.getCloudChainsDir()', function() {
       fs.mkdirpSync(settingsDir); // create directories outside app
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.getCloudChainsDir().should.be.equal(dir);
     });
     it('CloudChains.getSettingsDir()', function() {
       fs.mkdirpSync(settingsDir); // create directories outside app
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.getCloudChainsDir().should.be.equal(dir);
     });
   });
@@ -117,73 +120,74 @@ describe('CloudChains Test Suite', function() {
         "rpcEnabled": false,
         "addressCount": 20
       }));
+      storage.clear();
     });
 
     it('CloudChains.getWalletConf()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       should.not.exist(cc.getWalletConf('missing'));
       cc.loadConfs().should.be.true();
       cc.getWalletConf('BLOCK').should.be.eql(new CCWalletConf('BLOCK', fs.readJsonSync(configBLOCK)));
     });
     it('CloudChains.getMasterConf()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.loadConfs().should.be.true();
       cc.getMasterConf().should.be.eql(new CCWalletConf('master', fs.readJsonSync(configMaster)));
     });
     it('CloudChains.isWalletCreated()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
-      domStorage.setItem(localStorageKeys.PASSWORD, 'one_two_three');
-      domStorage.setItem(localStorageKeys.SALT, 'one_two_three');
-      domStorage.setItem(localStorageKeys.MNEMONIC, 'one_two_three');
+      const cc = new CloudChains(ccFunc, storage);
+      storage.setItem(storageKeys.PASSWORD, 'one_two_three');
+      storage.setItem(storageKeys.SALT, 'one_two_three');
+      storage.setItem(storageKeys.MNEMONIC, 'one_two_three');
       cc.isWalletCreated().should.be.true();
     });
     it('CloudChains.isWalletCreated() should fail on missing password', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
-      domStorage.setItem(localStorageKeys.PASSWORD, null);
-      domStorage.setItem(localStorageKeys.SALT, 'one_two_three');
-      domStorage.setItem(localStorageKeys.MNEMONIC, 'one_two_three');
+      const cc = new CloudChains(ccFunc, storage);
+      storage.setItem(storageKeys.PASSWORD, null);
+      storage.setItem(storageKeys.SALT, 'one_two_three');
+      storage.setItem(storageKeys.MNEMONIC, 'one_two_three');
       cc.isWalletCreated().should.be.false();
     });
     it('CloudChains.isWalletCreated() should fail on missing password salt', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
-      domStorage.setItem(localStorageKeys.PASSWORD, 'one_two_three');
-      domStorage.setItem(localStorageKeys.SALT, null);
-      domStorage.setItem(localStorageKeys.MNEMONIC, 'one_two_three');
+      const cc = new CloudChains(ccFunc, storage);
+      storage.setItem(storageKeys.PASSWORD, 'one_two_three');
+      storage.setItem(storageKeys.SALT, null);
+      storage.setItem(storageKeys.MNEMONIC, 'one_two_three');
       cc.isWalletCreated().should.be.false();
     });
     it('CloudChains.isWalletCreated() should fail on empty values', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
-      domStorage.setItem(localStorageKeys.PASSWORD, '');
-      domStorage.setItem(localStorageKeys.SALT, 'one_two_three');
+      const cc = new CloudChains(ccFunc, storage);
+      storage.setItem(storageKeys.PASSWORD, '');
+      storage.setItem(storageKeys.SALT, 'one_two_three');
       cc.isWalletCreated().should.be.false();
-      domStorage.setItem(localStorageKeys.PASSWORD, 'one_two_three');
-      domStorage.setItem(localStorageKeys.SALT, '');
+      storage.setItem(storageKeys.PASSWORD, 'one_two_three');
+      storage.setItem(storageKeys.SALT, '');
       cc.isWalletCreated().should.be.false();
     });
     it('CloudChains.saveWalletCredentials()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.saveWalletCredentials('a', 'b', 'c');
-      domStorage.getItem(localStorageKeys.PASSWORD).should.be.equal('a');
-      domStorage.getItem(localStorageKeys.SALT).should.be.equal('b');
-      domStorage.getItem(localStorageKeys.MNEMONIC).should.be.equal('c');
+      storage.getItem(storageKeys.PASSWORD).should.be.equal('a');
+      storage.getItem(storageKeys.SALT).should.be.equal('b');
+      storage.getItem(storageKeys.MNEMONIC).should.be.equal('c');
     });
     it('CloudChains.getStoredPassword()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
-      domStorage.setItem(localStorageKeys.PASSWORD, 'one_two_three');
+      const cc = new CloudChains(ccFunc, storage);
+      storage.setItem(storageKeys.PASSWORD, 'one_two_three');
       cc.getStoredPassword().should.be.equal('one_two_three');
     });
     it('CloudChains.getStoredSalt()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
-      domStorage.setItem(localStorageKeys.SALT, 'one_two_three');
+      const cc = new CloudChains(ccFunc, storage);
+      storage.setItem(storageKeys.SALT, 'one_two_three');
       cc.getStoredSalt().should.be.equal('one_two_three');
     });
     it('CloudChains.getStoredMnemonic()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
-      domStorage.setItem(localStorageKeys.MNEMONIC, 'one_two_three');
+      const cc = new CloudChains(ccFunc, storage);
+      storage.setItem(storageKeys.MNEMONIC, 'one_two_three');
       cc.getStoredMnemonic().should.be.equal('one_two_three');
     });
     it('CloudChains.loadConfs()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.loadConfs().should.be.true();
       cc.getWalletConfs().length.should.be.equal(2); // master conf should not be picked up here
       const masterConf = cc.getMasterConf();
@@ -228,7 +232,7 @@ describe('CloudChains Test Suite', function() {
           rpcPort: -1000
         })
       ];
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.checkUpdateMasterConf.should.be.a.Function();
       const returnedConf = cc.checkUpdateMasterConf(goodConf);
       // If conf is good, check that the same conf is returned
@@ -256,13 +260,16 @@ describe('CloudChains Test Suite', function() {
   });
 
   describe('CloudChains CLI methods', function() {
+    beforeEach(function() {
+      storage.clear();
+    });
 
     const platformArr = Object
       .keys(platforms)
       .reduce((arr, key) => [...arr, platforms[key]], []);
 
     it('CloudChains.getCLIDir()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.getCLIDir.should.be.a.Function();
       for(const platform of platformArr) {
         cc._platform = platform;
@@ -277,7 +284,7 @@ describe('CloudChains Test Suite', function() {
     });
 
     it('CloudChains.getCCSPVFilePath()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.getCCSPVFilePath.should.be.a.Function();
       for(const platform of platformArr) {
         cc._platform = platform;
@@ -292,7 +299,7 @@ describe('CloudChains Test Suite', function() {
     });
 
     it('CloudChains.getCCSPVVersion()', async function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
       cc._execFile = execFile;
       cc.getCCSPVVersion.should.be.a.Function();
@@ -304,7 +311,7 @@ describe('CloudChains Test Suite', function() {
           .catch(reject);
         mockErr();
       });
-      versionWhenError.should.equal('');
+      versionWhenError.should.equal('unknown');
       // If no version is outputted by the CLI
       const versionWhenNoOutput = await new Promise((resolve, reject) => {
         cc.getCCSPVVersion()
@@ -325,25 +332,25 @@ describe('CloudChains Test Suite', function() {
     });
 
     it('CloudChains.isWalletRPCRunning()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.loadConfs();
       cc._rpc = new FakeRPCController();
       cc.isWalletRPCRunning().should.finally.be.true();
     });
     it('CloudChains.isWalletRPCRunning() should not be running without master conf', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc._rpc = new FakeRPCController();
       cc.isWalletRPCRunning().should.finally.be.false();
     });
     it('CloudChains.isWalletRPCRunning() should not be running with bad rpc', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc._rpc = new FakeRPCController();
       cc._rpc.ccHelp = null;
       cc.isWalletRPCRunning().should.finally.be.false();
     });
 
     it('CloudChains.spvIsRunning()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.spvIsRunning.should.be.a.Function();
 
       {
@@ -371,7 +378,7 @@ describe('CloudChains Test Suite', function() {
     });
 
     it('CloudChains.startSPV()', async function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
       cc._execFile = execFile;
       cc.startSPV.should.be.a.Function();
@@ -424,7 +431,7 @@ describe('CloudChains Test Suite', function() {
     });
 
     it('CloudChains.stopSPV()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc.stopSPV.should.be.a.Function();
       // If there is no running CLI process
       cc.stopSPV().should.be.false();
@@ -436,7 +443,7 @@ describe('CloudChains Test Suite', function() {
     });
 
     it('CloudChains.createSPVWallet()', async function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
       cc._execFile = execFile;
       cc.createSPVWallet.should.be.a.Function();
@@ -479,7 +486,7 @@ describe('CloudChains Test Suite', function() {
     });
 
     it('CloudChains.enableAllWallets()', async function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
       cc._execFile = execFile;
       cc.enableAllWallets.should.be.a.Function();
@@ -520,7 +527,7 @@ describe('CloudChains Test Suite', function() {
     });
 
     it('CloudChains._isCLIAvailable()', function() {
-      const cc = new CloudChains(ccFunc, domStorage);
+      const cc = new CloudChains(ccFunc, storage);
       cc._cli = {};
       cc._isCLIAvailable().should.be.true();
       cc._cli = null;

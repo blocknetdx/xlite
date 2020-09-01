@@ -8,7 +8,7 @@ import SendModal from './shared/modal-send';
 import Sidebar from './shared/sidebar';
 import Spinner from './shared/spinner';
 import Transactions from './transactions';
-import WalletController from '../modules/wallet-controller';
+import WalletController from '../modules/wallet-controller-r';
 
 import React from 'react';
 import { connect } from 'react-redux';

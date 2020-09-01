@@ -12,7 +12,6 @@ class BrowserWindow {
   data = new Map();
   _listeners = new Map();
   _window = null;
-  send = null;
 
   constructor({ filePath = throwFilePathError(), toggleDevTools = false, isMainWindow = false, windowOptions = {}, webPreferences = {}, listeners = {}, onBeforeLoad, onLoad, onClose }) {
 
@@ -20,15 +19,12 @@ class BrowserWindow {
       useContentSize: true,
       show: false,
       webPreferences: {
-        nodeIntegration: true,
-        enableRemoteModule: true,
         ...webPreferences
       },
       ...windowOptions
     });
     BrowserWindow._allWindows.push(this);
     this._window = browserWindow;
-    this.send = (key, message) => browserWindow.send(key, message);
     this.windowId = this._window.id;
     this.isMainWindow = isMainWindow;
 
@@ -56,8 +52,6 @@ class BrowserWindow {
       if(onLoad) await onLoad();
     }.bind(this));
 
-    browserWindow.loadURL(`file://${filePath}`);
-
     browserWindow.on('closed', () => {
       for(const [event, listener] of [...this._listeners.entries()]) {
         ipcMain.removeListener(event, listener);
@@ -76,9 +70,10 @@ class BrowserWindow {
       this._listeners.set(event, listener);
     }
 
+    browserWindow.loadURL(`file://${filePath}`);
   }
 
-  async close() {
+  close() {
     try {
       if(this._window) this._window.close();
     } catch(err) {
@@ -86,7 +81,7 @@ class BrowserWindow {
     }
   }
 
-  async show() {
+  show() {
     try {
       if(this._window) this._window.show();
     } catch(err) {

@@ -10,17 +10,17 @@ import path from 'path';
 
 import * as appActions from '../src/app/actions/app-actions';
 import appReducer from '../src/app/reducers/app-reducer';
-import CloudChains from '../src/app/modules/cloudchains';
-import ConfController from '../src/app/modules/conf-controller';
-import domStorage from '../src/app/modules/dom-storage';
+import CloudChains from '../src/server/modules/cloudchains';
+import ConfController from '../src/server/modules/conf-controller';
 import FakeRPCController from './fake-rpc-controller';
-import {localStorageKeys} from '../src/app/constants';
 import {multiplierForCurrency, oneDaySeconds, oneHourSeconds, oneWeekSeconds, unixTime} from '../src/app/util';
 import RPCTransaction from '../src/app/types/rpc-transaction';
+import SimpleStorage from '../src/server/modules/storage';
+import {storageKeys} from '../src/server/constants';
 import Token from '../src/app/types/token';
 import TokenManifest from '../src/app/modules/token-manifest';
-import Wallet from '../src/app/types/wallet';
-import WalletController from '../src/app/modules/wallet-controller';
+import Wallet from '../src/server/modules/wallet';
+import WalletController from '../src/server/modules/wallet-controller';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -36,6 +36,7 @@ describe('WalletController Test Suite', function() {
     fs.mkdirSync(tmp);
   });
 
+  const storage = new SimpleStorage(); // memory only
   const dir = path.join(tmp, 'CloudChains');
   const settingsDir = path.join(dir, 'settings');
   const ccFunc = () => { return dir; };
@@ -83,7 +84,7 @@ describe('WalletController Test Suite', function() {
   const availableWallets = ['BLOCK', 'BTC'];
 
   beforeEach(async function() {
-    domStorage.clear();
+    storage.clear();
     const configMaster = path.join(settingsDir, 'config-master.json');
     const configBLOCK = path.join(settingsDir, 'config-BLOCK.json');
     const configBTC = path.join(settingsDir, 'config-BTC.json');
@@ -136,34 +137,34 @@ describe('WalletController Test Suite', function() {
         return o;
       }
     };
-    confController = new ConfController(domStorage, availableWallets);
+    confController = new ConfController(storage, availableWallets);
     await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.true();
     tokenManifest = new TokenManifest(confController.getManifest(), confController.getXBridgeInfo());
-    cloudChains = new CloudChains(ccFunc, domStorage);
+    cloudChains = new CloudChains(ccFunc, storage);
     cloudChains.loadConfs();
   });
 
   it('WalletController()', function() {
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc._cloudChains.should.be.eql(cloudChains);
     wc._manifest.should.be.eql(tokenManifest);
-    wc._domStorage.should.be.eql(domStorage);
+    wc._storage.should.be.eql(storage);
   });
   it('WalletController.getWallets()', function() {
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc.loadWallets();
     wc.getWallets().should.be.an.Array();
     wc.getWallets().length.should.be.equal(2);
     wc.getWallets()[0].should.be.instanceof(Wallet);
   });
   it('WalletController.getWallet()', function() {
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc.loadWallets();
     should.not.exist(wc.getWallet('missing'));
     wc.getWallet('BLOCK').should.be.instanceof(Wallet);
   });
   it('WalletController.getEnabledWallets()', function() {
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc.loadWallets();
     wc.getEnabledWallets().should.be.an.Array();
     wc.getEnabledWallets().length.should.be.equal(1);
@@ -171,8 +172,8 @@ describe('WalletController Test Suite', function() {
   });
   it('WalletController.getBalances()', function() {
     const balances = new Map([['BLOCK', ['100', '10']], ['BTC', ['100', '100']]]);
-    domStorage.setItem(localStorageKeys.BALANCES, balances);
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    storage.setItem(storageKeys.BALANCES, balances);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc.loadWallets();
     wc.getBalances().should.be.an.instanceof(Map);
     wc.getBalances().size.should.be.equal(2);
@@ -180,7 +181,7 @@ describe('WalletController Test Suite', function() {
     wc.getBalances().get('BTC').should.be.eql(balances.get('BTC'));
   });
   it('WalletController.getTransactions()', async function() {
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc.loadWallets();
     const blockWallet = wc.getWallet('BLOCK');
     const fakerpc = new FakeRPCController();
@@ -194,7 +195,7 @@ describe('WalletController Test Suite', function() {
     txs.should.be.eql(fakeTxs);
   });
   it('WalletController.getBalanceOverTime() including cache test', async function() {
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc.loadWallets();
     const et = unixTime();
     const fakerpc = new FakeRPCController();
@@ -233,7 +234,7 @@ describe('WalletController Test Suite', function() {
     nbalances[nbalances.length-1][1].should.be.equal(getBalance(copyTxs)); // expecting to receive old cached data
   });
   it('WalletController.getBalanceOverTime() should exclude data outside timeframe', async function() {
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc.loadWallets();
     const blockWallet = wc.getWallet('BLOCK');
     const et = unixTime();
@@ -263,88 +264,90 @@ describe('WalletController Test Suite', function() {
     balances[0][1].should.be.equal(50); // Expecting initial balance (A,B txs are outside starting timeframe)
     balances[balances.length-1][1].should.be.equal(getBalance((await fakerpc.listTransactions())));
   });
-  it('WalletController.getActiveWallet()', function() {
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
-    wc.loadWallets();
-    should.not.exist(wc.getActiveWallet());
-    domStorage.setItem(localStorageKeys.ACTIVE_WALLET, 'BLOCK');
-    wc.getActiveWallet().should.be.equal('BLOCK');
-    domStorage.setItem(localStorageKeys.ACTIVE_WALLET, 'missing');
-    should.not.exist(wc.getActiveWallet());
-  });
-  it('WalletController.setActiveWallet()', function() {
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
-    wc.loadWallets();
-    wc.setActiveWallet('missing');
-    should.not.exist(domStorage.getItem(localStorageKeys.ACTIVE_WALLET)); // missing token should not be saved to storage
-    wc.setActiveWallet('BLOCK');
-    wc.getActiveWallet().should.be.equal('BLOCK');
-  });
+  // TODO Move getActiveWallet and setActiveWallet to WalletController renderer tests
+  // it('WalletController.getActiveWallet()', function() {
+  //   const wc = new WalletController(cloudChains, tokenManifest, storage);
+  //   wc.loadWallets();
+  //   should.not.exist(wc.getActiveWallet());
+  //   storage.setItem(storageKeys.ACTIVE_WALLET, 'BLOCK');
+  //   wc.getActiveWallet().should.be.equal('BLOCK');
+  //   storage.setItem(storageKeys.ACTIVE_WALLET, 'missing');
+  //   should.not.exist(wc.getActiveWallet());
+  // });
+  // it('WalletController.setActiveWallet()', function() {
+  //   const wc = new WalletController(cloudChains, tokenManifest, storage);
+  //   wc.loadWallets();
+  //   wc.setActiveWallet('missing');
+  //   should.not.exist(storage.getItem(storageKeys.ACTIVE_WALLET)); // missing token should not be saved to storage
+  //   wc.setActiveWallet('BLOCK');
+  //   wc.getActiveWallet().should.be.equal('BLOCK');
+  // });
   it('WalletController.loadWallets()', function() {
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc.getWallets().should.be.an.Array();
     wc.getWallets().should.be.empty();
     wc.loadWallets();
     wc.getWallets().should.be.an.Array();
     wc.getWallets().should.not.be.empty();
   });
-  it('WalletController.dispatchWallets()', function() {
-    const combinedReducers = combineReducers({ appState: appReducer });
-    const store = createStore(combinedReducers);
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
-    wc.loadWallets();
-    store.getState().appState.wallets.should.be.an.Array(); // state should not be valid before dispatch
-    store.getState().appState.wallets.should.be.empty();
-    wc.dispatchWallets(appActions.setWallets, store);
-    store.getState().appState.wallets.should.be.eql(Array.from(wc._wallets.values()));
-  });
-  it('WalletController.dispatchBalances()', function() {
-    const balances = new Map([['BLOCK', ['100', '10']], ['BTC', ['100', '100']]]);
-    domStorage.setItem(localStorageKeys.BALANCES, balances);
-    const combinedReducers = combineReducers({ appState: appReducer });
-    const store = createStore(combinedReducers);
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
-    wc.loadWallets();
-    store.getState().appState.balances.should.be.an.instanceof(IMap); // state should not be valid before dispatch
-    store.getState().appState.balances.should.be.eql(IMap());
-    wc.dispatchBalances(appActions.setBalances, store);
-    store.getState().appState.balances.should.be.eql(IMap(balances));
-    store.getState().appState.balances.get('BLOCK')[0].should.be.equal(balances.get('BLOCK')[0]);
-    store.getState().appState.balances.get('BLOCK')[1].should.be.equal(balances.get('BLOCK')[1]);
-    store.getState().appState.balances.get('BTC')[0].should.be.equal(balances.get('BTC')[0]);
-    store.getState().appState.balances.get('BTC')[1].should.be.equal(balances.get('BTC')[1]);
-  });
-  it('WalletController.dispatchTransactions()', function() {
-    const blockWallet = new Wallet(new Token({ticker: 'BLOCK'}), null, domStorage);
-    const btcWallet = new Wallet(new Token({ticker: 'BTC'}), null, domStorage);
-    const transactions = new Map([['BLOCK', [txBLOCK]], ['BTC', [txBTC]]]);
-    domStorage.setItem(blockWallet._getTransactionStorageKey(), transactions.get('BLOCK'));
-    domStorage.setItem(btcWallet._getTransactionStorageKey(), transactions.get('BTC'));
-    const combinedReducers = combineReducers({ appState: appReducer });
-    const store = createStore(combinedReducers);
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
-    wc.loadWallets();
-    store.getState().appState.transactions.should.be.an.instanceof(IMap); // state should not be valid before dispatch
-    store.getState().appState.transactions.should.be.eql(IMap());
-    wc.dispatchTransactions(appActions.setTransactions, store);
-    store.getState().appState.transactions.should.be.eql(IMap(transactions));
-    store.getState().appState.transactions.get('BLOCK')[0].should.be.eql(transactions.get('BLOCK')[0]);
-    store.getState().appState.transactions.get('BTC')[0].should.be.eql(transactions.get('BTC')[0]);
-  });
-  it('WalletController.dispatchPriceMultipliers()', function() {
-    const multipliers = {BLOCK: {"USD":1.231,"BTC":0.000107}, BTC: {"USD":11200,"BTC":1.0}};
-    domStorage.setItem(localStorageKeys.ALT_CURRENCY_MULTIPLIERS, multipliers);
-    const combinedReducers = combineReducers({ appState: appReducer });
-    const store = createStore(combinedReducers);
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
-    wc.loadWallets();
-    store.getState().appState.currencyMultipliers.should.be.an.instanceof(Object); // state should not be valid before dispatch
-    store.getState().appState.currencyMultipliers.should.be.eql({});
-    wc.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
-    store.getState().appState.currencyMultipliers.should.be.eql(multipliers);
-    store.getState().appState.currencyMultipliers['BLOCK'].should.be.eql(multipliers['BLOCK']);
-    store.getState().appState.currencyMultipliers['BTC'].should.be.eql(multipliers['BTC']);
-  });
+  // TODO Move dispatchWallets,dispatchBalances,dispatchTransactions,dispatchPriceMultipliers to WalletController renderer tests
+  // it('WalletController.dispatchWallets()', function() {
+  //   const combinedReducers = combineReducers({ appState: appReducer });
+  //   const store = createStore(combinedReducers);
+  //   const wc = new WalletController(cloudChains, tokenManifest, storage);
+  //   wc.loadWallets();
+  //   store.getState().appState.wallets.should.be.an.Array(); // state should not be valid before dispatch
+  //   store.getState().appState.wallets.should.be.empty();
+  //   wc.dispatchWallets(appActions.setWallets, store);
+  //   store.getState().appState.wallets.should.be.eql(Array.from(wc._wallets.values()));
+  // });
+  // it('WalletController.dispatchBalances()', function() {
+  //   const balances = new Map([['BLOCK', ['100', '10']], ['BTC', ['100', '100']]]);
+  //   storage.setItem(storageKeys.BALANCES, balances);
+  //   const combinedReducers = combineReducers({ appState: appReducer });
+  //   const store = createStore(combinedReducers);
+  //   const wc = new WalletController(cloudChains, tokenManifest, storage);
+  //   wc.loadWallets();
+  //   store.getState().appState.balances.should.be.an.instanceof(IMap); // state should not be valid before dispatch
+  //   store.getState().appState.balances.should.be.eql(IMap());
+  //   wc.dispatchBalances(appActions.setBalances, store);
+  //   store.getState().appState.balances.should.be.eql(IMap(balances));
+  //   store.getState().appState.balances.get('BLOCK')[0].should.be.equal(balances.get('BLOCK')[0]);
+  //   store.getState().appState.balances.get('BLOCK')[1].should.be.equal(balances.get('BLOCK')[1]);
+  //   store.getState().appState.balances.get('BTC')[0].should.be.equal(balances.get('BTC')[0]);
+  //   store.getState().appState.balances.get('BTC')[1].should.be.equal(balances.get('BTC')[1]);
+  // });
+  // it('WalletController.dispatchTransactions()', function() {
+  //   const blockWallet = new Wallet(new Token({ticker: 'BLOCK'}), null, storage);
+  //   const btcWallet = new Wallet(new Token({ticker: 'BTC'}), null, storage);
+  //   const transactions = new Map([['BLOCK', [txBLOCK]], ['BTC', [txBTC]]]);
+  //   storage.setItem(blockWallet._getTransactionStorageKey(), transactions.get('BLOCK'));
+  //   storage.setItem(btcWallet._getTransactionStorageKey(), transactions.get('BTC'));
+  //   const combinedReducers = combineReducers({ appState: appReducer });
+  //   const store = createStore(combinedReducers);
+  //   const wc = new WalletController(cloudChains, tokenManifest, storage);
+  //   wc.loadWallets();
+  //   store.getState().appState.transactions.should.be.an.instanceof(IMap); // state should not be valid before dispatch
+  //   store.getState().appState.transactions.should.be.eql(IMap());
+  //   wc.dispatchTransactions(appActions.setTransactions, store);
+  //   store.getState().appState.transactions.should.be.eql(IMap(transactions));
+  //   store.getState().appState.transactions.get('BLOCK')[0].should.be.eql(transactions.get('BLOCK')[0]);
+  //   store.getState().appState.transactions.get('BTC')[0].should.be.eql(transactions.get('BTC')[0]);
+  // });
+  // it('WalletController.dispatchPriceMultipliers()', function() {
+  //   const multipliers = {BLOCK: {"USD":1.231,"BTC":0.000107}, BTC: {"USD":11200,"BTC":1.0}};
+  //   storage.setItem(storageKeys.ALT_CURRENCY_MULTIPLIERS, multipliers);
+  //   const combinedReducers = combineReducers({ appState: appReducer });
+  //   const store = createStore(combinedReducers);
+  //   const wc = new WalletController(cloudChains, tokenManifest, storage);
+  //   wc.loadWallets();
+  //   store.getState().appState.currencyMultipliers.should.be.an.instanceof(Object); // state should not be valid before dispatch
+  //   store.getState().appState.currencyMultipliers.should.be.eql({});
+  //   wc.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
+  //   store.getState().appState.currencyMultipliers.should.be.eql(multipliers);
+  //   store.getState().appState.currencyMultipliers['BLOCK'].should.be.eql(multipliers['BLOCK']);
+  //   store.getState().appState.currencyMultipliers['BTC'].should.be.eql(multipliers['BTC']);
+  // });
   it('WalletController.updatePriceMultipliers()', async function() {
     const currencyReq = async (ticker, currencies) => {
       if (ticker === 'BLOCK')
@@ -355,21 +358,21 @@ describe('WalletController Test Suite', function() {
     const BLOCK = (await currencyReq('BLOCK', [])).body;
     const BTC = (await currencyReq('BTC', [])).body;
     const multipliers = {BLOCK, BTC};
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc.loadWallets();
     await wc.updatePriceMultipliers(currencyReq);
-    domStorage.getItem(localStorageKeys.ALT_CURRENCY_MULTIPLIERS).should.be.eql(multipliers);
+    storage.getItem(storageKeys.ALT_CURRENCY_MULTIPLIERS).should.be.eql(multipliers);
   });
   it('WalletController.updatePriceMultipliers() bad request', async function() {
     const multipliers = {};
     const currencyReq = async (ticker, currencies) => { return { err: multipliers }; };
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc.loadWallets();
     await wc.updatePriceMultipliers(currencyReq);
     const expected = {};
     for (const wallet of wc.getWallets())
       expected[wallet.ticker] = {};
-    domStorage.getItem(localStorageKeys.ALT_CURRENCY_MULTIPLIERS).should.be.eql(expected);
+    storage.getItem(storageKeys.ALT_CURRENCY_MULTIPLIERS).should.be.eql(expected);
   });
 
   let balances;
@@ -377,7 +380,7 @@ describe('WalletController Test Suite', function() {
   const updateBalancePrep = async () => {
     balances = new Map();
     fakerpc = new FakeRPCController();
-    const wc = new WalletController(cloudChains, tokenManifest, domStorage);
+    const wc = new WalletController(cloudChains, tokenManifest, storage);
     wc.loadWallets();
     const fakeunspent = await fakerpc.listUnspent();
     let total = bignumber(0);
@@ -399,7 +402,7 @@ describe('WalletController Test Suite', function() {
 
   it('WalletController.updateAllBalances()', async function() {
     const wc = await updateBalancePrep();
-    domStorage.getItem(localStorageKeys.BALANCES).should.be.eql(Array.from(balances));
+    storage.getItem(storageKeys.BALANCES).should.be.eql(Array.from(balances));
     const wallet = wc.getWallet('BLOCK');
     wallet.getTransactions().should.be.eql(await fakerpc.listTransactions());
   });

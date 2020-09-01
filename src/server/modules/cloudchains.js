@@ -1,5 +1,7 @@
-import CCWalletConf from '../types/ccwalletconf';
-import { isRenderer, logger } from '../util';
+import {ccBinDirs, ccBinNames, DEFAULT_MASTER_PORT} from '../../app/constants';
+import CCWalletConf from '../../app/types/ccwalletconf';
+import {logger} from './logger';
+import {storageKeys} from '../constants';
 import RPCController from './rpc-controller';
 
 import _ from 'lodash';
@@ -9,7 +11,6 @@ import fs from 'fs-extra';
 import path from 'path';
 import childProcess from 'child_process';
 import { v4 as uuidV4 } from 'uuid';
-import {ccBinDirs, ccBinNames, DEFAULT_MASTER_PORT, localStorageKeys} from '../constants';
 
 /**
  * Manage CloudChains litewallet configuration.
@@ -72,36 +73,35 @@ class CloudChains {
    */
   _selectionPatt = /selection/i;
   /**
-   * @type {DOMStorage}
+   * @type {SimpleStorage}
    * @private
    */
-  _domStorage = null;
+  _storage = null;
 
   /**
    * Default path function for cloudchains installations.
    * @return {string}
    */
   static defaultPathFunc() {
-    const app = isRenderer() ? electron.remote.app : electron.app;
     switch (process.platform) {
       case 'win32':
-        return path.join(app.getPath('appData'), 'CloudChains');
+        return path.join(electron.app.getPath('appData'), 'CloudChains');
       case 'darwin':
-        return path.join(app.getPath('appData'), 'CloudChains');
+        return path.join(electron.app.getPath('appData'), 'CloudChains');
       default: // linux distros
-        return path.join(app.getPath('home'), 'CloudChains');
+        return path.join(electron.app.getPath('home'), 'CloudChains');
     }
   }
 
   /**
    * Constructor
    * @param pathFunc {function}
-   * @param domStorage {DOMStorage}
+   * @param storage {SimpleStorage}
    */
-  constructor(pathFunc, domStorage) {
+  constructor(pathFunc, storage) {
     this._cloudChainsDir = pathFunc();
     this._cloudChainsSettingsDir = path.join(this._cloudChainsDir, 'settings');
-    this._domStorage = domStorage;
+    this._storage = storage;
   }
 
   /**
@@ -179,8 +179,8 @@ class CloudChains {
    * @return {boolean}
    */
   isWalletCreated() {
-    const pw = this._domStorage.getItem(localStorageKeys.PASSWORD);
-    const s = this._domStorage.getItem(localStorageKeys.SALT);
+    const pw = this._storage.getItem(storageKeys.PASSWORD);
+    const s = this._storage.getItem(storageKeys.SALT);
     return _.isString(pw) && _.isString(s) && pw.length > 0 && s.length > 0;
   }
 
@@ -191,10 +191,10 @@ class CloudChains {
    * @param encryptedMnemonic {string}
    */
   saveWalletCredentials(hashedPassword, salt, encryptedMnemonic) {
-    this._domStorage.setItems({
-      [localStorageKeys.PASSWORD]: hashedPassword,
-      [localStorageKeys.SALT]: salt,
-      [localStorageKeys.MNEMONIC]: encryptedMnemonic,
+    this._storage.setItems({
+      [storageKeys.PASSWORD]: hashedPassword,
+      [storageKeys.SALT]: salt,
+      [storageKeys.MNEMONIC]: encryptedMnemonic,
     });
   }
 
@@ -203,7 +203,7 @@ class CloudChains {
    * @return {string|null}
    */
   getStoredPassword() {
-    const pw = this._domStorage.getItem(localStorageKeys.PASSWORD);
+    const pw = this._storage.getItem(storageKeys.PASSWORD);
     if (!pw || !_.isString(pw))
       return null;
     return pw;
@@ -214,7 +214,7 @@ class CloudChains {
    * @return {string|null}
    */
   getStoredSalt() {
-    const s = this._domStorage.getItem(localStorageKeys.SALT);
+    const s = this._storage.getItem(storageKeys.SALT);
     if (!s || !_.isString(s))
       return null;
     return s;
@@ -225,7 +225,7 @@ class CloudChains {
    * @return {string|null}
    */
   getStoredMnemonic() {
-    const m = this._domStorage.getItem(localStorageKeys.MNEMONIC);
+    const m = this._storage.getItem(storageKeys.MNEMONIC);
     if (!m || !_.isString(m))
       return null;
     return m;
@@ -333,9 +333,11 @@ class CloudChains {
     let version = '';
     return new Promise(resolve => {
       const cli = this._execFile(this.getCCSPVFilePath(), ['--version'], err => {
-        if(err)
+        if (err) {
           logger.error(err);
-        resolve(version);
+          resolve('unknown');
+        } else
+          resolve(version);
       });
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');

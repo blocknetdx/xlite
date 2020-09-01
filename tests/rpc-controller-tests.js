@@ -1,6 +1,7 @@
 /* global describe, it */
+/* TODO RPCController tests should not rely on cli availability
 import 'should';
-import RPCController from '../src/app/modules/rpc-controller';
+import RPCController from '../src/server/modules/rpc-controller';
 import RPCInfo from '../src/app/types/rpc-info';
 import RPCNetworkInfo from '../src/app/types/rpc-network-info';
 import RPCBlockchainInfo from '../src/app/types/rpc-blockchain-info';
@@ -13,7 +14,6 @@ import RPCSignedRawTransaction from '../src/app/types/rpc-signed-raw-transaction
 const { username, password, port } = process.env;
 
 if(!username || !password || !port) throw new Error('You need username, password, and port environmental variables for an active RPC server in order to test this module.');
-
 describe('RPCController', function() {
 
   const rpc = new RPCController(Number(port), username, password);
@@ -264,3 +264,4 @@ describe('RPCController', function() {
   });
 
 });
+*/

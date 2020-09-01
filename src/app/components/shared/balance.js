@@ -1,11 +1,10 @@
 import {currencyLinter, multiplierForCurrency} from '../../util';
 import Localize from './localize';
 import {MAX_DECIMAL_PLACE} from '../../constants';
-import Wallet from '../../types/wallet';
+import Wallet from '../../types/wallet-r';
 
 import {all, create} from 'mathjs';
 import { connect } from 'react-redux';
-import electron from 'electron';
 import {Map as IMap} from 'immutable';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -15,6 +14,8 @@ const math = create(all, {
   precision: 64
 });
 const { bignumber } = math;
+
+const {api} = window;
 
 let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, balances, currencyMultipliers }) => {
 
@@ -35,12 +36,12 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
 
   const onExplorerClick = e => {
     e.preventDefault();
-    electron.shell.openExternal(explorerLink);
+    api.general_openUrl(explorerLink);
   };
     const onWebsiteClick = e => {
       e.preventDefault();
       if (website !== 'n/a')
-        electron.shell.openExternal(`https://${website}`);
+        api.general_openUrl(`https://${website}`);
     };
 
     return (

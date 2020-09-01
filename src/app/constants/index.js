@@ -1,7 +1,4 @@
-import electron from 'electron';
-import path from 'path';
-
-const app = electron.app ? electron.app : electron.remote ? electron.remote.app : null;
+/** Shared constants (between main and renderer) */
 
 export const activeViews = {
   LOGIN_REGISTER: 'LOGIN_REGISTER',
@@ -36,23 +33,7 @@ export const actions = {
 };
 
 export const localStorageKeys = {
-  MANIFEST: 'MANIFEST',
-  MANIFEST_SHA: 'MANIFEST_SHA',
-  XBRIDGE_INFO: 'XBRIDGE_INFO',
-  BALANCES: 'BALANCES',
-  TRANSACTIONS: 'TRANSACTIONS',
   ACTIVE_WALLET: 'ACTIVE_WALLET',
-  ALT_CURRENCY_MULTIPLIERS: 'ALT_CURRENCY_MULTIPLIERS',
-  TX_LAST_FETCH_TIME: 'TX_LAST_FETCH_TIME',
-  MNEMONIC: 'MNEMONIC',
-  PASSWORD: 'PASSWORD',
-  SALT: 'SALT'
-};
-
-export const storageKeys = {
-  LOCALE: 'LOCALE',
-  ZOOM_FACTOR: 'ZOOM_FACTOR',
-  SCREEN_SIZE: 'SCREEN_SIZE',
 };
 
 export const ipcMainListeners = {
@@ -78,10 +59,6 @@ export const DEFAULT_ZOOM_FACTOR = 1;
 export const ZOOM_MAX = 1.5;
 export const ZOOM_MIN = .6;
 export const ZOOM_INCREMENT = .1;
-
-export const DATA_DIR = app ? app.getPath('userData') : '';
-export const ICON_DIR = app ? path.join(app.getPath('userData'), 'icons') : '';
-export const IMAGE_DIR = path.resolve(__dirname, '../../images');
 
 export const HTTP_REQUEST_TIMEOUT = 10000;
 

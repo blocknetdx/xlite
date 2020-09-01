@@ -1,14 +1,18 @@
-import PropTypes from 'prop-types';
-import React, { useEffect, useState } from 'react';
 import Localize from '../shared/localize';
 import IconArrowRight from '../shared/icon-arrow-right';
-import isDev from 'electron-is-dev';
+import {logger} from '../../modules/logger-r';
 import Logo from '../shared/logo';
-import CloudChains from '../../modules/cloudchains';
+import CloudChains from '../../modules/cloudchains-r';
 import { Button } from '../shared/buttons';
 import { Crypt, generateSalt, pbkdf2 } from '../../modules/crypt';
-import { handleError, logger } from '../../util';
 import Spinner from '../shared/spinner';
+
+import _ from 'lodash';
+import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
+
+const {api} = window;
+const {isDev} = api;
 
 const LoginPasswordSubmitInput = ({ hidden, setHidden, password, readOnly = false, setPassword, onSubmit }) => {
 
@@ -121,15 +125,21 @@ LoginInput.propTypes = {
 const okIconWidth = 20;
 const OkIcon = () => <i className={'fas fa-check lw-color-positive-1'} style={{width: okIconWidth}} />;
 const NotOkIcon = () => <i className={'fas fa-times color-negative'} style={{width: okIconWidth}} />;
+let onLoginSubmit = () => {};
 
 const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
 
+  const [ initialLoadStep1, setInitialLoadStep1 ] = useState(false);
+  const [ initialLoadStep2, setInitialLoadStep2 ] = useState(false);
   const [ hidden, setHidden ] = useState(true);
   const [ password, setPassword ] = useState('');
   const [ passwordRepeat, setPasswordRepeat ] = useState('');
   const [ errorMessage, setErrorMessage ] = useState('');
   const [ processing, setProcessing ] = useState(false);
   const [ mnemonic, setMnemonic ] = useState('');
+  const [ cloudChainsWalletCreated, setCloudChainsWalletCreated ] = useState(false);
+  const [ cloudChainsIsWalletRPCRunning, setCloudChainsIsWalletRPCRunning ] = useState(false);
+  const [ cloudChainsStoredPassword, setCloudChainsStoredPassword ] = useState(false);
 
   const passwordLengthGood = password.length >= 8;
   const passwordContainsLowercase = password.toUpperCase() !== password;
@@ -138,29 +148,43 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
   const passwordContainsSpecial = /[^\s\w\d]/.test(password);
   const passwordsMatch = password && password === passwordRepeat;
 
+  // The component requires additional data before rendering
+  useEffect(() => {
+    if (!cloudChains || initialLoadStep1)
+      return;
+    setInitialLoadStep1(true);
+    Promise.all([api.env_CC_WALLET_PASS(), api.env_CC_WALLET_AUTOLOGIN(), cloudChains.getStoredPassword(), cloudChains.isWalletCreated(), cloudChains.isWalletRPCRunning()])
+      .then(values => {
+        const [CC_WALLET_PASS, CC_WALLET_AUTOLOGIN, storedPw, walletCreated, rpcRunning] = values;
+        const validPw = pw => _.isString(pw) && pw !== '';
+        if (validPw(CC_WALLET_PASS)) {
+          setPassword(CC_WALLET_PASS);
+          api.env_reset_CC_WALLET_PASS();
+        }
+        setCloudChainsWalletCreated(walletCreated);
+        setCloudChainsIsWalletRPCRunning(rpcRunning);
+        setCloudChainsStoredPassword(validPw(CC_WALLET_PASS) || validPw(storedPw));
+        setInitialLoadStep2(true); // done loading
+
   // In dev mode you can set a CC_WALLET_PASS environmental variable to automatically populate your password on login
   // and if you also have a CC_WALLET_AUTOLOGIN environmental variable set to true, then the wallet will autologin
-  useEffect(() => {
-    const { CC_WALLET_PASS = '', CC_WALLET_AUTOLOGIN } = process.env;
-    if(isDev && CC_WALLET_PASS && cloudChains && startupInit && (cloudChains.isWalletCreated() || cloudChains.isWalletRPCRunning())) {
-      setPassword(CC_WALLET_PASS);
-      if(CC_WALLET_AUTOLOGIN === 'true') {
-        setTimeout(() => {
-          onLoginSubmit();
-        }, 100);
-      }
-    }
-  }, [process.env.CC_WALLET_PASS, cloudChains]);
+        if (isDev && validPw(CC_WALLET_PASS) && CC_WALLET_AUTOLOGIN === 'true') {
+          setTimeout(() => {
+            onLoginSubmit();
+          }, 250);
+        }
+      });
+  }, [cloudChains, initialLoadStep1, setInitialLoadStep1, setInitialLoadStep2]);
 
   // Do not show login until we have required data
-  if (!cloudChains || !startupInit)
+  if (!cloudChains || !startupInit || !initialLoadStep2)
     return <div><Spinner /></div>;
 
-  const onLoginSubmit = async function() {
+  onLoginSubmit = async function() {
 
     setProcessing(true);
 
-    const storedPassword = cloudChains.getStoredPassword();
+    const storedPassword = await cloudChains.getStoredPassword();
 
     const rpcRunning = await cloudChains.isWalletRPCRunning();
     if (!rpcRunning) {
@@ -171,7 +195,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
         return;
       }
     } else if (storedPassword) {
-      const storedSalt = cloudChains.getStoredSalt();
+      const storedSalt = await cloudChains.getStoredSalt();
       const hashedPassword = pbkdf2(password, storedSalt);
       if (hashedPassword !== storedPassword) {
         setErrorMessage(Localize.text('Invalid password.', 'login'));
@@ -184,9 +208,13 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
       return;
     }
 
-    setCCWalletStarted(true);
-    await startupInit();
+    const walletCreated = await cloudChains.isWalletCreated();
+    const isRpcRunning = await cloudChains.isWalletRPCRunning();
+    setCloudChainsWalletCreated(walletCreated);
+    setCloudChainsIsWalletRPCRunning(isRpcRunning);
 
+    startupInit();
+    setCCWalletStarted(true);
   };
 
   const onRegisterSubmit = async function(e) {
@@ -210,19 +238,17 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
       encryptedMnemonic = crypt.encrypt(m);
     } catch(err) {
       logger.error('Problem encrypting the mnemonic');
-      handleError(err);
       setErrorMessage(Localize.text('Oops! There was a problem encrypting the mnemonic.', 'login'));
       setProcessing(false);
       return;
     }
 
-    cloudChains.saveWalletCredentials(hashedPassword, salt, encryptedMnemonic);
+    await cloudChains.saveWalletCredentials(hashedPassword, salt, encryptedMnemonic);
 
     try {
-      cloudChains.loadConfs(); // load all confs and update the master conf if necessary
+      await cloudChains.loadConfs(); // load all confs and update the master conf if necessary
     } catch(err) {
       logger.error('Problem enabling master config.');
-      handleError(err);
       setErrorMessage(Localize.text('Oops! There was a problem enabling the master config.', 'login'));
       setProcessing(false);
       return;
@@ -235,7 +261,14 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
       return;
     }
 
+    const storedPassword = await cloudChains.getStoredPassword();
+    const walletCreated = await cloudChains.isWalletCreated();
+    const isRpcRunning = await cloudChains.isWalletRPCRunning();
+    setCloudChainsStoredPassword(!!storedPassword && storedPassword !== '');
+    setCloudChainsWalletCreated(walletCreated);
+    setCloudChainsIsWalletRPCRunning(isRpcRunning);
     setMnemonic(m);
+
     await startupInit();
   };
 
@@ -259,8 +292,8 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
   // Show the login if the wallet was created or if the rpc is running
   // and there's a known cloudchains password. Otherwise, show the
   // registration screen.
-  const showLogin = cloudChains && (cloudChains.isWalletCreated() || (cloudChains.isWalletRPCRunning() && cloudChains.getStoredPassword()));
-  const showRegistration = !showLogin && cloudChains && !cloudChains.isWalletCreated();
+  const showLogin = cloudChains && (cloudChainsWalletCreated || (cloudChainsIsWalletRPCRunning && cloudChainsStoredPassword));
+  const showRegistration = !showLogin && cloudChains && !cloudChainsWalletCreated;
 
   return (
     <div className={'lw-login-container'}>

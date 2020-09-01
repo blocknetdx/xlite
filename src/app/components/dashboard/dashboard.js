@@ -1,9 +1,9 @@
 import {all, create} from 'mathjs';
 import AssetPieChart, {AssetPieChartData, chartColorForTicker} from '../shared/asset-piechart';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {Map as IMap} from 'immutable';
-import Wallet from '../../types/wallet';
+import Wallet from '../../types/wallet-r';
 import Balance from '../shared/balance';
 import { Column, Row } from '../shared/flex';
 import AssetsOverviewPanel from '../shared/assets-overview-panel';
@@ -18,6 +18,17 @@ const math = create(all, {
 const { bignumber } = math;
 
 const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultipliers, balanceOverTime }) => {
+  const [chartData, setChartData] = useState([[0, 0]]);
+  const [chartScale, setChartScale] = useState('half-year');
+
+  // TODO Wire up the filter buttons, chart supports year/half-year/month/week/day
+  useEffect(() => {
+    if (multiplierForCurrency('BTC', altCurrency, currencyMultipliers) > 0)
+      balanceOverTime(chartScale, altCurrency, currencyMultipliers)
+        .then(data => {
+          setChartData(data);
+        });
+  }, [setChartData, chartScale, balanceOverTime, altCurrency, currencyMultipliers]);
 
   const containerHorizPadding = 25;
   const centerMargin = 30;
@@ -40,12 +51,6 @@ const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultip
     const pieData = new AssetPieChartData(ticker, blockchain, altCurrency, currencyAmount.toNumber(), chartColorForTicker(ticker));
     pieChartData.push(pieData);
   }
-
-  // TODO Wire up the filter buttons, chart supports year/half-year/month/week/day
-  const chartScale = 'half-year';
-  let chartData = [[0, 0]];
-  if (multiplierForCurrency('BTC', altCurrency, currencyMultipliers) > 0)
-    chartData = balanceOverTime(chartScale, altCurrency, currencyMultipliers);
 
   return (
     <div className={'lw-dashboard-container'} style={{paddingLeft: containerHorizPadding, paddingRight: containerHorizPadding}}>

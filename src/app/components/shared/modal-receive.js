@@ -1,16 +1,16 @@
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import QRCode from 'qrcode';
 import React, { useEffect, useState } from 'react';
 import { Modal, ModalBody, ModalHeader } from './modal';
 import Localize from './localize';
-import Wallet from '../../types/wallet';
-import { clipboard } from 'electron';
+import Wallet from '../../types/wallet-r';
 import * as appActions from '../../actions/app-actions';
 import { handleError } from '../../util';
 import { Button } from './buttons';
 import SelectWalletDropdown from './select-wallet-dropdown';
 import { AddressInput } from './inputs';
+
+const {api} = window;
 
 const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
 
@@ -37,13 +37,11 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
 
   useEffect(() => {
     if(address) {
-      QRCode.toDataURL(address, (err, url) => {
-        if(err) {
-          handleError(err);
-        } else {
+      api.general_qrCode(address)
+        .then(url => {
           setAddressDataUrl(url);
-        }
-      });
+        })
+        .catch(handleError);
     }
   }, [address]);
 
@@ -62,7 +60,7 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
 
   const onCopyAddress = () => {
     try {
-      clipboard.writeText(address.trim());
+      api.general_clipboard(address.trim());
     } catch(err) {
       handleError(err);
     }
