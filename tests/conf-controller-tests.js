@@ -1,9 +1,9 @@
 /* global describe,it,beforeEach */
 import 'should';
 import path from 'path';
-import ConfController from '../src/app/modules/conf-controller';
-import domStorage from '../src/app/modules/dom-storage';
-import {localStorageKeys} from '../src/app/constants';
+import ConfController from '../src/server/modules/conf-controller';
+import SimpleStorage from '../src/server/modules/storage';
+import {storageKeys} from '../src/server/constants';
 import Token from '../src/app/types/token';
 import XBridgeInfo from '../src/app/types/xbridgeinfo';
 
@@ -11,19 +11,20 @@ describe('ConfController Test Suite', function() {
   const availableWallets = ['BLOCK', 'BTC'];
   const defaultXBridgeConfDir = path.resolve(__dirname, '../blockchain-configuration-files');
   let confController;
+  const storage = new SimpleStorage(); // in memory only
   beforeEach(async function() {
-    domStorage.clear();
-    confController = new ConfController(domStorage, availableWallets);
+    storage.clear();
+    confController = new ConfController(storage, availableWallets);
     await confController.init(defaultXBridgeConfDir);
   });
 
   it('ConfController()', function() {
-    confController._domStorage.should.be.eql(domStorage);
+    confController._storage.should.be.eql(storage);
     confController._availableWallets.should.be.eql(new Set(availableWallets));
   });
   it('ConfController.init()', async function() {
-    domStorage.clear();
-    const confContr = new ConfController(domStorage, availableWallets);
+    storage.clear();
+    const confContr = new ConfController(storage, availableWallets);
     confContr.getManifest().should.be.eql([]); // check that [] is default prior to load
     const confDir = path.resolve(__dirname, '../blockchain-configuration-files');
     await confContr.init(confDir);
@@ -31,21 +32,21 @@ describe('ConfController Test Suite', function() {
   });
   it('ConfController.getManifest()', function() {
     const data = [{'manifest_should_exist': true}];
-    domStorage.setItem(localStorageKeys.MANIFEST, data);
+    storage.setItem(storageKeys.MANIFEST, data);
     confController.getManifest().should.eql(data);
   });
   it('ConfController.getManifest() with bad data should return empty []', function() {
-    domStorage.setItem(localStorageKeys.MANIFEST, '{"manifest_should_exist": true}');
+    storage.setItem(storageKeys.MANIFEST, '{"manifest_should_exist": true}');
     confController.getManifest().should.eql([]);
   });
   it('ConfController.getManifestHash()', function() {
-    domStorage.setItem(localStorageKeys.MANIFEST_SHA, '0123456789');
+    storage.setItem(storageKeys.MANIFEST_SHA, '0123456789');
     confController.getManifestHash().should.equal('0123456789');
   });
   it('ConfController.getFeeInfo()', function() {
     const feeBLOCK = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000 });
     const feeBTC = new XBridgeInfo({ ticker: 'BTC', feeperbyte: 120, mintxfee: 7500, coin: 100000000 });
-    domStorage.setItem(localStorageKeys.XBRIDGE_INFO, [feeBLOCK, feeBTC]);
+    storage.setItem(storageKeys.XBRIDGE_INFO, [feeBLOCK, feeBTC]);
     confController.getXBridgeInfo()[0].should.be.instanceof(XBridgeInfo);
     confController.getXBridgeInfo().should.eql([feeBLOCK, feeBTC]);
   });
@@ -54,7 +55,7 @@ describe('ConfController Test Suite', function() {
     flag.should.be.true();
   });
   it('ConfController.needsUpdate() with recent manifest should be false', async function() {
-    domStorage.setItem(localStorageKeys.MANIFEST_SHA, '0123456789');
+    storage.setItem(storageKeys.MANIFEST_SHA, '0123456789');
     const flag = await confController.needsUpdate(async () => { return {headers: {'x-amz-meta-x-manifest-hash': '0123456789'}}; });
     flag.should.be.false();
   });
@@ -86,9 +87,9 @@ describe('ConfController Test Suite', function() {
     };
     const sortFn = (a,b) => a.ticker.localeCompare(b.ticker);
     await confController.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.true();
-    domStorage.getItem(localStorageKeys.MANIFEST_SHA).should.be.equal('0123456789');
+    storage.getItem(storageKeys.MANIFEST_SHA).should.be.equal('0123456789');
     const res = await req('manifest-latest.json');
-    domStorage.getItem(localStorageKeys.MANIFEST).sort(sortFn).should.be.deepEqual(JSON.parse(res.text).sort(sortFn));
+    storage.getItem(storageKeys.MANIFEST).sort(sortFn).should.be.deepEqual(JSON.parse(res.text).sort(sortFn));
     confController.getXBridgeInfo().length.should.be.equal(2);
     const feeBLOCK = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000, rpcport: 41414 });
     const feeBTC = new XBridgeInfo({ ticker: 'BTC', feeperbyte: 120, mintxfee: 7500, coin: 100000000, rpcport: 8332 });
@@ -114,7 +115,7 @@ describe('ConfController Test Suite', function() {
         return o;
       }
     };
-    const confContr = new ConfController(domStorage, availableWallets.concat(['TBLOCK', 'TBTC']));
+    const confContr = new ConfController(storage, availableWallets.concat(['TBLOCK', 'TBTC']));
     await confContr.init(defaultXBridgeConfDir);
     await confContr.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req).should.be.finally.true();
     confContr.getXBridgeInfo().length.should.be.equal(4);
@@ -177,8 +178,8 @@ describe('ConfController Test Suite', function() {
         return o;
       }
     };
-    domStorage.clear();
-    const confContr = new ConfController(domStorage, availableWallets);
+    storage.clear();
+    const confContr = new ConfController(storage, availableWallets);
     await confContr.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req);
     should.not.exist(confContr.getXBridgeInfo().find(xb => xb.ticker === 'BLOCK'));
   });
@@ -202,8 +203,8 @@ describe('ConfController Test Suite', function() {
         return o;
       }
     };
-    domStorage.clear();
-    const confContr = new ConfController(domStorage, availableWallets);
+    storage.clear();
+    const confContr = new ConfController(storage, availableWallets);
     await confContr.updateLatest('manifest-url', 'xbridge-confs/', '0123456789', 'manifest-latest.json', req);
     should.not.exist(confContr.getXBridgeInfo().find(xb => xb.ticker === 'BTC'));
   });

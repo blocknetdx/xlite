@@ -1,11 +1,13 @@
-import {logger, requireRenderer} from '../util';
-import {localStorageKeys} from '../constants';
-import Token from '../types/token';
-import XBridgeInfo from '../types/xbridgeinfo';
+import {HTTP_REQUEST_TIMEOUT} from '../../app/constants';
+import {logger} from './logger';
+import {storageKeys} from '../constants';
+import Token from '../../app/types/token';
+import XBridgeInfo from '../../app/types/xbridgeinfo';
 
 import _ from 'lodash';
 import fs from 'fs-extra';
 import path from 'path';
+import request from 'superagent';
 
 /**
  * Class for getting manifest and wallet data
@@ -13,10 +15,10 @@ import path from 'path';
 class ConfController {
 
   /**
-   * @type {DOMStorage}
+   * @type {SimpleStorage}
    * @private
    */
-  _domStorage = null;
+  _storage = null;
   /**
    * @type {Set}
    * @private
@@ -30,12 +32,11 @@ class ConfController {
 
   /**
    * Constructor
-   * @param domStorage {DOMStorage}
+   * @param storage {SimpleStorage}
    * @param wallets {string[]} Available wallets (tickers)
    */
-  constructor(domStorage, wallets) {
-    requireRenderer();
-    this._domStorage = domStorage;
+  constructor(storage, wallets) {
+    this._storage = storage;
     this._availableWallets = new Set(wallets);
   }
 
@@ -71,7 +72,7 @@ class ConfController {
 
     // Remove stale entries
     this._filterManifest(manifest);
-    this._domStorage.setItem(localStorageKeys.MANIFEST, manifest);
+    this._storage.setItem(storageKeys.MANIFEST, manifest);
 
     const xbridgeInfos = [];
     const xbconfDir = path.join(manifestFilesDir, 'xbridge-confs');
@@ -97,7 +98,7 @@ class ConfController {
     }
 
     // Store xbridge data
-    this._domStorage.setItem(localStorageKeys.XBRIDGE_INFO, xbridgeInfos);
+    this._storage.setItem(storageKeys.XBRIDGE_INFO, xbridgeInfos);
     return true;
   }
 
@@ -106,7 +107,7 @@ class ConfController {
    * @returns {Array<Object>}
    */
   getManifest() {
-    const manifest = this._domStorage.getItem(localStorageKeys.MANIFEST);
+    const manifest = this._storage.getItem(storageKeys.MANIFEST);
     if (!_.isArray(manifest))
       return [];
     return manifest;
@@ -117,7 +118,7 @@ class ConfController {
    * @returns {string}
    */
   getManifestHash() {
-    const hash = this._domStorage.getItem(localStorageKeys.MANIFEST_SHA);
+    const hash = this._storage.getItem(storageKeys.MANIFEST_SHA);
     if (!_.isString(hash))
       return '';
     return hash;
@@ -128,7 +129,7 @@ class ConfController {
    * @returns {XBridgeInfo[]}
    */
   getXBridgeInfo() {
-    const xbinfo = this._domStorage.getItem(localStorageKeys.XBRIDGE_INFO);
+    const xbinfo = this._storage.getItem(storageKeys.XBRIDGE_INFO);
     const infos = [];
     if (!_.isArray(xbinfo)) // do not process bad data
       return infos;
@@ -164,6 +165,20 @@ class ConfController {
       logger.error('', err);
     }
     return manifestHash;
+  }
+
+  /**
+   * Update the manifest to the latest.
+   * @return {Promise<void>}
+   */
+  async updateManifest() {
+    const manifestUrl = 'https://s3.amazonaws.com/blockdxbuilds/blockchainconfig/blockchainconfigfilehashmap.json';
+    const manifestConfPrefix = 'https://s3.amazonaws.com/blockdxbuilds/blockchainconfig/files/xbridge-confs/';
+    const manifestHeadReq = async () => { return await request.head(manifestUrl).timeout(30000); };
+    if (await this.needsUpdate(manifestHeadReq)) {
+      const confRequest = async (url) => { return await request.get(url).accept('text/plain').timeout(HTTP_REQUEST_TIMEOUT); };
+      await this.updateLatest(manifestUrl, manifestConfPrefix, this.getManifestHash(), 'manifest-latest.json', confRequest);
+    }
   }
 
   /**
@@ -224,13 +239,13 @@ class ConfController {
       }
 
       // Store xbridge data
-      this._domStorage.setItem(localStorageKeys.MANIFEST_SHA, manifestHash);
-      this._domStorage.setItem(localStorageKeys.MANIFEST, manifest);
+      this._storage.setItem(storageKeys.MANIFEST_SHA, manifestHash);
+      this._storage.setItem(storageKeys.MANIFEST, manifest);
       const existing = this.getXBridgeInfo();
       const unique = new Map(existing.map(xb => [xb.ticker, xb]));
       for (const xbinfo of xbridgeInfos) // overwrite existing, add new
         unique.set(xbinfo.ticker, xbinfo);
-      this._domStorage.setItem(localStorageKeys.XBRIDGE_INFO, Array.from(unique.values()));
+      this._storage.setItem(storageKeys.XBRIDGE_INFO, Array.from(unique.values()));
 
       return true;
     }

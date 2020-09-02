@@ -1,6 +1,6 @@
 import { ipcRenderer, webFrame } from 'electron';
 import * as uuid from 'uuid';
-import { ipcMainListeners, ipcRendererListeners, ZOOM_MAX, ZOOM_MIN } from '../constants';
+import { ipcMainListeners, ipcRendererListeners, ZOOM_MAX, ZOOM_MIN } from '../../app/constants';
 
 // We need to do our comparison operations using whole numbers, so we multiply by 100
 const maxZoom = ZOOM_MAX * 100;

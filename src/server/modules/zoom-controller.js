@@ -3,11 +3,11 @@ import bindAll from 'lodash/bindAll';
 import {
   DEFAULT_ZOOM_FACTOR,
   ipcRendererListeners,
-  storageKeys,
   ZOOM_INCREMENT,
   ZOOM_MAX,
   ZOOM_MIN
-} from '../constants';
+} from '../../app/constants';
+import {storageKeys} from '../constants';
 
 // This should only be used in the main process
 class ZoomController {

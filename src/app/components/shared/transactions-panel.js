@@ -1,18 +1,17 @@
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Card, CardBody, CardFooter, CardHeader } from './card';
 import { Table, TableColumn, TableData, TableRow } from './table';
 import Localize from './localize';
 import { Column, Row } from './flex';
-import path from 'path';
 import moment from 'moment';
 import AssetWithImage from './asset-with-image';
 import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
-import { Map } from 'immutable';
+import {Map as IMap} from 'immutable';
 import {multiplierForCurrency, currencyLinter} from '../../util';
 import { all, create } from 'mathjs';
-import Wallet from '../../types/wallet';
+import Wallet from '../../types/wallet-r';
 import TransactionDetailModal from './modal-transaction-detail';
 import * as appActions from '../../actions/app-actions';
 
@@ -22,9 +21,18 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
+const {api} = window;
+
 const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = false, brief = false, activeWallet, altCurrency, currencyMultipliers, transactions, wallets, style = {}, showAllButton = false, setActiveView }) => {
 
   const [ selectedTx, setSelectedTx ] = useState(null);
+  const [ imageDir, setImageDir ] = useState('');
+
+  useEffect(() => {
+    api.general_getImageDir('').then(dir => {
+      setImageDir(dir);
+    });
+  });
 
   const walletLookup = new Map(wallets.map(t => [t.ticker, t]));
   const filteredTxs = [...transactions.entries()]
@@ -76,19 +84,19 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                       <Column justify={'center'}>
                         <img alt={Localize.text('Received icon', 'transactions')}
                              style={{marginRight: 10, height: 24, width: 'auto'}}
-                             srcSet={(t.type === 'send' ?
+                             srcSet={imageDir ? (t.type === 'send' ?
                                  [
-                                   path.resolve(__dirname, '../../../images/icons/icon-sent.png'),
-                                   path.resolve(__dirname, '../../../images/icons/icon-sent@2x.png') + ' 2x',
-                                   path.resolve(__dirname, '../../../images/icons/icon-sent@3x.png') + ' 3x'
+                                   `${imageDir}/icons/icon-sent.png`,
+                                   `${imageDir}/icons/icon-sent@2x.png 2x`,
+                                   `${imageDir}/icons/icon-sent@3x.png 3x`,
                                  ]
                                  :
                                  [
-                                   path.resolve(__dirname, '../../../images/icons/icon-received.png'),
-                                   path.resolve(__dirname, '../../../images/icons/icon-received@2x.png') + ' 2x',
-                                   path.resolve(__dirname, '../../../images/icons/icon-received@3x.png') + ' 3x'
+                                   `${imageDir}/icons/icon-received.png`,
+                                   `${imageDir}/icons/icon-received@2x.png 2x`,
+                                   `${imageDir}/icons/icon-received@3x.png 3x`,
                                  ]
-                             ).join(', ')} />
+                             ).join(', ') : null} />
                       </Column>
                       {!brief ?
                       <div style={{flexGrow: 1}}>
@@ -165,7 +173,7 @@ TransactionsPanel.propTypes = {
   activeWallet: PropTypes.string,
   altCurrency: PropTypes.string,
   currencyMultipliers: PropTypes.object,
-  transactions: PropTypes.instanceOf(Map),
+  transactions: PropTypes.instanceOf(IMap),
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   style: PropTypes.object,
   showAllButton: PropTypes.bool,

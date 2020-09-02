@@ -204,7 +204,7 @@ export const setShowAboutModal = show => ({
  * @param version {string}
  * @returns {{payload: {version: string}, type: string}}
  */
-export const setXVaultVersion = version => ({
+export const setAppVersion = version => ({
   type: actions.SET_XVAULT_VERSION,
   payload: {
     version

@@ -1,11 +1,14 @@
-import {altCurrencies} from '../constants';
-import {localStorageKeys} from '../constants';
-import {oneDaySeconds, oneMonthSeconds, oneWeekSeconds, halfYearSeconds, oneYearSeconds, logger, multiplierForCurrency, unixTime, oneHourSeconds} from '../util';
-import Wallet from '../types/wallet';
+import {altCurrencies} from '../../app/constants';
+import {logger} from './logger';
+import {oneDaySeconds, oneMonthSeconds, oneWeekSeconds, halfYearSeconds,
+        oneYearSeconds, multiplierForCurrency, unixTime, oneHourSeconds} from '../../app/util';
+import {storageKeys} from '../constants';
+import Wallet from './wallet';
 
 import _ from 'lodash';
 import {Map as IMap} from 'immutable';
 import moment from 'moment';
+import request from 'superagent';
 
 /**
  * Manages wallets
@@ -30,24 +33,10 @@ class WalletController {
   _manifest = null;
 
   /**
-   * @type {DOMStorage}
+   * @type {SimpleStorage}
    * @private
    */
-  _domStorage = null;
-
-  /**
-   * Track wallet polling.
-   * @type {Object}
-   * @private
-   */
-  _pollInterval = null;
-
-  /**
-   * Track currency polling.
-   * @type {Object}
-   * @private
-   */
-  _pollMultipliersInterval = null;
+  _storage = null;
 
   /**
    * Stores a cache of balance values.
@@ -64,15 +53,25 @@ class WalletController {
   _balanceOverTimeFetchCache = new Map();
 
   /**
+   * Default request for currency pricing information.
+   * @param ticker
+   * @param currencies
+   * @return {Promise<*>}
+   */
+  static async defaultRequest(ticker, currencies) {
+    return await request.get(`https://min-api.cryptocompare.com/data/price?fsym=${ticker}&tsyms=${currencies.join(',')}`);
+  }
+
+  /**
    * Constructs a WalletController instance
    * @param cloudChains {CloudChains}
    * @param manifest {TokenManifest}
-   * @param domStorage {DOMStorage}
+   * @param storage {SimpleStorage}
    */
-  constructor(cloudChains, manifest, domStorage) {
+  constructor(cloudChains, manifest, storage) {
     this._cloudChains = cloudChains;
     this._manifest = manifest;
-    this._domStorage = domStorage;
+    this._storage = storage;
   }
 
   /**
@@ -106,7 +105,10 @@ class WalletController {
    * @return {Map<string, Array<string>>}
    */
   getBalances() {
-    return new Map(this._domStorage.getItem(localStorageKeys.BALANCES));
+    const data = this._storage.getItem(storageKeys.BALANCES);
+    if (!_.isArray(data))
+      return new Map();
+    return new Map(data);
   }
 
   /**
@@ -120,6 +122,17 @@ class WalletController {
     for (const [ticker, wallet] of this._wallets)
       data.set(ticker, wallet.getTransactions(start, end));
     return data;
+  }
+
+  /**
+   * Return the currency multipliers.
+   * @return {Object}
+   */
+  getCurrencyMultipliers() {
+    let multipliers = this._storage.getItem(storageKeys.ALT_CURRENCY_MULTIPLIERS);
+    if (!_.isPlainObject(multipliers))
+      multipliers = {}; // default
+    return multipliers;
   }
 
   /**
@@ -235,27 +248,6 @@ class WalletController {
   }
 
   /**
-   * Get the active wallet. Returns null if no active wallet.
-   * @return {string|null}
-   */
-  getActiveWallet() {
-    const activeWallet = this._domStorage.getItem(localStorageKeys.ACTIVE_WALLET);
-    if (!_.isString(activeWallet) || !this._manifest.getToken(activeWallet))
-      return null;
-    return activeWallet;
-  }
-
-  /**
-   * Set the active wallet.
-   * @param activeWalletTicker {string}
-   */
-  setActiveWallet(activeWalletTicker) {
-    if (!this._manifest.getToken(activeWalletTicker)) // ignore bad/unknown tickers
-      return;
-    this._domStorage.setItem(localStorageKeys.ACTIVE_WALLET, activeWalletTicker);
-  }
-
-  /**
    * Loads all available wallets. Assumes that cloudchain confs are already
    * loaded.
    * @throws {Error} on fatal error
@@ -268,7 +260,7 @@ class WalletController {
         logger.info(`failed to load wallet for token: ${conf.ticker()}`);
         continue;
       }
-      this._wallets.set(conf.ticker(), new Wallet(token, conf, this._domStorage));
+      this._wallets.set(conf.ticker(), new Wallet(token, conf, this._storage));
     }
   }
 
@@ -306,7 +298,7 @@ class WalletController {
    * @param store
    */
   dispatchPriceMultipliers(action, store) {
-    let multipliers = this._domStorage.getItem(localStorageKeys.ALT_CURRENCY_MULTIPLIERS);
+    let multipliers = this._storage.getItem(storageKeys.ALT_CURRENCY_MULTIPLIERS);
     if (!_.isPlainObject(multipliers))
       multipliers = {}; // default
       store.dispatch(action(multipliers));
@@ -339,7 +331,7 @@ class WalletController {
       }
     }
 
-    this._domStorage.setItem(localStorageKeys.ALT_CURRENCY_MULTIPLIERS, multipliers);
+    this._storage.setItem(storageKeys.ALT_CURRENCY_MULTIPLIERS, multipliers);
   }
 
   /**
@@ -351,7 +343,7 @@ class WalletController {
   async updateBalanceInfo(ticker) {
     const balances = this.getBalances();
     if (await this._updateBalanceInfo(ticker, balances))
-      this._domStorage.setItem(localStorageKeys.BALANCES, balances);
+      this._storage.setItem(storageKeys.BALANCES, balances);
     // Trigger fetch on the latest transactions
     const wallet = this.getWallet(ticker);
     if (wallet)
@@ -378,36 +370,7 @@ class WalletController {
 
     // Save to storage
     if (dataChanged)
-      this._domStorage.setItem(localStorageKeys.BALANCES, balances);
-  }
-
-  /**
-   * Start polling for cloudchains wallet updates.
-   * @param interval {number}
-   * @param handler {function}
-   */
-  pollUpdates(interval, handler) {
-    if (this._pollInterval !== null)
-      clearTimeout(this._pollInterval);
-    this._pollInterval = setTimeout((async function() {
-      await this.updateAllBalances();
-      this.pollUpdates(interval, handler);
-    }).bind(this), interval);
-  }
-
-  /**
-   * Start polling for cloudchains wallet updates.
-   * @param currencyReq {function(string, Array<string>)}
-   * @param interval {number}
-   * @param handler {function}
-   */
-  pollPriceMultipliers(currencyReq, interval, handler) {
-    if (this._pollMultipliersInterval !== null)
-      clearTimeout(this._pollMultipliersInterval);
-    this._pollMultipliersInterval = setTimeout((async function() {
-      await this.updatePriceMultipliers(currencyReq);
-      this.pollPriceMultipliers(currencyReq, interval, handler);
-    }).bind(this), interval);
+      this._storage.setItem(storageKeys.BALANCES, balances);
   }
 
   /**

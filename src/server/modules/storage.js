@@ -4,7 +4,26 @@ import omit from 'lodash/omit';
 
 class SimpleStorage {
 
-  constructor(dataFilePath) {
+  /**
+   * Path to disk storage.
+   * @type {string|null}
+   * @private
+   */
+  _dataFilePath = null;
+  /**
+   * Memory store.
+   * @type {Object}
+   * @private
+   */
+  _data = {};
+
+  /**
+   * Constructor. If data file is null will revert to memory only storage.
+   * @param dataFilePath {string|null} Path to data storage on disk.
+   */
+  constructor(dataFilePath = null) {
+    if (!dataFilePath)
+      return; // memory only storage
     this._dataFilePath = dataFilePath;
     fs.ensureFileSync(dataFilePath);
     let data;
@@ -17,9 +36,11 @@ class SimpleStorage {
     this._data = data;
   }
 
-  async saveData() {
+  saveData() {
+    if (!this._dataFilePath)
+      return; // memory only storage
     try {
-      await fs.writeJsonSync(this._dataFilePath, this._data);
+      fs.writeJsonSync(this._dataFilePath, this._data);
     } catch(err) {
       console.error(err);
     }
@@ -31,25 +52,22 @@ class SimpleStorage {
     return cloneDeep(item);
   }
 
-  setItem(key, val) {
+  setItem(key, val, save=true) {
     if(!val) {
       this._data[key] = val;
+    } else if (val instanceof Map || val instanceof Set) {
+      this._data[key] = Array.from(val).map(t => cloneDeep(t));
     } else {
       this._data[key] = cloneDeep(val);
     }
-    this.saveData();
+    if (save)
+      this.saveData();
     return val;
   }
 
   setItems(obj) {
-    for(const key of Object.keys(obj) ) {
-      const val = obj[key];
-      if(!val) {
-        this._data[key] = val;
-      } else {
-        this._data[key] = cloneDeep(val);
-      }
-    }
+    for(const [key, val] of Object.entries(obj))
+      this.setItem(key, val, false);
     this.saveData();
     return obj;
   }
@@ -58,20 +76,17 @@ class SimpleStorage {
     const newData = omit(this._data, [key]);
     this._data = newData;
     this.saveData();
-    return;
   }
 
   removeItems(keys) {
     const newData = omit(this._data, keys);
     this._data = newData;
     this.saveData();
-    return;
   }
 
   clear() {
     this._data = {};
     this.saveData();
-    return;
   }
 
 }

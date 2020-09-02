@@ -11,7 +11,7 @@ import { Column } from './flex';
 import PercentBar from './percent-bar';
 import { walletSorter } from '../../util';
 import { Map } from 'immutable';
-import Wallet from '../../types/wallet';
+import Wallet from '../../types/wallet-r';
 import { all, create } from 'mathjs';
 import Chart, {chartSampleData} from './chart';
 

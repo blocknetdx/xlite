@@ -10,11 +10,10 @@ import {Modal, ModalBody, ModalHeader} from './modal';
 import Recipient from '../../types/recipient';
 import SelectWalletDropdown from './select-wallet-dropdown';
 import TransactionBuilder from '../../modules/transactionbuilder';
-import Wallet from '../../types/wallet';
+import Wallet from '../../types/wallet-r';
 
 import _ from 'lodash';
 import { all, create } from 'mathjs';
-import { clipboard, shell } from 'electron';
 import { connect } from 'react-redux';
 import {Map as IMap} from 'immutable';
 import PropTypes from 'prop-types';
@@ -25,6 +24,8 @@ const math = create(all, {
   precision: 64
 });
 const { bignumber } = math;
+
+const {api} = window;
 
 const ProgressMarker = ({ progress, total }) => {
 
@@ -306,7 +307,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
   const onViewOnExplorer = e => {
     e.preventDefault();
-    shell.openExternal(wallet.getExplorerLinkForTx(txid));
+    api.general_openUrl(wallet.getExplorerLinkForTx(txid));
   };
 
   const minHeight = 538;
@@ -331,7 +332,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
             value={address}
             showButton={true}
             buttonIcon={<i className={'fas fa-paste'} />}
-            onButtonClick={() => setAddress(clipboard.readText('selection'))}
+            onButtonClick={async () => setAddress((await api.general_getClipboard()))}
             onChange={setAddress} />
 
           <div className={'lw-modal-field-label'}><Localize context={'sendModal'}>Description (optional)</Localize>:</div>

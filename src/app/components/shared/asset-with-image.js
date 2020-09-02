@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import Localize from './localize';
-import Wallet from '../../types/wallet';
+import Wallet from '../../types/wallet-r';
 
 const AssetWithImage = ({ shortenName = false, wallet }) => {
 

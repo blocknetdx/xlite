@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import Balance from '../shared/balance';
 import AssetsOverviewPanel from '../shared/assets-overview-panel';
 import Chart from '../shared/chart';
@@ -8,17 +8,22 @@ import {multiplierForCurrency} from '../../util';
 import { SIDEBAR_WIDTH } from '../../constants';
 
 const Portfolio = ({ windowWidth, altCurrency, currencyMultipliers, balanceOverTime }) => {
+  const [chartData, setChartData] = useState([[0, 0]]);
+  const [chartScale, setChartScale] = useState('half-year');
+
+  // TODO Wire up the filter buttons, chart supports year/half-year/month/week/day
+  useEffect(() => {
+    if (multiplierForCurrency('BTC', altCurrency, currencyMultipliers) > 0)
+      balanceOverTime(chartScale, altCurrency, currencyMultipliers)
+        .then(data => {
+          setChartData(data);
+        });
+  }, [balanceOverTime, chartScale, altCurrency, currencyMultipliers]);
 
   const containerHorizPadding = 25;
   const headCol1Width = 160;
   const headCol3Width = 200;
   const headCol2Width = windowWidth - SIDEBAR_WIDTH - headCol1Width - headCol3Width - containerHorizPadding * 2;
-
-  // TODO Wire up the filter buttons, chart supports year/half-year/month/week/day
-  const chartScale = 'half-year';
-  let chartData = [[0, 0]];
-  if (multiplierForCurrency('BTC', altCurrency, currencyMultipliers) > 0)
-    chartData = balanceOverTime(chartScale, altCurrency, currencyMultipliers);
 
   return (
     <div className={'lw-portfolio-container'}>
