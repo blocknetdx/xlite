@@ -69,3 +69,11 @@ export const halfYearSeconds = 15768000;
 export const oneYearSeconds = 31536000;
 
 export const oneSat = 1 / 100000000;
+
+export const passwordValidator = {
+  checkLength: password => password.length >= 8,
+  checkLowercase: password => password.toUpperCase() !== password,
+  checkUppercase: password => password.toLowerCase() !== password,
+  checkNumber: password => /\d/.test(password),
+  checkSpecial: password => /[^\s\w\d]/.test(password)
+};

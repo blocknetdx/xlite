@@ -42,95 +42,96 @@ $lw-login-logo-total-width: 230px;
 
     }
 
-    .lw-login-input-container {
 
-      //margin-top: 50px;
-      border-color: $lw-login-input-border-color;
-      border-style: solid;
-      border-width: $lw-login-input-border-width;
-      border-radius: 6px;
-      height: $lw-login-input-total-height + (2 * $lw-login-input-border-width);
+  }
+
+}
+
+.lw-login-input-container {
+
+  //margin-top: 50px;
+  border-color: $lw-login-input-border-color;
+  border-style: solid;
+  border-width: $lw-login-input-border-width;
+  border-radius: 6px;
+  height: $lw-login-input-total-height + (2 * $lw-login-input-border-width);
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  box-sizing: border-box;
+
+  button {
+    color: $lw-secondary-6;
+    height: $lw-login-input-total-height;
+    line-height: $lw-login-input-total-height;
+    font-size: 19px;
+    background-color: transparent;
+    display: block;
+    text-decoration: none;
+    outline: 0;
+    outline-offset: 0;
+    text-align: center;
+    box-shadow: none;
+    border: none;
+    padding-left: 10px;
+    padding-right: 10px;
+    vertical-align: middle;
+
+    $svg-icon-height: 24px;
+
+    &[type=submit] {
       padding: 0;
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      justify-content: flex-start;
-      box-sizing: border-box;
+      width: $lw-login-input-total-height;
+      font-size: $svg-icon-height;
+      margin-top: -2px;
+    }
 
-      button {
-        color: $lw-secondary-6;
-        height: $lw-login-input-total-height;
-        line-height: $lw-login-input-total-height;
-        font-size: 19px;
-        background-color: transparent;
-        display: block;
-        text-decoration: none;
-        outline: 0;
-        outline-offset: 0;
-        text-align: center;
-        box-shadow: none;
-        border: none;
-        padding-left: 10px;
-        padding-right: 10px;
-        vertical-align: middle;
+    &:hover {
+      opacity: .6;
+    }
 
-        $svg-icon-height: 24px;
+    svg {
+      display: inline-block;
+      width: $svg-icon-height;
+      height: $svg-icon-height;
+      fill: $lw-nav-selected;
+    }
 
-        &[type=submit] {
-          padding: 0;
-          width: $lw-login-input-total-height;
-          font-size: $svg-icon-height;
-          margin-top: -2px;
-        }
+  }
 
-        &:hover {
-          opacity: .6;
-        }
+  .lw-login-input-divider {
+    border-left-color: $lw-login-input-border-color;
+    border-left-width: $lw-login-input-border-width;
+    border-left-style: solid;
+    height: $lw-login-input-total-height;
+  }
 
-        svg {
-          display: inline-block;
-          width: $svg-icon-height;
-          height: $svg-icon-height;
-          fill: $lw-nav-selected;
-        }
+  input.lw-login-input {
 
-      }
+    $padding: 20px;
 
-      .lw-login-input-divider {
-        border-left-color: $lw-login-input-border-color;
-        border-left-width: $lw-login-input-border-width;
-        border-left-style: solid;
-        height: $lw-login-input-total-height;
-      }
+    border-style: none;
+    background-color: transparent;
+    color: $lw-login-text-color;
+    display: block;
+    padding: $padding;
+    padding-right: $padding - 10px;
+    height: $lw-login-input-total-height;
+    line-height: $lw-login-input-total-height;
+    font-size: 16px;
+    width: 100%;
+    outline: none;
+    font-weight: normal;
+    flex: 1;
+  }
 
-      input.lw-login-input {
+  &.active {
+    border-color: $lw-login-input-border-color-active;
 
-        $padding: 20px;
-
-        border-style: none;
-        background-color: transparent;
-        color: $lw-login-text-color;
-        display: block;
-        padding: $padding;
-        padding-right: $padding - 10px;
-        height: $lw-login-input-total-height;
-        line-height: $lw-login-input-total-height;
-        font-size: 16px;
-        width: 100%;
-        outline: none;
-        font-weight: normal;
-        flex: 1;
-      }
-
-      &.active {
-        border-color: $lw-login-input-border-color-active;
-
-        .lw-login-input-divider {
-          border-left-color: $lw-login-input-border-color-active;
-        }
-
-      }
-
+    .lw-login-input-divider {
+      border-left-color: $lw-login-input-border-color-active;
     }
 
   }

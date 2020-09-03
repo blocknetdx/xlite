@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import Localize from './localize';
 
 const IconInput = ({ icon, placeholder = '', type = 'text', value, onChange }) => {
   return (
@@ -65,6 +66,59 @@ CurrencyInput.propTypes = {
   onBlur: PropTypes.func
 };
 
+const LoginInput = ({ type, className =  '', value, placeholder = '', hidden = false, autoFocus = false, setHidden, readOnly = false, onChange }) => {
+
+  const [ focused, setFocused ] = useState(false);
+
+  let node;
+
+  const onHideShowClick = () => {
+    setHidden(!hidden);
+    setTimeout(() => {
+      const $input = $(node).focus();
+      const val = $input.val();
+      $input[0].setSelectionRange(val.length, val.length);
+    }, 0);
+  };
+
+  return (
+    <div className={`lw-login-input-container ${focused ? 'active' : ''}`} style={{marginBottom: 10}}>
+      <input placeholder={placeholder}
+             ref={n => n ? node = n : null}
+             className={`lw-login-input ${className}`}
+             value={value}
+             type={type === 'password' && hidden ? 'password' : type === 'password' ? 'text' : type}
+             autoFocus={autoFocus}
+             required={true}
+             spellCheck={false}
+             onChange={e => onChange(e.target.value)}
+             onFocus={() => setFocused(true)}
+             readOnly={readOnly}
+             onBlur={() => setFocused(false)} />
+      {setHidden ?
+        <button type={'button'} tabIndex={-1} onClick={onHideShowClick}>
+          <i className={`far ${hidden ? 'fa-eye' : 'fa-eye-slash'}`}
+             title={hidden ? Localize.text('Show password', 'login') : Localize.text('Hide password', 'login')} />
+        </button>
+        :
+        null
+      }
+    </div>
+  );
+};
+LoginInput.propTypes = {
+  hidden: PropTypes.bool,
+  setHidden: PropTypes.func,
+  value: PropTypes.string,
+  type: PropTypes.string,
+  className: PropTypes.string,
+  autoFocus: PropTypes.bool,
+  placeholder: PropTypes.string,
+  readOnly: PropTypes.bool,
+  onChange: PropTypes.func,
+  onSubmit: PropTypes.func
+};
+
 const Textarea = ({ value, onChange, disabled, required, readOnly, style = {} }) => {
   return (
     <textarea style={style} className={'lw-textarea'} value={value} required={required} disabled={disabled} readOnly={readOnly} onChange={e => {
@@ -86,5 +140,6 @@ export {
   IconInput,
   AddressInput,
   CurrencyInput,
+  LoginInput,
   Textarea
 };
