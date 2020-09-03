@@ -109,7 +109,7 @@ const general_API = {
     return ipcRenderer.invoke(apiConstants.general_getImageDir, image);
   },
   [apiConstants.general_openUrl]: async (data) => {
-    return ipcRenderer.invoke(apiConstants.general_openUrl, data);
+    ipcRenderer.send(apiConstants.general_openUrl, data);
   },
   [apiConstants.general_qrCode]: async (data) => {
     return ipcRenderer.invoke(apiConstants.general_qrCode, data);

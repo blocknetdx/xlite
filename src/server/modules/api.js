@@ -140,8 +140,9 @@ class Api {
     this._proc.handle(apiConstants.general_getImageDir, (evt, image) => {
       return path.join(IMAGE_DIR, image);
     });
-    this._proc.handle(apiConstants.general_openUrl, (evt, url) => {
-      return electron.shell.openExternal(url); // TODO Review Security
+    this._proc.on(apiConstants.general_openUrl, (evt, url) => {
+      if (/^https:\/\/(?!file)[a-zA-Z0-9_]+\.(?:(?!\/\/)[a-zA-Z0-9_%$?/.])+$/i.test(url))
+        electron.shell.openExternal(url); // TODO Security whitelist
     });
     this._proc.handle(apiConstants.general_qrCode, (evt, data) => {
       return new Promise((resolve, reject) => {
