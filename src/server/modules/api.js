@@ -268,13 +268,13 @@ class Api {
     this._proc.handle(apiConstants.walletController_loadWallets, (evt, arg) => {
       return this._walletController.loadWallets();
     });
-    this._proc.on(apiConstants.walletController_updatePriceMultipliers, (evt, arg) => {
-      this._walletController.updatePriceMultipliers(WalletController.defaultRequest);
+    this._proc.handle(apiConstants.walletController_updatePriceMultipliers, (evt, arg) => {
+      return this._walletController.updatePriceMultipliers(WalletController.defaultRequest);
     });
     this._proc.handle(apiConstants.walletController_updateBalanceInfo, (evt, ticker) => {
       return this._walletController.updateBalanceInfo(ticker);
     });
-    this._proc.on(apiConstants.walletController_updateAllBalances, (evt, arg) => {
+    this._proc.handle(apiConstants.walletController_updateAllBalances, (evt, arg) => {
       return this._walletController.updateAllBalances();
     });
   }
