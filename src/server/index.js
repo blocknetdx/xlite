@@ -96,7 +96,7 @@ const startup = async () => {
   try {
     const {version} = fs.readJsonSync(path.resolve(__dirname, '../../package.json'));
     storage.setItem(storageKeys.APP_VERSION, version);
-    logger.info(`Starting XVault version ${version}`);
+    logger.info(`Starting XLite version ${version}`);
   } catch (e) {
     logger.error(e);
   }

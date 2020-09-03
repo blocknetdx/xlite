@@ -17,7 +17,7 @@ const Logo = ({ className = '' }) => {
   return (
     <img className={className}
          srcSet={imageDir ? `${imageDir}/logo.png, ${imageDir}/logo@2x.png 2x, ${imageDir}/logo@3x.png 3x` : null}
-         alt={Localize.text('XVault logo', 'login')} />
+         alt={Localize.text('XLite logo', 'login')} />
   );
 };
 Logo.propTypes = {

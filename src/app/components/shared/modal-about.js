@@ -19,7 +19,7 @@ const AboutModal = ({ xVaultVersion, ccVersion, hideAboutModal }) => {
     <Modal onClose={hideAboutModal}>
       <ModalHeader><Localize context={'receive-modal'}>About</Localize></ModalHeader>
       <ModalBody>
-        <p style={styles.paragraph}>{Localize.text('XVault v{{version}}', 'aboutModal', {version: xVaultVersion})}</p>
+        <p style={styles.paragraph}>{Localize.text('XLite v{{version}}', 'aboutModal', {version: xVaultVersion})}</p>
         <p style={styles.paragraph}>{Localize.text('Cloudchains-SPV {{version}}', 'aboutModal', {version: ccVersion})}</p>
         <p style={styles.paragraph}>{Localize.text('Copyright © {{year}} The Blocknet Developers', 'aboutModal', {year: new Date().getFullYear()})}</p>
         <p style={styles.paragraph}>{Localize.text('Learn more at blocknet.co', 'aboutModal')}</p>

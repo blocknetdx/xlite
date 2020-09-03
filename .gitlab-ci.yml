@@ -22,7 +22,7 @@ build_linux:
     - "npm run download-binaries-linux"
     - "npm run build-native-linux"
   artifacts:
-    name: "XVault-$CI_COMMIT_REF_NAME-linux"
+    name: "XLite-$CI_COMMIT_REF_NAME-linux"
     paths:
       - dist-native/*.tar.gz
       - dist-native/*.AppImage
@@ -36,7 +36,7 @@ build_win:
     - "npm run download-binaries-win"
     - "npm run build-native-win"
   artifacts:
-    name: "XVault-$CI_COMMIT_REF_NAME-win"
+    name: "XLite-$CI_COMMIT_REF_NAME-win"
     paths:
       - dist-native/*.exe
       - dist-native/*.zip
@@ -50,17 +50,17 @@ build_mac:
     - "chmod +x bin/mac/Cloudchains-SPV"
     - "npm run build-native-mac"
   artifacts:
-    name: "XVault-$CI_COMMIT_REF_NAME-mac"
+    name: "XLite-$CI_COMMIT_REF_NAME-mac"
     paths:
-      - dist-native/mac/XVault.app
+      - dist-native/mac/XLite.app
 
 check_artifacts:
   stage: check
   image: ubuntu:bionic
   script:
-    - "set -- dist-native/XVault-*-linux.tar.gz && [[ -f \"$1\" ]]"
-    - "set -- dist-native/XVault-*-linux.AppImage && [[ -f \"$1\" ]]"
-    - "set -- dist-native/XVault-*-linux.deb && [[ -f \"$1\" ]]"
-    - "set -- dist-native/XVault-*-win.exe && [[ -f \"$1\" ]]"
-    - "set -- dist-native/XVault-*-win-x64.zip && [[ -f \"$1\" ]]"
-    - "set -- dist-native/mac/XVault.app && [[ -d \"$1\" ]]"
+    - "set -- dist-native/XLite-*-linux.tar.gz && [[ -f \"$1\" ]]"
+    - "set -- dist-native/XLite-*-linux.AppImage && [[ -f \"$1\" ]]"
+    - "set -- dist-native/XLite-*-linux.deb && [[ -f \"$1\" ]]"
+    - "set -- dist-native/XLite-*-win.exe && [[ -f \"$1\" ]]"
+    - "set -- dist-native/XLite-*-win-x64.zip && [[ -f \"$1\" ]]"
+    - "set -- dist-native/mac/XLite.app && [[ -d \"$1\" ]]"
