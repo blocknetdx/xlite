@@ -384,13 +384,12 @@ class CloudChains {
       const args = password ? ['--password', password] : [];
       const cli = this._execFile(this.getCCSPVFilePath(), args, err => {
         if(err) {
-          logger.error(err);
+          logger.error('startSPV failed', err);
           resolve(false);
         }
       });
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
-        // console.log(str);
         if(!password && this._selectionPatt.test(str)) {
           resolve(true);
         } else if(/master\sRPC\sserver/i.test(str)) {
@@ -402,10 +401,10 @@ class CloudChains {
       });
       cli.stderr.on('data', data => {
         const str = data.toString('utf8');
-        logger.error(str);
+        logger.info(`startSPV ${str}`);
       });
       cli.stdout.on('close', code => {
-        logger.info(`child process exited with code ${code}`);
+        logger.info(`startSPV child process exited with code ${code}`);
         resolve(false);
       });
       this._cli = cli;
@@ -462,7 +461,7 @@ class CloudChains {
     return new Promise(resolve => {
       const cli = this._execFile(this.getCCSPVFilePath(), ['--enablerpcandconfigure'], err => {
         if(err) {
-          logger.error(err);
+          logger.error('enableAllWallets', err);
           resolve(false);
         }
       });
@@ -476,11 +475,11 @@ class CloudChains {
       });
       cli.stderr.on('data', data => {
         const str = data.toString('utf8');
-        logger.error(str);
+        logger.error('enableAllWallets', str);
         cli.kill();
       });
       cli.stdout.on('close', code => {
-        logger.info(`child process exited with code ${code}`);
+        logger.info(`enableAllWallets child process exited with code ${code}`);
         resolve(false);
       });
     });
