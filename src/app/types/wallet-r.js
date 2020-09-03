@@ -116,7 +116,8 @@ class Wallet {
    */
   async updateTransactions() {
     try {
-      return await this._api.wallet_updateTransactions(this.ticker);
+      await this._api.wallet_updateTransactions(this.ticker);
+      return true;
     } catch (err) {
       return false;
     }

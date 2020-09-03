@@ -262,7 +262,7 @@ class WalletController {
     if (this._pollInterval !== null)
       clearTimeout(this._pollInterval);
     this._pollInterval = setTimeout((async function() {
-      await this.updateAllBalances();
+      await handler();
       this.pollUpdates(interval, handler);
     }).bind(this), interval);
   }
@@ -276,7 +276,7 @@ class WalletController {
     if (this._pollMultipliersInterval !== null)
       clearTimeout(this._pollMultipliersInterval);
     this._pollMultipliersInterval = setTimeout((async function() {
-      await this.updatePriceMultipliers();
+      await handler();
       this.pollPriceMultipliers(interval, handler);
     }).bind(this), interval);
   }
