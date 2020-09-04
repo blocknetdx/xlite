@@ -65,7 +65,9 @@ export const HTTP_REQUEST_TIMEOUT = 10000;
 
 export const altCurrencies = {
   USD: 'USD',
-  BTC: 'USD'
+  BTC: 'BTC',
+  EUR: 'EUR',
+  GBP: 'GBP',
 };
 
 export const MAX_DECIMAL_PLACE = 8;

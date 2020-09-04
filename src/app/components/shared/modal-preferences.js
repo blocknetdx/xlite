@@ -50,7 +50,9 @@ const PreferencesModal = ({ altCurrency, hidePreferencesModal, setAltCurrency })
   };
 
   const fiatItems = [
-    new DropdownItem('US Dollar (USD)', altCurrencies.USD)
+    new DropdownItem('US Dollar (USD)', altCurrencies.USD),
+    new DropdownItem('EURO (EUR)', altCurrencies.EUR),
+    new DropdownItem('British Pound (GBP)', altCurrencies.GBP),
   ];
 
   return (
