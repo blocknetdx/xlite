@@ -221,3 +221,14 @@ export const setCCVersion = version => ({
     version
   }
 });
+
+/**
+ * @param version {string}
+ * @returns {{payload: {version: string}, type: string}}
+ */
+export const setAltCurrency = altCurrency => ({
+  type: actions.SET_ALT_CURRENCY,
+  payload: {
+    altCurrency
+  }
+});

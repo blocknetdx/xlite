@@ -306,7 +306,8 @@ class WalletController {
 
   /**
    * Fetch and update the currency multiplier data.
-   * // TODO Put sample data structure here required by the request
+   * Sample data for BLOCK:
+   * {"USD":1.044,"BTC":0.00009999,"EUR":0.8827,"GBP":0.7893}
    * @param currencyReq {function(string, Array<string>)}
    * @return {Promise<void>}
    */
