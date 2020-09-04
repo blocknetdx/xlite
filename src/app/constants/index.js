@@ -29,7 +29,8 @@ export const actions = {
   SET_SHOW_BACKUP_MODAL: 'SET_SHOW_BACKUP_MODAL',
   SET_SHOW_ABOUT_MODAL: 'SET_SHOW_ABOUT_MODAL',
   SET_XVAULT_VERSION: 'SET_XVAULT_VERSION',
-  SET_CC_VERSION: 'SET_CC_VERSION'
+  SET_CC_VERSION: 'SET_CC_VERSION',
+  SET_ALT_CURRENCY: 'SET_ALT_CURRENCY'
 };
 
 export const localStorageKeys = {
@@ -64,7 +65,7 @@ export const HTTP_REQUEST_TIMEOUT = 10000;
 
 export const altCurrencies = {
   USD: 'USD',
-  BTC: 'USD',
+  BTC: 'USD'
 };
 
 export const MAX_DECIMAL_PLACE = 8;

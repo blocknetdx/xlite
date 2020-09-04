@@ -131,6 +131,11 @@ export default (state = getInitialState(), { type, payload }) => {
         ...state,
         ccVersion: payload.version
       };
+    case actions.SET_ALT_CURRENCY:
+      return {
+        ...state,
+        altCurrency: payload.altCurrency
+      };
     default:
       return state;
   }
