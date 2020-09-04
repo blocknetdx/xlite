@@ -14,6 +14,27 @@ export const handleError = err => {
   console.error(err);
 };
 
+const reParseAPIError = /^(?:.*Error:\s)?(.*?)\s*$/i;
+/**
+ * The api error message is parsed so that the last
+ * error message is used.
+ * @param err {Error}
+ * @return {Error}
+ */
+export const parseAPIError = err => {
+  if (!err || !err.message)
+    return err;
+  const matches = err.message.match(reParseAPIError);
+  if (!matches)
+    return err;
+  if (matches.length === 1) {
+    err.message = matches[0];
+    return err;
+  }
+  err.message = matches[1] || matches[0];
+  return err;
+};
+
 /**
  * Wallets array sorting function
  */
@@ -69,3 +90,11 @@ export const halfYearSeconds = 15768000;
 export const oneYearSeconds = 31536000;
 
 export const oneSat = 1 / 100000000;
+
+export const passwordValidator = {
+  checkLength: password => password.length >= 8,
+  checkLowercase: password => password.toUpperCase() !== password,
+  checkUppercase: password => password.toLowerCase() !== password,
+  checkNumber: password => /\d/.test(password),
+  checkSpecial: password => /[^\s\w\d]/.test(password)
+};

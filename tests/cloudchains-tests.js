@@ -8,11 +8,22 @@ import path from 'path';
 
 import CCWalletConf from '../src/app/types/ccwalletconf';
 import CloudChains from '../src/server/modules/cloudchains';
+import {Crypt, pbkdf2} from '../src/app/modules/crypt';
 import {DEFAULT_MASTER_PORT, platforms, ccBinDirs, ccBinNames} from '../src/app/constants';
 import fakeExecFile from './fake-exec-file';
 import FakeRPCController from './fake-rpc-controller';
+import {parseAPIError} from '../src/app/util';
 import SimpleStorage from '../src/server/modules/storage';
 import {storageKeys} from '../src/server/constants';
+
+describe('Util Test Suite', function() {
+  it('parseAPIError()', function() {
+    parseAPIError(new Error('Error: should return this')).message.should.be.equal('should return this');
+    parseAPIError(new Error('Another Error: Error: should return this')).message.should.be.equal('should return this');
+    parseAPIError(new Error('Another_Error: should return this')).message.should.be.equal('should return this');
+    parseAPIError(new Error('should return this')).message.should.be.equal('should return this');
+  });
+});
 
 describe('CCWalletConf Test Suite', function() {
   const confDataBLOCK = {
@@ -85,7 +96,7 @@ describe('CloudChains Test Suite', function() {
     });
   });
 
-  describe('CloudChains wallet confs', function() {
+  describe('CloudChains', function() {
     const configMaster = path.join(settingsDir, 'config-master.json');
     const configBLOCK = path.join(settingsDir, 'config-BLOCK.json');
     const configBTC = path.join(settingsDir, 'config-BTC.json');
@@ -165,11 +176,22 @@ describe('CloudChains Test Suite', function() {
       cc.isWalletCreated().should.be.false();
     });
     it('CloudChains.saveWalletCredentials()', function() {
+      const password = 'a';
+      const salt = 'b';
+      const mnemonic = 'c';
       const cc = new CloudChains(ccFunc, storage);
-      cc.saveWalletCredentials('a', 'b', 'c');
-      storage.getItem(storageKeys.PASSWORD).should.be.equal('a');
-      storage.getItem(storageKeys.SALT).should.be.equal('b');
-      storage.getItem(storageKeys.MNEMONIC).should.be.equal('c');
+      cc.saveWalletCredentials(password, salt, mnemonic).should.be.equal(true);
+      const spw = pbkdf2(password, salt);
+      const crypt = new Crypt(password, salt);
+      const smnemonic = crypt.decrypt(cc.getStoredMnemonic());
+      cc.getStoredPassword().should.be.equal(spw);
+      cc.getStoredSalt().should.be.equal(salt);
+      mnemonic.should.be.equal(smnemonic);
+    });
+    it('CloudChains.saveWalletCredentials() null salt should work', function() {
+      const cc = new CloudChains(ccFunc, storage);
+      cc.saveWalletCredentials('a', null, 'c').should.be.equal(true);
+      should.exist(cc.getStoredSalt());
     });
     it('CloudChains.getStoredPassword()', function() {
       const cc = new CloudChains(ccFunc, storage);
@@ -185,6 +207,14 @@ describe('CloudChains Test Suite', function() {
       const cc = new CloudChains(ccFunc, storage);
       storage.setItem(storageKeys.MNEMONIC, 'one_two_three');
       cc.getStoredMnemonic().should.be.equal('one_two_three');
+    });
+    it('CloudChains.getDecryptedMnemonic()', function() {
+      const password = 'a';
+      const salt = 'b';
+      const mnemonic = 'c';
+      const cc = new CloudChains(ccFunc, storage);
+      cc.saveWalletCredentials(password, salt, mnemonic);
+      cc.getDecryptedMnemonic(password).should.be.equal(mnemonic);
     });
     it('CloudChains.loadConfs()', function() {
       const cc = new CloudChains(ccFunc, storage);
@@ -257,6 +287,91 @@ describe('CloudChains Test Suite', function() {
         savedData.should.equal(fixedConf);
       }
     });
+    it('CloudChains.enableAllWallets()', async function() {
+      const cc = new CloudChains(ccFunc, storage);
+      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
+      cc._execFile = execFile;
+      cc.enableAllWallets.should.be.a.Function();
+
+      {
+        // If there is an error opening the CLI
+        const success = await new Promise((resolve, reject) => {
+          cc.enableAllWallets()
+            .then(resolve)
+            .catch(reject);
+          mockErr();
+        });
+        success.should.be.false();
+      }
+
+      {
+        // If the process closes
+        const success = await new Promise((resolve, reject) => {
+          cc.enableAllWallets()
+            .then(resolve)
+            .catch(reject);
+          mockClose();
+        });
+        success.should.be.false();
+      }
+
+      {
+        // If the CLI successfully enables the wallets
+        const success = await new Promise((resolve, reject) => {
+          cc.enableAllWallets()
+            .then(resolve)
+            .catch(reject);
+          mockWrite('selection');
+        });
+        success.should.be.true();
+      }
+
+    });
+    it('CloudChains.changePassword()', async function() {
+      const password = 'a';
+      const salt = 'b';
+      const mnemonic = 'c';
+      const cc = new CloudChains(ccFunc, storage);
+      cc.saveWalletCredentials(password, salt, mnemonic).should.be.equal(true);
+      // change password
+      const newPassword = 'z';
+      cc.changePassword(password, newPassword).should.be.equal(true);
+      const newSalt = cc.getStoredSalt();
+      const spw = pbkdf2(newPassword, newSalt);
+      const crypt = new Crypt(newPassword, newSalt);
+      const smnemonic = crypt.decrypt(cc.getStoredMnemonic());
+      cc.getStoredPassword().should.be.equal(spw);
+      mnemonic.should.be.equal(smnemonic);
+      cc.getDecryptedMnemonic(newPassword).should.be.equal(mnemonic);
+    });
+    it('CloudChains.changePassword() should fail on mismatching old and new passwords', async function() {
+      const password = 'a';
+      const salt = 'b';
+      const mnemonic = 'c';
+      const cc = new CloudChains(ccFunc, storage);
+      cc.saveWalletCredentials(password, salt, mnemonic).should.be.equal(true);
+      // change password
+      const newPassword = 'z';
+      should.throws(() => { cc.changePassword('z', newPassword); }, Error);
+      const spw = pbkdf2(password, salt);
+      const crypt = new Crypt(password, salt);
+      const smnemonic = crypt.decrypt(cc.getStoredMnemonic());
+      cc.getStoredPassword().should.be.equal(spw); // should match old
+      mnemonic.should.be.equal(smnemonic); // should match old
+      cc.getDecryptedMnemonic(password).should.be.equal(mnemonic); // should match old
+    });
+    it('CloudChains.changePassword() should fail on bad stored mnemonic', async function() {
+      const password = 'a';
+      const salt = 'b';
+      const mnemonic = 'c';
+      const cc = new CloudChains(ccFunc, storage);
+      cc.saveWalletCredentials(password, salt, mnemonic).should.be.equal(true);
+      // Set bad mnemonic in storage
+      storage.setItem(storageKeys.MNEMONIC, null);
+      // change password
+      const newPassword = 'z';
+      should.throws(() => { cc.changePassword('z', newPassword); }, Error);
+    });
   });
 
   describe('CloudChains CLI methods', function() {
@@ -282,7 +397,6 @@ describe('CloudChains Test Suite', function() {
         platformNamePatt.test(cliDir).should.be.true();
       }
     });
-
     it('CloudChains.getCCSPVFilePath()', function() {
       const cc = new CloudChains(ccFunc, storage);
       cc.getCCSPVFilePath.should.be.a.Function();
@@ -297,7 +411,6 @@ describe('CloudChains Test Suite', function() {
         platformNamePatt.test(filePath).should.be.true();
       }
     });
-
     it('CloudChains.getCCSPVVersion()', async function() {
       const cc = new CloudChains(ccFunc, storage);
       const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
@@ -330,7 +443,6 @@ describe('CloudChains Test Suite', function() {
       });
       version.should.equal(testVersion);
     });
-
     it('CloudChains.isWalletRPCRunning()', function() {
       const cc = new CloudChains(ccFunc, storage);
       cc.loadConfs();
@@ -348,7 +460,6 @@ describe('CloudChains Test Suite', function() {
       cc._rpc.ccHelp = null;
       cc.isWalletRPCRunning().should.finally.be.false();
     });
-
     it('CloudChains.spvIsRunning()', function() {
       const cc = new CloudChains(ccFunc, storage);
       cc.spvIsRunning.should.be.a.Function();
@@ -376,7 +487,6 @@ describe('CloudChains Test Suite', function() {
         running.should.be.true();
       }
     });
-
     it('CloudChains.startSPV()', async function() {
       const cc = new CloudChains(ccFunc, storage);
       const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
@@ -429,7 +539,6 @@ describe('CloudChains Test Suite', function() {
       }
 
     });
-
     it('CloudChains.stopSPV()', function() {
       const cc = new CloudChains(ccFunc, storage);
       cc.stopSPV.should.be.a.Function();
@@ -441,7 +550,6 @@ describe('CloudChains Test Suite', function() {
       cc.stopSPV();
       wasKilled().should.be.true();
     });
-
     it('CloudChains.createSPVWallet()', async function() {
       const cc = new CloudChains(ccFunc, storage);
       const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
@@ -484,48 +592,6 @@ describe('CloudChains Test Suite', function() {
         res.should.equal(testMnemonic);
       }
     });
-
-    it('CloudChains.enableAllWallets()', async function() {
-      const cc = new CloudChains(ccFunc, storage);
-      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
-      cc._execFile = execFile;
-      cc.enableAllWallets.should.be.a.Function();
-
-      {
-        // If there is an error opening the CLI
-        const success = await new Promise((resolve, reject) => {
-          cc.enableAllWallets()
-            .then(resolve)
-            .catch(reject);
-          mockErr();
-        });
-        success.should.be.false();
-      }
-
-      {
-        // If the process closes
-        const success = await new Promise((resolve, reject) => {
-          cc.enableAllWallets()
-            .then(resolve)
-            .catch(reject);
-          mockClose();
-        });
-        success.should.be.false();
-      }
-
-      {
-        // If the CLI successfully enables the wallets
-        const success = await new Promise((resolve, reject) => {
-          cc.enableAllWallets()
-            .then(resolve)
-            .catch(reject);
-          mockWrite('selection');
-        });
-        success.should.be.true();
-      }
-
-    });
-
     it('CloudChains._isCLIAvailable()', function() {
       const cc = new CloudChains(ccFunc, storage);
       cc._cli = {};

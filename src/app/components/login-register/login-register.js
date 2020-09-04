@@ -4,12 +4,14 @@ import {logger} from '../../modules/logger-r';
 import Logo from '../shared/logo';
 import CloudChains from '../../modules/cloudchains-r';
 import { Button } from '../shared/buttons';
-import { Crypt, generateSalt, pbkdf2 } from '../../modules/crypt';
+import {pbkdf2} from '../../modules/crypt';
 import Spinner from '../shared/spinner';
 
 import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
+import { LoginInput } from '../shared/inputs';
+import { passwordValidator } from '../../util';
 
 const {api} = window;
 const {isDev} = api;
@@ -70,58 +72,6 @@ LoginPasswordSubmitInput.propTypes = {
   onSubmit: PropTypes.func
 };
 
-const LoginInput = ({ type, value, placeholder = '', hidden = false, autoFocus = false, setHidden, readOnly = false, onChange }) => {
-
-  const [ focused, setFocused ] = useState(false);
-
-  let node;
-
-  const onHideShowClick = () => {
-    setHidden(!hidden);
-    setTimeout(() => {
-      const $input = $(node).focus();
-      const val = $input.val();
-      $input[0].setSelectionRange(val.length, val.length);
-    }, 0);
-  };
-
-  return (
-    <div className={`lw-login-input-container ${focused ? 'active' : ''}`} style={{marginBottom: 10}}>
-      <input placeholder={placeholder}
-             ref={n => n ? node = n : null}
-             className={'lw-login-input'}
-             value={value}
-             type={type === 'password' && hidden ? 'password' : type === 'password' ? 'text' : type}
-             autoFocus={autoFocus}
-             required={true}
-             spellCheck={false}
-             onChange={e => onChange(e.target.value)}
-             onFocus={() => setFocused(true)}
-             readOnly={readOnly}
-             onBlur={() => setFocused(false)} />
-      {setHidden ?
-        <button type={'button'} tabIndex={-1} onClick={onHideShowClick}>
-          <i className={`far ${hidden ? 'fa-eye' : 'fa-eye-slash'}`}
-             title={hidden ? Localize.text('Show password', 'login') : Localize.text('Hide password', 'login')} />
-        </button>
-        :
-        null
-      }
-    </div>
-  );
-};
-LoginInput.propTypes = {
-  hidden: PropTypes.bool,
-  setHidden: PropTypes.func,
-  value: PropTypes.string,
-  type: PropTypes.string,
-  autoFocus: PropTypes.bool,
-  placeholder: PropTypes.string,
-  readOnly: PropTypes.bool,
-  onChange: PropTypes.func,
-  onSubmit: PropTypes.func
-};
-
 const okIconWidth = 20;
 const OkIcon = () => <i className={'fas fa-check lw-color-positive-1'} style={{width: okIconWidth}} />;
 const NotOkIcon = () => <i className={'fas fa-times color-negative'} style={{width: okIconWidth}} />;
@@ -141,11 +91,11 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
   const [ cloudChainsIsWalletRPCRunning, setCloudChainsIsWalletRPCRunning ] = useState(false);
   const [ cloudChainsStoredPassword, setCloudChainsStoredPassword ] = useState(false);
 
-  const passwordLengthGood = password.length >= 8;
-  const passwordContainsLowercase = password.toUpperCase() !== password;
-  const passwordContainsUppercase = password.toLowerCase() !== password;
-  const passwordContainsNumber = /\d/.test(password);
-  const passwordContainsSpecial = /[^\s\w\d]/.test(password);
+  const passwordLengthGood = passwordValidator.checkLength(password);
+  const passwordContainsLowercase = passwordValidator.checkLowercase(password);
+  const passwordContainsUppercase = passwordValidator.checkUppercase(password);
+  const passwordContainsNumber = passwordValidator.checkNumber(password);
+  const passwordContainsSpecial = passwordValidator.checkSpecial(password);
   const passwordsMatch = password && password === passwordRepeat;
 
   // The component requires additional data before rendering
@@ -229,21 +179,12 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
       return;
     }
 
-    const salt = generateSalt(32);
-    const hashedPassword = pbkdf2(password, salt);
-
-    let crypt, encryptedMnemonic;
-    try {
-      crypt = new Crypt(password, salt);
-      encryptedMnemonic = crypt.encrypt(m);
-    } catch(err) {
-      logger.error('Problem encrypting the mnemonic');
-      setErrorMessage(Localize.text('Oops! There was a problem encrypting the mnemonic.', 'login'));
+    if (!await cloudChains.saveWalletCredentials(password, null, m)) {
+      logger.error('failed to save the wallet credentials');
+      setErrorMessage(Localize.text('Oops! There was a problem saving the wallet credentials.', 'login'));
       setProcessing(false);
       return;
     }
-
-    await cloudChains.saveWalletCredentials(hashedPassword, salt, encryptedMnemonic);
 
     try {
       await cloudChains.loadConfs(); // load all confs and update the master conf if necessary

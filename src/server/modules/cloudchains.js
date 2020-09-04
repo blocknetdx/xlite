@@ -1,5 +1,6 @@
 import {ccBinDirs, ccBinNames, DEFAULT_MASTER_PORT} from '../../app/constants';
 import CCWalletConf from '../../app/types/ccwalletconf';
+import {Crypt, generateSalt, pbkdf2} from '../../app/modules/crypt';
 import {logger} from './logger';
 import {storageKeys} from '../constants';
 import RPCController from './rpc-controller';
@@ -186,16 +187,32 @@ class CloudChains {
 
   /**
    * Save the cloudchains wallet credentials.
-   * @param hashedPassword {string}
-   * @param salt {string}
-   * @param encryptedMnemonic {string}
+   * @param password {string}
+   * @param salt {string|null}
+   * @param mnemonic {string}
    */
-  saveWalletCredentials(hashedPassword, salt, encryptedMnemonic) {
+  saveWalletCredentials(password, salt, mnemonic) {
+    if (!salt)
+      salt = generateSalt(32);
+
+    const hashedPassword = pbkdf2(password, salt);
+    let encryptedMnemonic;
+
+    try {
+      const crypt = new Crypt(password, salt);
+      encryptedMnemonic = crypt.encrypt(mnemonic);
+    } catch(err) {
+      logger.error('failed to encrypt the mnemonic');
+      return false;
+    }
+
     this._storage.setItems({
       [storageKeys.PASSWORD]: hashedPassword,
       [storageKeys.SALT]: salt,
       [storageKeys.MNEMONIC]: encryptedMnemonic,
     });
+
+    return true;
   }
 
   /**
@@ -229,6 +246,24 @@ class CloudChains {
     if (!m || !_.isString(m))
       return null;
     return m;
+  }
+
+  /**
+   * Return the last known cloudchains wallet mnemonic. This is encrypted.
+   * @param currentPassword {string} Used to decrypt the mnemonic
+   * @return {string|null} Returns null if the decryption failed or the mnemonic doesn't exist
+   */
+  getDecryptedMnemonic(currentPassword) {
+    const m = this._storage.getItem(storageKeys.MNEMONIC);
+    if (!m || !_.isString(m))
+      return null;
+
+    try {
+      const crypt = new Crypt(currentPassword, this.getStoredSalt());
+      return crypt.decrypt(m);
+    } catch (e) {
+      return null;
+    }
   }
 
   /**
@@ -483,6 +518,41 @@ class CloudChains {
         resolve(false);
       });
     });
+  }
+
+  /**
+   * Changes the password and re-encrypts the stored mnemonic. Fails if the old
+   * and new passwords don't match or if there's an error.
+   * @param oldPassword
+   * @param newPassword
+   * @return {boolean}
+   */
+  changePassword(oldPassword, newPassword) {
+    const currentPassword = this.getStoredPassword();
+    const currentSalt = this.getStoredSalt();
+    const storedMnemonic = this.getStoredMnemonic();
+
+    const checkOldPassword = pbkdf2(oldPassword, currentSalt);
+    if (currentPassword !== checkOldPassword) {
+      logger.error('failed to change the password, passwords do not match');
+      throw new Error('The old password is incorrect.');
+    }
+
+    let decryptedMnemonic = null;
+    try {
+      const crypt = new Crypt(oldPassword, currentSalt);
+      decryptedMnemonic = crypt.decrypt(storedMnemonic);
+    } catch(err) {
+      logger.error('failed to decrypt the existing mnemonic', err);
+      throw new Error('Failed to decrypt the existing mnemonic.');
+    }
+
+    if (decryptedMnemonic === null) {
+      logger.error('failed to decrypt the existing mnemonic');
+      throw new Error('Failed to decrypt the existing mnemonic (2).');
+    }
+
+    return this.saveWalletCredentials(newPassword, null, decryptedMnemonic);
   }
 
   /**

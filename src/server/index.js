@@ -2,7 +2,6 @@ import Api from './modules/api';
 import CloudChains from './modules/cloudchains';
 import {DATA_DIR, getLocaleData, storageKeys} from './constants';
 import {DEFAULT_LOCALE, DEFAULT_ZOOM_FACTOR, ipcMainListeners} from '../app/constants';
-import {generateSalt, pbkdf2} from '../app/modules/crypt';
 import Localize from '../app/components/shared/localize';
 import {logger} from './modules/logger';
 import openAppWindow from './windows/app-window';
@@ -55,15 +54,15 @@ Localize.initialize({
   localeData: getLocaleData(locale)
 });
 
+// Create CloudChains conf manager
+const cloudChains = new CloudChains(CloudChains.defaultPathFunc, storage);
+
 // Set env password
 const { CC_WALLET_PASS = '' } = process.env;
 if (CC_WALLET_PASS !== '') {
-  const salt = generateSalt(32);
-  const hashedPassword = pbkdf2(CC_WALLET_PASS, salt);
-  storage.setItems({
-    [storageKeys.PASSWORD]: hashedPassword,
-    [storageKeys.SALT]: salt
-  });
+  const mnemonic = cloudChains.getDecryptedMnemonic(CC_WALLET_PASS);
+  if (!cloudChains.saveWalletCredentials(CC_WALLET_PASS, null, mnemonic || 'unknown'))
+    logger.error('failed to save CC_WALLET_PASS wallet credentials');
 }
 
 // Handle zoom changes
@@ -87,7 +86,6 @@ const makeError = (title, msg) => {
   return {title, msg};
 };
 
-let cloudChains = null;
 let confController = null;
 let walletController = null;
 let api = null;
@@ -101,8 +99,6 @@ const startup = async () => {
     logger.error(e);
   }
 
-  // Create CloudChains conf manager
-  cloudChains = new CloudChains(CloudChains.defaultPathFunc, storage);
   if (!cloudChains.isInstalled() || !cloudChains.hasSettings()) {
     logger.info('No CloudChains installation found, installing wallet configs');
 
