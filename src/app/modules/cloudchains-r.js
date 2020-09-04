@@ -1,4 +1,5 @@
 import CCWalletConf from '../types/ccwalletconf';
+import {parseAPIError} from '../util';
 
 /**
  * CloudChains renderer counterpart.
@@ -95,14 +96,13 @@ class CloudChains {
 
   /**
    * Save the cloudchains wallet credentials.
-   * @param hashedPassword {string}
-   * @param salt {string}
-   * @param encryptedMnemonic {string}
+   * @param password {string}
+   * @param salt {string|null} If null the salt is created
+   * @param mnemonic {string}
    */
-  async saveWalletCredentials(hashedPassword, salt, encryptedMnemonic) {
+  async saveWalletCredentials(password, salt, mnemonic) {
     try {
-      await this._api.cloudChains_saveWalletCredentials(hashedPassword, salt, encryptedMnemonic);
-      return true;
+      return await this._api.cloudChains_saveWalletCredentials(password, salt, mnemonic);
     } catch (err) {
       return false;
     }
@@ -243,6 +243,23 @@ class CloudChains {
       return await this._api.cloudChains_enableAllWallets();
     } catch (e) {
       return false;
+    }
+  }
+
+  /**
+   * Changes the password and re-encrypts the stored mnemonic. Fails if the old
+   * and new passwords don't match or if there's an error.
+   * @param oldPassword
+   * @param newPassword
+   * @return {Promise<boolean>}
+   * @throws {Error}
+   */
+  async changePassword(oldPassword, newPassword) {
+    try {
+      return await this._api.cloudChains_changePassword(oldPassword, newPassword);
+    } catch (e) {
+      parseAPIError(e);
+      throw e; // bubble up
     }
   }
 }

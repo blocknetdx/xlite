@@ -4,7 +4,7 @@ import {logger} from '../../modules/logger-r';
 import Logo from '../shared/logo';
 import CloudChains from '../../modules/cloudchains-r';
 import { Button } from '../shared/buttons';
-import { Crypt, generateSalt, pbkdf2 } from '../../modules/crypt';
+import {pbkdf2} from '../../modules/crypt';
 import Spinner from '../shared/spinner';
 
 import _ from 'lodash';
@@ -179,21 +179,12 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
       return;
     }
 
-    const salt = generateSalt(32);
-    const hashedPassword = pbkdf2(password, salt);
-
-    let crypt, encryptedMnemonic;
-    try {
-      crypt = new Crypt(password, salt);
-      encryptedMnemonic = crypt.encrypt(m);
-    } catch(err) {
-      logger.error('Problem encrypting the mnemonic');
-      setErrorMessage(Localize.text('Oops! There was a problem encrypting the mnemonic.', 'login'));
+    if (!await cloudChains.saveWalletCredentials(password, null, m)) {
+      logger.error('failed to save the wallet credentials');
+      setErrorMessage(Localize.text('Oops! There was a problem saving the wallet credentials.', 'login'));
       setProcessing(false);
       return;
     }
-
-    await cloudChains.saveWalletCredentials(hashedPassword, salt, encryptedMnemonic);
 
     try {
       await cloudChains.loadConfs(); // load all confs and update the master conf if necessary

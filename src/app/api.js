@@ -40,6 +40,7 @@ export const apiConstants = {
   cloudChains_stopSPV: 'cloudChains_stopSPV',
   cloudChains_createSPVWallet: 'cloudChains_createSPVWallet',
   cloudChains_enableAllWallets: 'cloudChains_enableAllWallets',
+  cloudChains_changePassword: 'cloudChains_changePassword',
 
   confController_getManifest: 'confController_getManifest',
   confController_getManifestHash: 'confController_getManifestHash',
@@ -177,6 +178,9 @@ const cloudChains_API = {
   },
   [apiConstants.cloudChains_enableAllWallets]: async () => {
     return ipcRenderer.invoke(apiConstants.cloudChains_enableAllWallets);
+  },
+  [apiConstants.cloudChains_changePassword]: async (oldPassword, newPassword) => {
+    return ipcRenderer.invoke(apiConstants.cloudChains_changePassword, oldPassword, newPassword);
   },
 };
 

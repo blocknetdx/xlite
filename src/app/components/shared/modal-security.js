@@ -1,3 +1,5 @@
+import Alert from '../../modules/alert';
+import CloudChains from '../../modules/cloudchains-r';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
@@ -8,9 +10,11 @@ import { Button } from './buttons';
 import { LoginInput } from './inputs';
 import { passwordValidator } from '../../util';
 
-const SecurityModal = ({ hideSecurityModal }) => {
+const SecurityModal = ({ cloudChains, hideSecurityModal }) => {
 
+  const [ hiddenOldPassword, setHiddenOldPassword ] = useState(true);
   const [ hidden, setHidden ] = useState(true);
+  const [ oldPassword, setOldPassword ] = useState('');
   const [ password, setPassword ] = useState('');
   const [ passwordRepeat, setPasswordRepeat ] = useState('');
   const [ processing, setProcessing ] = useState(false);
@@ -22,13 +26,34 @@ const SecurityModal = ({ hideSecurityModal }) => {
   const passwordContainsSpecial = passwordValidator.checkSpecial(password);
   const passwordsMatch = password && password === passwordRepeat;
 
-  const passwordsGood = passwordLengthGood && passwordContainsLowercase && passwordContainsUppercase && passwordContainsNumber && passwordContainsSpecial && passwordsMatch;
+  const passwordsGood = oldPassword !== '' && passwordLengthGood && passwordContainsLowercase && passwordContainsUppercase && passwordContainsNumber && passwordContainsSpecial && passwordsMatch;
 
-  const onSubmit = e => {
+  const onSubmit = async e => {
     e.preventDefault();
 
-    // ToDo add update password functionality
+    if (!cloudChains) {
+      const title = Localize.text('Issue', 'security modal');
+      const msg = Localize.text('The CloudChains daemon is not ready', 'security modal');
+      await Alert.error(title, msg);
+      return;
+    }
+    try {
+      if (!await cloudChains.changePassword(oldPassword, password, password)) {
+        const title = Localize.text('Issue', 'security modal');
+        const msg = Localize.text('Failed to change the password, is the CloudChains wallet daemon running?', 'security modal');
+        await Alert.error(title, msg);
+        return;
+      }
+    } catch (err) {
+      await Alert.error(Localize.text('Issue', 'security modal'), Localize.text(err.message, 'security modal'));
+      return;
+    }
 
+    hideSecurityModal();
+
+    const title = Localize.text('Security', 'security modal');
+    const msg = Localize.text('Password updated successfully. Mnemonic re-encrypted', 'security modal');
+    await Alert.info(title, msg);
   };
 
   const styles = {
@@ -44,20 +69,29 @@ const SecurityModal = ({ hideSecurityModal }) => {
       marginBottom: 40
     },
     label: {
-      marginTop: 30
+      marginTop: 10
     }
   };
 
   return (
-    <Modal onClose={hideSecurityModal}>
+    <Modal disableCloseOnOutsideClick={true} onClose={hideSecurityModal}>
       <ModalHeader><Localize context={'security-modal'}>Security</Localize></ModalHeader>
       <ModalBody style={styles.body}>
         <form onSubmit={onSubmit}>
           <p><Localize context={'security-modal'}>Below, you can update your password. Your new password must include an uppercase character, a lowercase character, a number, a special character, and be at least eight characters long.</Localize></p>
+          <label style={styles.label} className={'lw-color-secondary-6'}><Localize context={'security-modal'}>Please specify your current password</Localize>:</label>
+          <LoginInput placeholder={Localize.text('Current password', 'login')}
+                      className={'lw-color-secondary-10'}
+                      autoFocus={true}
+                      value={oldPassword}
+                      type={'password'}
+                      hidden={hiddenOldPassword}
+                      setHidden={setHiddenOldPassword}
+                      readOnly={processing}
+                      onChange={setOldPassword} />
           <label style={styles.label} className={'lw-color-secondary-6'}><Localize context={'security-modal'}>Set new wallet password</Localize>:</label>
           <LoginInput placeholder={Localize.text('Enter password', 'login')}
                       className={'lw-color-secondary-10'}
-                      autoFocus={true}
                       value={password}
                       type={'password'}
                       hidden={hidden}
@@ -81,11 +115,14 @@ const SecurityModal = ({ hideSecurityModal }) => {
   );
 };
 SecurityModal.propTypes = {
+  cloudChains: PropTypes.instanceOf(CloudChains),
   hideSecurityModal: PropTypes.func
 };
 
 export default connect(
-  null,
+  ({ appState }) => ({
+    cloudChains: appState.cloudChains,
+  }),
   dispatch => ({
     hideSecurityModal: () => dispatch(appActions.setShowSecurityModal(false))
   })
