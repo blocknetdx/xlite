@@ -37,3 +37,10 @@
   .lw-balance-coindetails h4 { font-size: 14px; }
 
 }
+
+.lw-balance-filters {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  margin-left: auto;
+}

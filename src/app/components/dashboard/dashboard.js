@@ -5,12 +5,13 @@ import PropTypes from 'prop-types';
 import {Map as IMap} from 'immutable';
 import Wallet from '../../types/wallet-r';
 import Balance from '../shared/balance';
+import BalanceFilters from '../shared/button-filters';
 import { Column, Row } from '../shared/flex';
 import AssetsOverviewPanel from '../shared/assets-overview-panel';
 import Chart from '../shared/chart';
 import {multiplierForCurrency, oneSat} from '../../util';
 import TransactionsPanel from '../shared/transactions-panel';
-import { SIDEBAR_WIDTH } from '../../constants';
+import { SIDEBAR_WIDTH, balanceFilters } from '../../constants';
 const math = create(all, {
   number: 'BigNumber',
   precision: 2
@@ -30,6 +31,9 @@ const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultip
         });
   }, [setChartData, chartScale, balanceOverTime, altCurrency, currencyMultipliers]);
 
+  const onBalanceFilterSelected = filter => {
+    setChartScale(Object.keys(balanceFilters).find(key => balanceFilters[key] === filter));
+  };
   const containerHorizPadding = 25;
   const centerMargin = 30;
   const chartContainerHeight = 360;
@@ -56,7 +60,10 @@ const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultip
     <div className={'lw-dashboard-container'} style={{paddingLeft: containerHorizPadding, paddingRight: containerHorizPadding}}>
       <Row style={{height: chartContainerHeight, minHeight: chartContainerHeight, maxHeight: chartContainerHeight}}>
         <Column>
-          <Balance />
+          <div className={'lw-dashboard-info'}>
+            <Balance />
+            <BalanceFilters selectedFilter={balanceFilters[chartScale]} filters={Object.values(balanceFilters).map(key => key)} onFilterSelected={onBalanceFilterSelected} />
+          </div>
           <Chart className={'lw-dashboard-chart'} chartData={chartData} currency={altCurrency} simple={false} simpleStrokeColor={'#ccc'}
                  hideAxes={false} defaultWidth={chartWidth} defaultHeight={chartHeight}
                  gradientTopColor={'#00ffff'} gradientBottomColor={'rgba(0, 71, 255, 0)'}
