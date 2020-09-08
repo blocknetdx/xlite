@@ -35,6 +35,7 @@ export const actions = {
 
 export const localStorageKeys = {
   ACTIVE_WALLET: 'ACTIVE_WALLET',
+  ACTIVE_CHART_FILTER: 'ACTIVE_CHART_FILTER',
 };
 
 export const ipcMainListeners = {
@@ -101,3 +102,11 @@ export const MIN_WINDOW_WIDTH = 800;
 export const MIN_WINDOW_HEIGHT = 600;
 export const MIN_UI_WIDTH = 1024;
 export const MIN_UI_HEIGHT = 600;
+
+export const balanceFilters = {
+  day: '24H',
+  week: '1W',
+  month: '1M',
+  'half-year': '6M',
+  year: '1Y'
+};
