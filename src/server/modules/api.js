@@ -198,6 +198,9 @@ class Api {
     this._proc.handle(apiConstants.cloudChains_getStoredMnemonic, (evt, arg) => {
       return this._cloudChains.getStoredMnemonic();
     });
+    this._proc.handle(apiConstants.cloudChains_getDecryptedMnemonic, (evt, password) => {
+      return this._cloudChains.getDecryptedMnemonic(password);
+    });
     this._proc.handle(apiConstants.cloudChains_loadConfs, (evt, arg) => {
       return this._cloudChains.loadConfs();
     });

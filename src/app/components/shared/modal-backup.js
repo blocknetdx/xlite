@@ -15,8 +15,14 @@ const BackupModal = ({ hideBackupModal, cloudChains }) => {
   const [ password, setPassword ] = useState('');
   const [ processing, setProcessing ] = useState(false);
 
+  const onCloseModal = () => {
+    setPassword('');
+    hideBackupModal();
+  };
+
   const onDownloadFileClick = async e => {
     e.preventDefault();
+
     if (password.length === 0) {
       const title = Localize.text('Issue', 'backup modal');
       const msg = Localize.text('Please enter your password', 'backup modal');
@@ -40,8 +46,13 @@ const BackupModal = ({ hideBackupModal, cloudChains }) => {
       await Alert.error(Localize.text('Issue', 'backup modal'), Localize.text(err.message, 'backup modal'));
       return;
     }
-    // ToDo add download backup file functionality
-    setProcessing(true);
+
+    const storedMnemonic = await cloudChains.getDecryptedMnemonic(password);
+    const blob = new Blob([storedMnemonic], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = 'xlite_backup.txt';
+    link.click();
   };
 
   const styles = {
@@ -64,7 +75,7 @@ const BackupModal = ({ hideBackupModal, cloudChains }) => {
   };
 
   return (
-    <Modal onClose={hideBackupModal}>
+    <Modal onClose={onCloseModal}>
       <ModalHeader><Localize context={'backup-modal'}>Backup</Localize></ModalHeader>
       <ModalBody style={styles.body}>
         <p><Localize context={'backup-modal'}>The following downloaded file can be used to recover your funds. Make sure to download and store it in a safe and secure place.</Localize></p>
