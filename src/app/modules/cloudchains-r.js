@@ -262,6 +262,22 @@ class CloudChains {
       throw e; // bubble up
     }
   }
+
+  /**
+   * Returns true if password matches stored password.
+   * Returns false otherwise.
+   * @param password
+   * @return {Promise<boolean>}
+   * @throws {Error}
+   */
+  async matchesStoredPassword(password) {
+    try {
+      return await this._api.cloudChains_matchesStoredPassword(password);
+    } catch (e) {
+      parseAPIError(e);
+      throw e; // bubble up
+    }
+  }
 }
 
 export default CloudChains;

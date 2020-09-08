@@ -225,6 +225,9 @@ class Api {
     this._proc.handle(apiConstants.cloudChains_changePassword, (evt, oldPassword, newPassword) => {
       return this._cloudChains.changePassword(oldPassword, newPassword);
     });
+    this._proc.handle(apiConstants.cloudChains_matchesStoredPassword, (evt, password) => {
+      return this._cloudChains.matchesStoredPassword(password);
+    });
   }
 
   /**
