@@ -39,7 +39,8 @@ let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendMo
       flexWrap: 'nowrap',
       justifyContent: 'flex-start',
       minHeight: 0,
-      overflowY: 'hidden'
+      overflowY: 'hidden',
+      overflowX: 'hidden',
     },
     innerBodyContainer: {
       flexGrow: 1,

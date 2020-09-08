@@ -1,4 +1,4 @@
-const {contextBridge, ipcRenderer} = require('electron');
+const {contextBridge, ipcRenderer, webFrame} = require('electron');
 
 /**
  * API constants.
@@ -21,6 +21,15 @@ export const apiConstants = {
   general_qrCode: 'general_qrCode',
   general_setClipboard: 'general_setClipboard',
   general_getClipboard: 'general_getClipboard',
+  general_zoomIn: 'general_zoomIn',
+  general_zoomOut: 'general_zoomOut',
+  general_zoomReset: 'general_zoomReset',
+  general_getZoomFactor: 'general_getZoomFactor',
+  general_setZoomFactor: 'general_setZoomFactor',
+  general_onZoomIn: 'general_onZoomIn',
+  general_onZoomOut: 'general_onZoomOut',
+  general_onZoomReset: 'general_onZoomReset',
+  general_getPlatform: 'general_getPlatform',
 
   cloudChains_isInstalled: 'cloudChains_isInstalled',
   cloudChains_hasSettings: 'cloudChains_hasSettings',
@@ -120,6 +129,39 @@ const general_API = {
   },
   [apiConstants.general_getClipboard]: async () => {
     return ipcRenderer.invoke(apiConstants.general_getClipboard);
+  },
+  [apiConstants.general_zoomIn]: () => {
+    ipcRenderer.send(apiConstants.general_zoomIn);
+  },
+  [apiConstants.general_zoomOut]: () => {
+    ipcRenderer.send(apiConstants.general_zoomOut);
+  },
+  [apiConstants.general_zoomReset]: () => {
+    ipcRenderer.send(apiConstants.general_zoomReset);
+  },
+  [apiConstants.general_getZoomFactor]: () => {
+    return webFrame.getZoomFactor();
+  },
+  [apiConstants.general_setZoomFactor]: zoomFactor => {
+    webFrame.setZoomFactor(zoomFactor);
+  },
+  [apiConstants.general_getPlatform]: () => {
+    return ipcRenderer.sendSync(apiConstants.general_getPlatform);
+  },
+  [apiConstants.general_onZoomIn]: callback => {
+    ipcRenderer.on(apiConstants.general_onZoomIn, (evt, zoomFactor) => {
+      callback(zoomFactor);
+    });
+  },
+  [apiConstants.general_onZoomOut]: callback => {
+    ipcRenderer.on(apiConstants.general_onZoomOut, (evt, zoomFactor) => {
+      callback(zoomFactor);
+    });
+  },
+  [apiConstants.general_onZoomReset]: callback => {
+    ipcRenderer.on(apiConstants.general_onZoomReset, () => {
+      callback();
+    });
   },
 };
 
