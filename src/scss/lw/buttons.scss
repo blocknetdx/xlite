@@ -1,4 +1,5 @@
 @import './variables';
+@import './fonts';
 
 $lw-button-background-color: $lw-bg-1;
 $lw-button-background-hover-color: lighten($lw-button-background-color, 15%);
@@ -81,23 +82,29 @@ button {
 
 .lw-button-square {
   width: auto;
-  max-height: 46px;
-  padding: 10px 15px;
+  max-height: 32px;
+  padding: 6px 10px;
   text-align: center;
-  border: 1px solid #949494;
+  border: 1px solid $lw-secondary-5;
   border-radius: 6px;
   margin: 5px 0 5px 10px;
-  color: #949494;
+  color: $lw-secondary-5;
   cursor: pointer;
+  font-family: IBMPlexSans;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.67;
+
+  letter-spacing: normal;
 
   &:hover {
     color: white;
-    border: 1px solid white;
+    border: 1px solid $lw-secondary-1;
   }
 
   &.active {
     color: white;
-    border: 1px solid white;
+    border: 1px solid $lw-secondary-1;
   }
 
   &.disabled {
