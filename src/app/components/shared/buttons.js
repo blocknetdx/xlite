@@ -28,16 +28,18 @@ Button.propTypes = {
   onClick: PropTypes.func
 };
 
-const SquareButton = ({ id = '', title = '', active, disabled, onClick }) => {
+const SquareButton = ({ id = '', title = '', icon, active, disabled, onClick }) => {
   return (
     <div id={id} className={`lw-button-square ${active ? 'active' : ''}`} disabled={disabled} onClick={onClick}>
       {title}
+      {icon ? <i className={icon} /> : null}
     </div>
   );
 };
 SquareButton.propTypes = {
   id: PropTypes.string,
   title: PropTypes.string,
+  icon: PropTypes.string,
   active: PropTypes.bool,
   disabled: PropTypes.bool,
   onClick: PropTypes.func
