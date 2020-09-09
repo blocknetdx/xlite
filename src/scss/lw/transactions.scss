@@ -23,3 +23,57 @@
   font-size: 11px;
   color: $lw-secondary-3;
 }
+
+.lw-transactions-panel-header {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+
+  .lw-transactions-panel-header-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  h1 {
+    font-family: IBMPlexSans;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    letter-spacing: normal;
+    margin-bottom: 0;
+  }
+
+  i {
+    line-height: $lw-icon-input-height - 20;
+    width: 40px;
+    min-width: 40px;
+    text-align: center;
+    opacity: .8;
+    cursor: pointer;
+    font-size: 14px;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .lw-transactions-panel-header-filters {
+    display: flex;
+    flex-direction: row;
+    margin-left: auto;
+    align-items: center;
+  }
+
+  .lw-transactions-panel-text {
+    font-family: IBMPlexSans;
+    font-size: 13px;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: normal;
+    letter-spacing: normal;
+    color: $lw-text-primary;
+  }
+}

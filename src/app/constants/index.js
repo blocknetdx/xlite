@@ -112,3 +112,10 @@ export const balanceFilters = {
   'half-year': '6M',
   year: '1Y'
 };
+
+export const transactionFilters = {
+  all: 'All',
+  sent: 'Sent',
+  received: 'Received',
+  transfers: 'Transfers'
+};

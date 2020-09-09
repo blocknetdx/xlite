@@ -81,6 +81,8 @@ button {
 }
 
 .lw-button-square {
+  display: flex;
+  align-items: center;
   width: auto;
   max-height: 32px;
   padding: 6px 10px;
@@ -110,5 +112,12 @@ button {
   &.disabled {
     pointer-events: none;
     opacity: 0.7;
+  }
+
+  i {
+    font-size: 10px;
+    width: 12px;
+    min-width: 12px;
+    margin-left: 10px;
   }
 }
