@@ -7,6 +7,7 @@ import WalletController from './wallet-controller';
 import _ from 'lodash';
 import electron from 'electron';
 import isDev from 'electron-is-dev';
+import {Map as IMap} from 'immutable';
 import path from 'path';
 import QRCode from 'qrcode';
 
@@ -66,6 +67,20 @@ class Api {
   _zoomController = null;
 
   /**
+   * Default list of whitelisted fields (included in api results)
+   * @type {[string]}
+   * @private
+   */
+  _whitelist = ['_token'];
+
+  /**
+   * Default list of blacklisted fields (omitted from api results)
+   * @type {[string]}
+   * @private
+   */
+  _blacklist = ['rpc', 'rpcPassword', 'rpcUsername', 'rpcPort', 'rpcport'];
+
+  /**
    * Constructor
    * @param storage {SimpleStorage}
    * @param app {Electron.App}
@@ -76,7 +91,7 @@ class Api {
    * @param walletController {WalletController}
    * @param zoomController {ZoomController}
    */
-  constructor(storage, app, proc, err, cloudChains = null, confController = null, walletController = null, zoomController) {
+  constructor(storage, app, proc, err, cloudChains = null, confController = null, walletController = null, zoomController = null) {
     this._storage = storage;
     this._app = app;
     this._proc = proc;
@@ -98,10 +113,14 @@ class Api {
     if (this._err)
       return; // do not expose rest of api on error
 
-    this._initCloudChains();
-    this._initConfController();
-    this._initWalletController();
-    this._initWallet();
+    if (this._cloudChains)
+      this._initCloudChains();
+    if (this._confController)
+      this._initConfController();
+    if (this._walletController) {
+      this._initWalletController();
+      this._initWallet();
+    }
   }
 
   /**
@@ -166,9 +185,11 @@ class Api {
       return electron.clipboard.writeText(text.trim());
     });
     this._proc.handle(apiConstants.general_getClipboard, (evt, arg) => {
-      return electron.clipboard.readText('selection');
+      return electron.clipboard.readText('selection'); // TODO Security issue?
     });
     this._proc.on(apiConstants.general_isDev, (evt, arg) => evt.returnValue = isDev);
+
+    if (this._zoomController) {
     this._proc.on(apiConstants.general_setZoomFactor, (evt, zoomFactor) => {
       this._storage.setItem(storageKeys.ZOOM_FACTOR, zoomFactor);
     });
@@ -184,6 +205,7 @@ class Api {
     this._proc.on(apiConstants.general_getPlatform, (evt) => {
       evt.returnValue = process.platform;
     });
+    } // end zoomController
   }
 
   /**
@@ -197,14 +219,14 @@ class Api {
     this._proc.handle(apiConstants.cloudChains_hasSettings, (evt, arg) => {
       return this._cloudChains.hasSettings();
     });
-    this._proc.handle(apiConstants.cloudChains_getWalletConf, (evt, ticker) => {
-      return this._cloudChains.getWalletConf(ticker);
+    this._proc.handle(apiConstants.cloudChains_getWalletConf, async (evt, ticker) => {
+      return this.sanitize(await this._cloudChains.getWalletConf(ticker), this._blacklist, this._whitelist);
     });
-    this._proc.handle(apiConstants.cloudChains_getWalletConfs, (evt, arg) => {
-      return this._cloudChains.getWalletConfs();
+    this._proc.handle(apiConstants.cloudChains_getWalletConfs, async (evt, arg) => {
+      return this.sanitize(await this._cloudChains.getWalletConfs(), this._blacklist, this._whitelist);
     });
-    this._proc.handle(apiConstants.cloudChains_getMasterConf, (evt, arg) => {
-      return this._cloudChains.getMasterConf();
+    this._proc.handle(apiConstants.cloudChains_getMasterConf, async (evt, arg) => {
+      return this.sanitize(await this._cloudChains.getMasterConf(), this._blacklist, this._whitelist);
     });
     this._proc.handle(apiConstants.cloudChains_isWalletCreated, (evt, arg) => {
       return this._cloudChains.isWalletCreated();
@@ -267,8 +289,8 @@ class Api {
     this._proc.handle(apiConstants.confController_getManifestHash, (evt, arg) => {
       return this._confController.getManifestHash();
     });
-    this._proc.handle(apiConstants.confController_getXBridgeInfo, (evt, arg) => {
-      return this._confController.getXBridgeInfo();
+    this._proc.handle(apiConstants.confController_getXBridgeInfo, async (evt, arg) => {
+      return this.sanitize(await this._confController.getXBridgeInfo(), this._blacklist, this._whitelist);
     });
   }
 
@@ -277,14 +299,14 @@ class Api {
    * @private
    */
   _initWalletController() {
-    this._proc.handle(apiConstants.walletController_getWallets, (evt, arg) => {
-      return this._walletController.getWallets();
+    this._proc.handle(apiConstants.walletController_getWallets, async (evt, arg) => {
+      return this.sanitize(_.cloneDeep(await this._walletController.getWallets()), this._blacklist, this._whitelist);
     });
-    this._proc.handle(apiConstants.walletController_getWallet, (evt, ticker) => {
-      return this._walletController.getWallet(ticker);
+    this._proc.handle(apiConstants.walletController_getWallet, async (evt, ticker) => {
+      return this.sanitize(_.cloneDeep(await this._walletController.getWallet(ticker)), this._blacklist, this._whitelist);
     });
-    this._proc.handle(apiConstants.walletController_getEnabledWallets, (evt, arg) => {
-      return this._walletController.getEnabledWallets();
+    this._proc.handle(apiConstants.walletController_getEnabledWallets, async (evt, arg) => {
+      return this.sanitize(_.cloneDeep(await this._walletController.getEnabledWallets()), this._blacklist, this._whitelist);
     });
     this._proc.handle(apiConstants.walletController_getBalances, (evt, arg) => {
       return this._walletController.getBalances();
@@ -317,8 +339,8 @@ class Api {
     this._proc.handle(apiConstants.wallet_getBalance, (evt, ticker) => {
       return this._walletController.getWallet(ticker).getBalance();
     });
-    this._proc.handle(apiConstants.wallet_getTransactions, (evt, ticker, startTime, endTime) => {
-      return this._walletController.getWallet(ticker).getTransactions(startTime, endTime);
+    this._proc.handle(apiConstants.wallet_getTransactions, async (evt, ticker, startTime, endTime) => {
+      return this.sanitize(await this._walletController.getWallet(ticker).getTransactions(startTime, endTime), this._blacklist, this._whitelist);
     });
     this._proc.handle(apiConstants.wallet_getAddresses, (evt, ticker) => {
       return this._walletController.getWallet(ticker).getAddresses();
@@ -326,13 +348,62 @@ class Api {
     this._proc.handle(apiConstants.wallet_generateNewAddress, (evt, ticker) => {
       return this._walletController.getWallet(ticker).generateNewAddress();
     });
-    this._proc.handle(apiConstants.wallet_getCachedUnspent, (evt, ticker, cacheExpirySeconds) => {
-      return this._walletController.getWallet(ticker).getCachedUnspent(cacheExpirySeconds);
+    this._proc.handle(apiConstants.wallet_getCachedUnspent, async (evt, ticker, cacheExpirySeconds) => {
+      return this.sanitize(await this._walletController.getWallet(ticker).getCachedUnspent(cacheExpirySeconds), this._blacklist, this._whitelist);
     });
     this._proc.handle(apiConstants.wallet_send, (evt, ticker, recipients) => {
       recipients = recipients.map(r => new Recipient(r));
       return this._walletController.getWallet(ticker).send(recipients);
     });
+  }
+
+  /**
+   * Removes all private fields (those starting with _) and supports
+   * whitelisting any fields. Blacklisted fields take precedence over
+   * whitelisted fields.
+   * @param o {Object}
+   * @param blacklist {Array<string>} Remove all these fields
+   * @param whitelist {Array<string>} Do not remove any of these fields
+   * @return {*}
+   */
+  sanitize(o, blacklist=[], whitelist=[]) {
+    if (_.isNil(o))
+      return o;
+    const b = new Set(blacklist);
+    const w = new Set(whitelist);
+    this.sanitizeObj(o, b, w);
+    return o;
+  }
+
+  /**
+   * Sanitizes a non-array object by removing private fields beginning
+   * with an underscore _ and optionally blacklisting and whitelisting
+   * the specified fields. Blacklisting takes precedence over
+   * whitelisting.
+   * @param o {*}
+   * @param blacklist {Set}
+   * @param whitelist {Set}
+   */
+  sanitizeObj(o, blacklist, whitelist) {
+    if (_.isNull(o) || _.isString(o) || _.isNumber(o) || _.isFunction(o) || _.isBoolean(o))
+      return;
+
+    if (_.isArray(o) || typeof o[Symbol.iterator] === 'function' || o instanceof Set) {
+      for (const item of o)
+        this.sanitizeObj(item, blacklist, whitelist);
+    } else if (o instanceof Map || o instanceof IMap) {
+      for (const [key, value] of o)
+        this.sanitizeObj(value, blacklist, whitelist);
+    } else {
+      for (const key in o) {
+        if ({}.hasOwnProperty.call(o, key)) {
+          if (blacklist.has(key) || (key.startsWith('_') && !whitelist.has(key)))
+            delete o[key];
+          else
+            this.sanitizeObj(o[key], blacklist, whitelist);
+        }
+      }
+    }
   }
 }
 

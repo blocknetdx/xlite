@@ -260,7 +260,7 @@ class Wallet {
       }
     }
 
-    return this._cachedUtxos.utxos;
+    return _.cloneDeep(this._cachedUtxos.utxos);
   }
 
   /**
