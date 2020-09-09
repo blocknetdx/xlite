@@ -36,6 +36,8 @@ export const actions = {
 export const localStorageKeys = {
   ACTIVE_WALLET: 'ACTIVE_WALLET',
   ACTIVE_CHART_FILTER: 'ACTIVE_CHART_FILTER',
+  TRANSACTIONS: 'TRANSACTIONS',
+  TX_LAST_FETCH_TIME: 'TX_LAST_FETCH_TIME',
 };
 
 export const ipcMainListeners = {

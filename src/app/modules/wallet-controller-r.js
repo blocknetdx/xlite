@@ -1,9 +1,19 @@
 import {localStorageKeys} from '../constants';
-import RPCTransaction from '../types/rpc-transaction';
+import {
+  oneDaySeconds,
+  oneHourSeconds,
+  oneMonthSeconds,
+  oneWeekSeconds,
+  halfYearSeconds,
+  oneYearSeconds,
+  multiplierForCurrency,
+  unixTime} from '../util';
 import Wallet from '../types/wallet-r';
 
 import _ from 'lodash';
+import {logger} from './logger-r';
 import {Map as IMap} from 'immutable';
+import moment from 'moment';
 
 /**
  * Wallet controller renderer counterpart.
@@ -27,6 +37,20 @@ class WalletController {
    * @private
    */
   _domStorage = null;
+
+  /**
+   * Stores a cache of balance values.
+   * @type {Map<string, [number, number]>} Map<timeframe, [unix_time, currency_val]>
+   * @private
+   */
+  _balanceOverTimeCache = new Map();
+
+  /**
+   * Stores a cache of balance values.
+   * @type {Map<string, number>} Map<timeframe, last_fetch_time>
+   * @private
+   */
+  _balanceOverTimeFetchCache = new Map();
 
   /**
    * Track wallet polling.
@@ -62,8 +86,10 @@ class WalletController {
     try {
       const wallets = await this._api.walletController_getWallets();
       const r = [];
-      for (const wallet of wallets)
-        r.push(new Wallet(this._api, wallet));
+      for (const wallet of wallets) {
+        if (wallet)
+          r.push(new Wallet(this._api, this._domStorage, wallet));
+      }
       return r;
     } catch (err) {
       return [];
@@ -78,7 +104,9 @@ class WalletController {
   async getWallet(ticker) {
     try {
       const wallet = await this._api.walletController_getWallet(ticker);
-      return new Wallet(this._api, wallet);
+      if (!wallet)
+        return null;
+      return new Wallet(this._api, this._domStorage, wallet);
     } catch (err) {
       return null;
     }
@@ -92,8 +120,10 @@ class WalletController {
     try {
       const wallets = await this._api.walletController_getEnabledWallets();
       const r = [];
-      for (const wallet of wallets)
-        r.push(new Wallet(this._api, wallet));
+      for (const wallet of wallets) {
+        if (wallet)
+          r.push(new Wallet(this._api, this._domStorage, wallet));
+      }
       return r;
     } catch (err) {
       return [];
@@ -120,14 +150,11 @@ class WalletController {
    * @return {Map<string, RPCTransaction[]>}
    */
   async getTransactions(start = 0, end = 0) {
-    try {
-      const data = await this._api.walletController_getTransactions(start, end);
-      for (const [ticker, txs] of data)
-        data.set(ticker, txs.map(tx => new RPCTransaction(tx)));
-      return data;
-    } catch (err) {
-      return new Map();
-    }
+    const data = new Map();
+    const wallets = await this.getEnabledWallets();
+    for (const wallet of wallets)
+      data.set(wallet.ticker, (await wallet.getTransactions(start, end)));
+    return data;
   }
 
   /**
@@ -138,11 +165,108 @@ class WalletController {
    * @return {[{number}, {number}]} [unix_time, balance]
    */
   async getBalanceOverTime(timeframe, currency, currencyMultipliers) {
-    try {
-      return await this._api.walletController_getBalanceOverTime(timeframe, currency, currencyMultipliers);
-    } catch (err) {
-      return [0, 0];
+    const endTime = unixTime();
+    let startTime = endTime;
+
+    // Check cache first
+    if (this._balanceOverTimeFetchCache.has(timeframe)
+      && endTime - this._balanceOverTimeFetchCache.get(timeframe) <= 120) // 2 mins
+      return this._balanceOverTimeCache.get(timeframe);
+
+    let period;
+    switch (timeframe) {
+      case 'day':
+        startTime -= oneDaySeconds;
+        period = oneHourSeconds;
+        break;
+      case 'week':
+        startTime -= oneWeekSeconds;
+        period = oneHourSeconds;
+        break;
+      case 'month':
+        startTime -= oneMonthSeconds;
+        period = oneDaySeconds;
+        break;
+      case 'year':
+        startTime -= oneYearSeconds;
+        period = oneDaySeconds;
+        break;
+      case 'half-year': // default to half-year
+      default:
+        startTime -= halfYearSeconds;
+        period = oneDaySeconds;
     }
+
+    // Round down to start of day
+    let m = moment.unix(startTime);
+    m = m.startOf('day');
+    startTime = m.unix();
+
+    // Create a list of balances over a total timeframe group in time periods
+    // based on user's timeframe filter.
+    const coinBalances = new Map();
+    const data = await this.getTransactions();
+    for (const [ticker, transactions] of data) {
+      if (transactions.length === 0)
+        continue; // skip, no transactions
+
+      // Currency multiplier for ticker
+      const multiplier = multiplierForCurrency(ticker, currency, currencyMultipliers);
+
+      // Sort by tx time ascending
+      transactions.sort((a,b) => a.time - b.time);
+      // TODO Need to cache the running balance on disk to prevent expensive lookups here
+      // Determine the running balance
+      let runningBalance = 0;
+      for (let i = 0; i < transactions.length; i++) {
+        const tx = transactions[i];
+        if (tx.time >= startTime) {
+          // remove all items up to index
+          transactions.splice(0, i);
+          break; // done, sorted array ensures nothing missing
+        }
+        if (tx.isSend())
+          runningBalance -= Math.abs(tx.amount) * multiplier;
+        if (tx.isReceive())
+          runningBalance += Math.abs(tx.amount) * multiplier;
+      }
+
+      // Only advance the search index if a transaction falls within the time period
+      const balances = [];
+      let tx_idx = 0;
+      for (let i = startTime; i <= endTime; i += period) {
+        for (let j = tx_idx; j < transactions.length; j++, tx_idx++) {
+          const tx = transactions[tx_idx];
+          if (tx.time >= i + period)
+            break;
+          if (tx.isSend())
+            runningBalance -= Math.abs(tx.amount) * multiplier;
+          if (tx.isReceive())
+            runningBalance += Math.abs(tx.amount) * multiplier;
+        }
+        if (runningBalance < 0)
+          runningBalance = 0;
+        balances.push([i, runningBalance]);
+      }
+      coinBalances.set(ticker, balances);
+    }
+
+    if (coinBalances.size === 0)
+      return [[startTime, 0]];
+
+    const allBalances = [];
+    const periods = coinBalances.get(coinBalances.keys().next().value).length;
+    for (let i = 0; i < periods; i++) {
+      let runningBalance = 0;
+      for (const [ticker, balances] of coinBalances)
+        runningBalance += balances[i][1]; // [1] = balance in currency
+      allBalances.push([startTime + i * period, runningBalance]);
+    }
+
+    // cache
+    this._balanceOverTimeCache.set(timeframe, allBalances);
+    this._balanceOverTimeFetchCache.set(timeframe, unixTime());
+    return allBalances;
   }
 
   /**
@@ -169,6 +293,7 @@ class WalletController {
   /**
    * Loads all available wallets. Assumes that cloudchain confs are already
    * loaded.
+   * @return {Promise<void>}
    * @throws {Error} on fatal error
    */
   async loadWallets() {
@@ -236,7 +361,12 @@ class WalletController {
   async updateBalanceInfo(ticker) {
     try {
       await this._api.walletController_updateBalanceInfo(ticker);
+      // Trigger fetch on the latest transactions
+      const wallet = this.getWallet(ticker);
+      if (wallet)
+        await wallet.updateTransactions();
     } catch (err) {
+      logger.error(err);
       // TODO fail silently?
     }
   }
@@ -248,7 +378,14 @@ class WalletController {
   async updateAllBalances() {
     try {
       await this._api.walletController_updateAllBalances();
+      // Trigger fetch on the latest transactions
+      const wallets = await this.getEnabledWallets();
+      const updateRequests = [];
+      for (const wallet of wallets)
+        updateRequests.push(wallet.updateTransactions());
+      await Promise.all(updateRequests);
     } catch (err) {
+      logger.error(err);
       // TODO fail silently?
     }
   }
