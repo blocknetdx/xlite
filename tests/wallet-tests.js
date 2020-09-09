@@ -1,4 +1,5 @@
 /* global describe,it,should,beforeEach */
+/*eslint quotes: 0, key-spacing: 0*/
 import 'should';
 import {all, create} from 'mathjs';
 const math = create(all, {
@@ -109,8 +110,7 @@ describe('Wallet Test Suite', function() {
     const wallet = new Wallet(token, conf, appStorage);
     wallet.rpc = fakerpc;
     const fakeTxs = await fakerpc.listTransactions();
-    await wallet.updateTransactions();
-    const txs = wallet.getTransactions();
+    const txs = await wallet.getTransactions();
     txs.should.be.eql(fakeTxs);
   });
   it('Wallet.getTransactions() with timeframe', async function() {
@@ -120,8 +120,7 @@ describe('Wallet Test Suite', function() {
     const startTime = 1596654100;
     const endTime = 1596654200;
     const fakeTxs = await fakerpc.listTransactions(startTime, endTime);
-    await wallet.updateTransactions();
-    const txs = wallet.getTransactions(startTime, endTime);
+    const txs = await wallet.getTransactions(startTime, endTime);
     txs.should.be.eql(fakeTxs);
   });
   it('Wallet.getTransactions() no transactions outside timeframe', async function() {
@@ -130,8 +129,7 @@ describe('Wallet Test Suite', function() {
     wallet.rpc = fakerpc;
     const startTime = 1596664100;
     const endTime = 1596664200;
-    await wallet.updateTransactions();
-    const txs = wallet.getTransactions(startTime, endTime);
+    const txs = await wallet.getTransactions(startTime, endTime);
     txs.should.be.eql([]);
   });
   it('Wallet.getTransactions() timeframe with same start and end', async function() {
@@ -141,186 +139,9 @@ describe('Wallet Test Suite', function() {
     const startTime = 1596654100;
     const endTime = 1596654100;
     const fakeTxs = await fakerpc.listTransactions(startTime, endTime);
-    await wallet.updateTransactions();
-    const txs = wallet.getTransactions(startTime, endTime);
+    const txs = await wallet.getTransactions(startTime, endTime);
     txs.should.be.eql(fakeTxs);
     txs.length.should.be.equal(1); // expecting only 1 transaction
-  });
-  it('Wallet.updateTransactions()', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    const fakeTxs = await fakerpc.listTransactions();
-    await wallet.updateTransactions().should.finally.be.true();
-    const txs = wallet.getTransactions();
-    txs.should.be.eql(fakeTxs);
-  });
-  it('Wallet.updateTransactions() should not update too soon', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    await wallet.updateTransactions().should.finally.be.true();
-    await wallet.updateTransactions().should.finally.be.false(); // no update too soon
-  });
-  it('Wallet._needsTransactionUpdate()', function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    wallet._needsTransactionUpdate().should.be.true();
-    wallet._setLastTransactionFetchTime(unixTime());
-    wallet._needsTransactionUpdate().should.be.false();
-  });
-  it('Wallet._getLastTransactionFetchTime()', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    wallet._getLastTransactionFetchTime().should.be.equal(0); // check default state
-    await wallet.updateTransactions();
-    const fetchTime = appStorage.getItem(wallet._getTransactionFetchTimeStorageKey());
-    wallet._getLastTransactionFetchTime().should.be.equal(fetchTime);
-  });
-  it('Wallet._getLastTransactionFetchTime() negative fetch time should be 0', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    appStorage.setItem(wallet._getTransactionFetchTimeStorageKey(), -1000);
-    wallet._getLastTransactionFetchTime().should.be.equal(0);
-  });
-  it('Wallet._setLastTransactionFetchTime()', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    wallet._setLastTransactionFetchTime(2500);
-    appStorage.getItem(wallet._getTransactionFetchTimeStorageKey()).should.be.equal(2500);
-  });
-  it('Wallet._setLastTransactionFetchTime() when less than 0 should set 0', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    wallet._setLastTransactionFetchTime(-1000);
-    appStorage.getItem(wallet._getTransactionFetchTimeStorageKey()).should.be.equal(0);
-  });
-  it('Wallet._getTransactionStorageKey()', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    wallet._getTransactionStorageKey().should.be.equal(storageKeys.TRANSACTIONS + '_' + wallet.ticker);
-  });
-  it('Wallet._getTransactionFetchTimeStorageKey()', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    wallet._getTransactionFetchTimeStorageKey().should.be.equal(storageKeys.TX_LAST_FETCH_TIME + '_' + wallet.ticker);
-  });
-  it('Wallet._getTransactionsFromStorage()', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    const fakeTxs = await fakerpc.listTransactions();
-    await wallet.updateTransactions();
-    wallet._getTransactionsFromStorage(0, 5000000000).should.be.eql(fakeTxs);
-  });
-  it('Wallet._getTransactionsFromStorage() end less than start should set end=start', async function() {
-    const fakerpc = new FakeRPCController();
-    fakerpc.listTransactions = () => {
-      return [
-        new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000, time: 1000 }),
-        new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 10.000, time: 2000 }),
-        new RPCTransaction({ txId: 'c', address: 'afjdsakjfksdajk', amount: 10.000, time: 3000 }),
-      ];
-    };
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    await wallet.updateTransactions();
-    wallet._getTransactionsFromStorage(1000, 900).should.be.eql([fakerpc.listTransactions()[0]]);
-  });
-  it('Wallet._addTransactionsToStorage()', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    const fakeTxs = await fakerpc.listTransactions();
-    await wallet.updateTransactions();
-    const addTxs = [
-      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000 }),
-      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 11.000 }),
-    ];
-    wallet._addTransactionsToStorage(addTxs).should.be.true();
-    wallet.getTransactions().should.eql(fakeTxs.concat(addTxs));
-  });
-  it('Wallet._addTransactionsToStorage() should not update non-array', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    const fakeTxs = await fakerpc.listTransactions();
-    await wallet.updateTransactions();
-    wallet._addTransactionsToStorage({}).should.be.false();
-    wallet.getTransactions().should.eql(fakeTxs);
-  });
-  it('Wallet._addTransactionsToStorage() should not include duplicates', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    const fakeTxs = await fakerpc.listTransactions();
-    await wallet.updateTransactions();
-    const addTxs = [
-      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000 }),
-      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 11.000 }),
-    ];
-    const duplTxs = [
-      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000 }),
-      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 11.000 }),
-    ];
-    wallet._addTransactionsToStorage(addTxs.concat(duplTxs)).should.be.true();
-    wallet.getTransactions().should.eql(fakeTxs.concat(addTxs));
-  });
-  it('Wallet._fetchTransactions()', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    const fakeTxs = await fakerpc.listTransactions();
-    const fetchTime = unixTime();
-    await wallet._fetchTransactions().should.finally.be.eql(fakeTxs);
-    wallet.getTransactions().should.eql(fakeTxs);
-    wallet._getLastTransactionFetchTime().should.be.greaterThanOrEqual(fetchTime);
-  });
-  it('Wallet._fetchTransactions() should not call bad rpc', async function() {
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = new RPCController();
-    wallet.rpc.isNull().should.be.true();
-    await wallet._fetchTransactions().should.finally.be.eql([]);
-    wallet.getTransactions().should.eql([]);
-    wallet._getLastTransactionFetchTime().should.be.equal(0);
-  });
-  it('Wallet._fetchTransactions() should not update server txs if endtime < last_fetch_time', async function() {
-    const fakerpc = new FakeRPCController();
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    const addTxs = [
-      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000, time: 10000 }),
-      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 11.000, time: 10000 }),
-    ];
-    wallet._addTransactionsToStorage(addTxs).should.be.true();
-    wallet._setLastTransactionFetchTime(20000);
-    await wallet._fetchTransactions(0, 19000).should.finally.be.eql(addTxs);
-  });
-  it('Wallet._fetchTransactions() should return existing txs on rpc error', async function() {
-    const fakerpc = new FakeRPCController();
-    fakerpc.listTransactions = () => { throw new Error(''); };
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    const addTxs = [
-      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 10.000, time: 10000 }),
-      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 11.000, time: 10000 }),
-    ];
-    wallet._addTransactionsToStorage(addTxs).should.be.true();
-    await wallet._fetchTransactions().should.finally.be.eql(addTxs);
-  });
-  it('Wallet._fetchTransactions() should not throw on rpc error', async function() {
-    const fakerpc = new FakeRPCController();
-    fakerpc.listTransactions = () => { throw new Error(''); };
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.rpc = fakerpc;
-    should.doesNotThrow(await wallet._fetchTransactions, Error);
   });
   it('Wallet.getAddresses()', async function() {
     const fakerpc = new FakeRPCController();
@@ -368,11 +189,6 @@ describe('Wallet Test Suite', function() {
     wallet._cachedUtxos.fetchTime = unixTime() - 60;
     wallet._cachedUtxos.utxos = [];
     (await wallet.getCachedUnspent(60)).should.be.eql([utxo]);
-  });
-  it('Wallet.getExplorerLinkForTx()', async function() {
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.getExplorerLinkForTx('a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0')
-      .should.be.equal('https://chainz.cryptoid.info/block/tx.dws?a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0.htm')
   });
   it('Wallet.send() to one recipient should succeed', async function() {
     const fakerpc = new FakeRPCController();

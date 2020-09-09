@@ -2,8 +2,6 @@ import {IMAGE_DIR} from '../constants';
 import {logger} from './logger';
 import Recipient from '../../app/types/recipient';
 import RPCController from './rpc-controller';
-import RPCTransaction from '../../app/types/rpc-transaction';
-import {storageKeys} from '../constants';
 import Token from '../../app/types/token';
 import TransactionBuilder from '../../app/modules/transactionbuilder';
 import {unixTime} from '../../app/util';
@@ -179,24 +177,28 @@ class Wallet {
   }
 
   /**
-   * Get wallet transactions for the time period.
+   * Get wallet transactions from the server for the time frame.
    * @param startTime {number} Get transactions since this time
    * @param endTime {number} Get transactions to this time
-   * @return {RPCTransaction[]}
+   * @return {Promise<RPCTransaction[]>}
+   * @throws Error
    */
-  getTransactions(startTime=0, endTime=0) {
-    return this._getTransactionsFromStorage(startTime, endTime);
-  }
+  async getTransactions(startTime=0, endTime=0) {
+    if (this.rpc.isNull() || !this.rpcEnabled()) {
+      const msg = `failed to get transactions for ${this.ticker} because rpc is disabled`;
+      logger.error(msg);
+      throw new Error(msg);
+    }
 
-  /**
-   * Fetches the latest transactions from the server.
-   * @return {Promise<boolean>} true if update occurred, otherwise false
-   */
-  async updateTransactions() {
-    if (!this._needsTransactionUpdate())
-      return false; // rate limit this request
-    await this._fetchTransactions();
-    return true;
+    if (endTime === 0)
+      endTime = unixTime();
+
+    try {
+      return await this.rpc.listTransactions(startTime, endTime);
+    } catch (e) {
+      logger.error('', e);
+      throw e;
+    }
   }
 
   /**
@@ -259,15 +261,6 @@ class Wallet {
     }
 
     return this._cachedUtxos.utxos;
-  }
-
-  /**
-   * Return the transaction explorer link.
-   * @param txid {string}
-   * @return {string}
-   */
-  getExplorerLinkForTx(txid) {
-    return `https://chainz.cryptoid.info/${this.ticker.toLowerCase()}/tx.dws?${txid}.htm`;
   }
 
   /**
@@ -340,143 +333,6 @@ class Wallet {
     }
 
     return txid;
-  }
-
-  /**
-   * Returns true if the wait period for transaction fetching has ended.
-   * @return {boolean}
-   * @private
-   */
-  _needsTransactionUpdate() {
-    return unixTime() - this._getLastTransactionFetchTime() > 10;
-  }
-
-  /**
-   * Return the time of the last transaction fetch.
-   * @return {number}
-   * @private
-   */
-  _getLastTransactionFetchTime() {
-    const fetchTime = this._storage.getItem(this._getTransactionFetchTimeStorageKey());
-    if (!_.isNumber(fetchTime) || fetchTime < 0)
-      return 0;
-    return fetchTime;
-  }
-
-  /**
-   * Set the time of the last transaction fetch.
-   * @param fetchTime
-   * @private
-   */
-  _setLastTransactionFetchTime(fetchTime) {
-    if (fetchTime < 0)
-      fetchTime = 0;
-    this._storage.setItem(this._getTransactionFetchTimeStorageKey(), fetchTime);
-  }
-
-  /**
-   * Get the transaction storage key.
-   * @private
-   * @return {string}
-   */
-  _getTransactionStorageKey() {
-    return storageKeys.TRANSACTIONS + '_' + this.ticker;
-  }
-
-  /**
-   * Get the transaction fetch time storage key.
-   * @private
-   * @return {string}
-   */
-  _getTransactionFetchTimeStorageKey() {
-    return storageKeys.TX_LAST_FETCH_TIME + '_' + this.ticker;
-  }
-
-  /**
-   * Returns the transactions from persistent storage.
-   * @param startTime {number}
-   * @param endTime {number}
-   * @return {RPCTransaction[]}
-   * @private
-   */
-  _getTransactionsFromStorage(startTime=0, endTime=0) {
-    if (startTime < 0)
-      startTime = 0;
-    if (endTime <= 0)
-      endTime = unixTime();
-    if (endTime < startTime)
-      endTime = startTime;
-
-    const data = this._storage.getItem(this._getTransactionStorageKey());
-    if (!_.isArray(data))
-      return [];
-    return data.map(t => new RPCTransaction(t))
-      .filter(t => t.time >= startTime && t.time <= endTime);
-  }
-
-  /**
-   * Add the specified transactions to the storage. Checks for duplicates.
-   * @param txs {RPCTransaction[]}
-   * @private
-   */
-  _addTransactionsToStorage(txs) {
-    if (!_.isArray(txs) || txs.length === 0)
-      return false; // do not store bad data
-
-    // Only store unique transactions where the latest transactions
-    // replace any old ones.
-    const data = this._getTransactionsFromStorage(); // fetch all
-    const unique = new Map();
-    for (const t of data)
-      unique.set(t.key(), t);
-    for (const t of txs) // new transaction overwrites old
-      unique.set(t.key(), t);
-
-    const newData = Array.from(unique.values());
-    this._storage.setItem(this._getTransactionStorageKey(), newData);
-    return true;
-  }
-
-  /**
-   * Fetch wallet transactions from the server and save to persistent
-   * storage. Returns all known transactions for the period if rpc is
-   * disabled. The wallet rpc will only be called for more transaction
-   * data if the timeframe specified is outside the last known fetch
-   * time.
-   * @param startTime {number} Get transactions since this time
-   * @param endTime {number} Get transactions to this time
-   * @return {Promise<RPCTransaction[]>}
-   */
-  async _fetchTransactions(startTime=0, endTime=0) {
-    if (this.rpc.isNull() || !this.rpcEnabled()) {
-      logger.error(`failed to get transactions for ${this.ticker} because rpc is disabled`);
-      return this._getTransactionsFromStorage(startTime, endTime);
-    }
-
-    if (endTime === 0)
-      endTime = unixTime();
-
-    // If we don't need to fetch from rpc then return what we know
-    const lastFetchTime = this._getLastTransactionFetchTime();
-    if (endTime < lastFetchTime)
-      return this._getTransactionsFromStorage(startTime, endTime);
-
-    // All transactions that we know from start time to last fetch time
-    const existingTxs = this._getTransactionsFromStorage(startTime, lastFetchTime);
-    let txs = [];
-    try {
-      // Fetch all transactions from last fetch time minus forgiveness seconds
-      // to user specified end time.
-      const forgivenessTimeSeconds = 3600;
-      txs = await this.rpc.listTransactions(lastFetchTime-forgivenessTimeSeconds, endTime); // Accounting for CC Daemon delays
-    } catch (e) {
-      logger.error('', e);
-      return existingTxs; // return known transactions on error
-    }
-
-    this._addTransactionsToStorage(txs);
-    this._setLastTransactionFetchTime(endTime);
-    return existingTxs.concat(txs); // return all local and network transactions
   }
 }
 

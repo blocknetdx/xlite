@@ -289,14 +289,8 @@ class Api {
     this._proc.handle(apiConstants.walletController_getBalances, (evt, arg) => {
       return this._walletController.getBalances();
     });
-    this._proc.handle(apiConstants.walletController_getTransactions, (evt, startTime, endTime) => {
-      return this._walletController.getTransactions(startTime, endTime);
-    });
     this._proc.handle(apiConstants.walletController_getCurrencyMultipliers, (evt, arg) => {
       return this._walletController.getCurrencyMultipliers();
-    });
-    this._proc.handle(apiConstants.walletController_getBalanceOverTime, (evt, timeframe, currency, currencyMultipliers) => {
-      return this._walletController.getBalanceOverTime(timeframe, currency, currencyMultipliers);
     });
     this._proc.handle(apiConstants.walletController_loadWallets, (evt, arg) => {
       return this._walletController.loadWallets();
@@ -325,9 +319,6 @@ class Api {
     });
     this._proc.handle(apiConstants.wallet_getTransactions, (evt, ticker, startTime, endTime) => {
       return this._walletController.getWallet(ticker).getTransactions(startTime, endTime);
-    });
-    this._proc.on(apiConstants.wallet_updateTransactions, (evt, ticker) => {
-      this._walletController.getWallet(ticker).updateTransactions();
     });
     this._proc.handle(apiConstants.wallet_getAddresses, (evt, ticker) => {
       return this._walletController.getWallet(ticker).getAddresses();

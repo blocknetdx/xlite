@@ -61,9 +61,7 @@ export const apiConstants = {
   walletController_getWallet: 'walletController_getWallet',
   walletController_getEnabledWallets: 'walletController_getEnabledWallets',
   walletController_getBalances: 'walletController_getBalances',
-  walletController_getTransactions: 'walletController_getTransactions',
   walletController_getCurrencyMultipliers: 'walletController_getCurrencyMultipliers',
-  walletController_getBalanceOverTime: 'walletController_getBalanceOverTime',
   walletController_loadWallets: 'walletController_loadWallets',
   walletController_updatePriceMultipliers: 'walletController_updatePriceMultipliers',
   walletController_updateBalanceInfo: 'walletController_updateBalanceInfo',
@@ -72,7 +70,6 @@ export const apiConstants = {
   wallet_rpcEnabled: 'wallet_rpcEnabled',
   wallet_getBalance: 'wallet_getBalance',
   wallet_getTransactions: 'wallet_getTransactions',
-  wallet_updateTransactions: 'wallet_updateTransactions',
   wallet_getAddresses: 'wallet_getAddresses',
   wallet_generateNewAddress: 'wallet_generateNewAddress',
   wallet_getCachedUnspent: 'wallet_getCachedUnspent',
@@ -261,23 +258,14 @@ const walletController_API = {
   [apiConstants.walletController_getBalances]: async () => {
     return ipcRenderer.invoke(apiConstants.walletController_getBalances);
   },
-  [apiConstants.walletController_getTransactions]: async (start, end) => {
-    return ipcRenderer.invoke(apiConstants.walletController_getTransactions, start, end);
-  },
   [apiConstants.walletController_getCurrencyMultipliers]: async () => {
     return ipcRenderer.invoke(apiConstants.walletController_getCurrencyMultipliers);
-  },
-  [apiConstants.walletController_getBalanceOverTime]: async (timeframe, currency, currencyMultipliers) => {
-    return ipcRenderer.invoke(apiConstants.walletController_getBalanceOverTime, timeframe, currency, currencyMultipliers);
   },
   [apiConstants.walletController_loadWallets]: async () => {
     return ipcRenderer.invoke(apiConstants.walletController_loadWallets);
   },
   [apiConstants.walletController_updatePriceMultipliers]: async () => {
     return ipcRenderer.invoke(apiConstants.walletController_updatePriceMultipliers);
-  },
-  [apiConstants.walletController_updateBalanceInfo]: async (ticker) => {
-    return ipcRenderer.invoke(apiConstants.walletController_updateBalanceInfo, ticker);
   },
   [apiConstants.walletController_updateAllBalances]: async () => {
     return ipcRenderer.invoke(apiConstants.walletController_updateAllBalances);
@@ -294,9 +282,6 @@ const wallet_API = {
   },
   [apiConstants.wallet_getTransactions]: async (ticker, startTime, endTime) => {
     return ipcRenderer.invoke(apiConstants.wallet_getTransactions, ticker, startTime, endTime);
-  },
-  [apiConstants.wallet_updateTransactions]: async (ticker) => {
-    return ipcRenderer.invoke(apiConstants.wallet_updateTransactions, ticker);
   },
   [apiConstants.wallet_getAddresses]: async (ticker) => {
     return ipcRenderer.invoke(apiConstants.wallet_getAddresses, ticker);
