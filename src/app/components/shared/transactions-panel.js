@@ -13,6 +13,7 @@ import {multiplierForCurrency, currencyLinter} from '../../util';
 import { all, create } from 'mathjs';
 import Wallet from '../../types/wallet-r';
 import TransactionDetailModal from './modal-transaction-detail';
+import TransactionsHeader from './transactions-panel-header';
 import * as appActions from '../../actions/app-actions';
 
 const math = create(all, {
@@ -56,7 +57,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
   return (
     <Card style={style}>
       <CardHeader>
-        <h1>Latest Transactions</h1>
+        {brief ? <h1>Latest Transactions</h1> : <TransactionsHeader />}
       </CardHeader>
       <CardBody>
         <Table>
