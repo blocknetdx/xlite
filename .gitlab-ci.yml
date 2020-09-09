@@ -20,13 +20,11 @@ build_linux:
   script:
     - "npm install --no-audit"
     - "npm run download-binaries-linux"
-    - "npm run build-native-linux"
+    - "npm run build-native-linux2"
   artifacts:
     name: "XLite-$CI_COMMIT_REF_NAME-linux"
     paths:
-      - dist-native/*.tar.gz
       - dist-native/*.AppImage
-      - dist-native/*.deb
 
 build_win:
   stage: build
@@ -58,9 +56,7 @@ check_artifacts:
   stage: check
   image: ubuntu:bionic
   script:
-    - "set -- dist-native/XLite-*-linux.tar.gz && [[ -f \"$1\" ]]"
     - "set -- dist-native/XLite-*-linux.AppImage && [[ -f \"$1\" ]]"
-    - "set -- dist-native/XLite-*-linux.deb && [[ -f \"$1\" ]]"
     - "set -- dist-native/XLite-*-win.exe && [[ -f \"$1\" ]]"
     - "set -- dist-native/XLite-*-win-x64.zip && [[ -f \"$1\" ]]"
     - "set -- dist-native/mac/XLite.app && [[ -d \"$1\" ]]"
