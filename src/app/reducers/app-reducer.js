@@ -1,4 +1,4 @@
-import { actions, altCurrencies } from '../constants';
+import { actions, altCurrencies, MIN_UI_HEIGHT, MIN_UI_WIDTH } from '../constants';
 import { Map } from 'immutable';
 import TokenManifest from '../modules/token-manifest';
 
@@ -8,8 +8,8 @@ const getInitialState = () => ({
   ccWalletStarted: false,
   activeView: '',
   currencyMultipliers: {},
-  windowHeight: window.innerHeight,
-  windowWidth: window.innerWidth,
+  windowHeight: window.innerHeight < MIN_UI_HEIGHT ? MIN_UI_HEIGHT : window.innerHeight,
+  windowWidth: window.innerWidth < MIN_UI_WIDTH ? MIN_UI_WIDTH : window.innerWidth,
   manifest: new TokenManifest([], []),
   wallets: [],
   activeWallet: '',

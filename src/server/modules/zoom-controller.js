@@ -2,12 +2,12 @@ import { BrowserWindow as ElectronBrowserWindow } from 'electron';
 import bindAll from 'lodash/bindAll';
 import {
   DEFAULT_ZOOM_FACTOR,
-  ipcRendererListeners,
   ZOOM_INCREMENT,
   ZOOM_MAX,
   ZOOM_MIN
 } from '../../app/constants';
 import {storageKeys} from '../constants';
+import { apiConstants } from '../../app/api';
 
 // This should only be used in the main process
 class ZoomController {
@@ -28,7 +28,7 @@ class ZoomController {
       const windows = ElectronBrowserWindow.getAllWindows();
       const newZoomFactor = zoomFactor + ZOOM_INCREMENT;
       windows.forEach(w => {
-        w.send(ipcRendererListeners.ZOOM_IN, newZoomFactor);
+        w.send(apiConstants.general_onZoomIn, newZoomFactor);
       });
       storage.setItem(storageKeys.ZOOM_FACTOR, newZoomFactor);
     }
@@ -41,7 +41,7 @@ class ZoomController {
       const windows = ElectronBrowserWindow.getAllWindows();
       const newZoomFactor = zoomFactor - ZOOM_INCREMENT;
       windows.forEach(w => {
-        w.send(ipcRendererListeners.ZOOM_OUT, newZoomFactor);
+        w.send(apiConstants.general_onZoomOut, newZoomFactor);
       });
       storage.setItem(storageKeys.ZOOM_FACTOR, newZoomFactor);
     }
@@ -51,7 +51,7 @@ class ZoomController {
     const storage = this._storage;
     const windows = ElectronBrowserWindow.getAllWindows();
     windows.forEach(w => {
-      w.send(ipcRendererListeners.ZOOM_RESET);
+      w.send(apiConstants.general_onZoomReset);
     });
     storage.setItem(storageKeys.ZOOM_FACTOR, DEFAULT_ZOOM_FACTOR);
   }

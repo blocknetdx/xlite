@@ -60,6 +60,12 @@ class Api {
   _walletController = null;
 
   /**
+   * @type {ZoomController}
+   * @private
+   */
+  _zoomController = null;
+
+  /**
    * Constructor
    * @param storage {SimpleStorage}
    * @param app {Electron.App}
@@ -68,8 +74,9 @@ class Api {
    * @param cloudChains {CloudChains}
    * @param confController {ConfController}
    * @param walletController {WalletController}
+   * @param zoomController {ZoomController}
    */
-  constructor(storage, app, proc, err, cloudChains = null, confController = null, walletController = null) {
+  constructor(storage, app, proc, err, cloudChains = null, confController = null, walletController = null, zoomController) {
     this._storage = storage;
     this._app = app;
     this._proc = proc;
@@ -77,6 +84,7 @@ class Api {
     this._cloudChains = cloudChains;
     this._confController = confController;
     this._walletController = walletController;
+    this._zoomController = zoomController;
     this._init();
   }
 
@@ -161,6 +169,21 @@ class Api {
       return electron.clipboard.readText('selection');
     });
     this._proc.on(apiConstants.general_isDev, (evt, arg) => evt.returnValue = isDev);
+    this._proc.on(apiConstants.general_setZoomFactor, (evt, zoomFactor) => {
+      this._storage.setItem(storageKeys.ZOOM_FACTOR, zoomFactor);
+    });
+    this._proc.on(apiConstants.general_zoomIn, () => {
+      this._zoomController.zoomIn();
+    });
+    this._proc.on(apiConstants.general_zoomOut, () => {
+      this._zoomController.zoomOut();
+    });
+    this._proc.on(apiConstants.general_zoomReset, () => {
+      this._zoomController.zoomReset();
+    });
+    this._proc.on(apiConstants.general_getPlatform, (evt) => {
+      evt.returnValue = process.platform;
+    });
   }
 
   /**

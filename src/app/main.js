@@ -2,6 +2,7 @@ window.$ = require('jquery');
 require('popper.js');
 require('bootstrap');
 
+import './modules/window-zoom-handlers';
 import * as appActions from './actions/app-actions';
 import {activeViews, MIN_UI_HEIGHT, MIN_UI_WIDTH} from './constants';
 import Alert from './modules/alert';
@@ -39,19 +40,44 @@ if(isDev) {
   });
 }
 
+const updateScrollbars = (innerWidth, innerHeight) => {
+  if(innerWidth < MIN_UI_WIDTH) {
+    $('html').css({
+      overflowX: 'scroll'
+    });
+  } else {
+    $('html').css({
+      overflowX: 'hidden'
+    });
+  }
+  if(innerHeight < MIN_UI_HEIGHT) {
+    $('html').css({
+      overflowY: 'scroll'
+    });
+  } else {
+    $('html').css({
+      overflowY: 'hidden'
+    });
+  }
+};
+
 let resizeTimeout;
 window.addEventListener('resize', e => {
-  let { innerWidth, innerHeight } = e.target;
+  const { innerWidth: origInnerWidth, innerHeight: origInnerHeight, outerWidth, outerHeight } = e.target;
+  let innerWidth = origInnerWidth;
+  let innerHeight = origInnerHeight;
   if(innerWidth < MIN_UI_WIDTH)
     innerWidth = MIN_UI_WIDTH;
   if(innerHeight < MIN_UI_HEIGHT)
     innerHeight = MIN_UI_HEIGHT;
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
+    updateScrollbars(origInnerWidth, origInnerHeight);
     if(innerWidth) {
       store.dispatch(appActions.setWindowSize(innerWidth, innerHeight));
       // Store screen size in main process storage
-      api.general_storeScreenSize({width: innerWidth, height: innerHeight});
+      // need to use outer height because inner height is relative to the zoom level
+      api.general_storeScreenSize({width: outerWidth, height: outerHeight});
     }
   }, 200);
 });
@@ -121,6 +147,8 @@ function startupInit(walletController, confController, confNeedsManifestUpdate) 
     locale,
     localeData: localeData
   });
+
+  updateScrollbars(window.innerWidth, window.innerHeight);
 
   store.dispatch(appActions.setAppVersion((await api.general_getAppVersion())));
   store.dispatch(appActions.setCCVersion((await api.cloudChains_getCCSPVVersion())));

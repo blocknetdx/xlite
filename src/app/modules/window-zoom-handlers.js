@@ -1,31 +1,32 @@
-import { ipcRenderer, webFrame } from 'electron';
 import * as uuid from 'uuid';
-import { ipcMainListeners, ipcRendererListeners, ZOOM_MAX, ZOOM_MIN } from '../../app/constants';
+import { DEFAULT_ZOOM_FACTOR, platforms, ZOOM_MAX, ZOOM_MIN } from '../constants';
+
+const { api } = window;
 
 // We need to do our comparison operations using whole numbers, so we multiply by 100
 const maxZoom = ZOOM_MAX * 100;
 const minZoom = ZOOM_MIN * 100;
 
-const { platform } = process;
+const platform = api.general_getPlatform();
 
 const getZoomFactor = () => {
-  return parseInt((webFrame.getZoomFactor() * 100).toFixed(0), 10);
+  return parseInt((api.general_getZoomFactor() * 100).toFixed(0), 10);
 };
 
 window.document.addEventListener('keydown', e => {
   const { key, ctrlKey, metaKey } = e;
-  const ctrlCmd = platform === 'darwin' ? metaKey : ctrlKey;
+  const ctrlCmd = platform === platforms.mac ? metaKey : ctrlKey;
   if(!ctrlCmd) return;
   const zoomFactor = getZoomFactor();
   if(zoomFactor < maxZoom && key === '=') { // zoom in
     e.preventDefault();
-    ipcRenderer.send(ipcMainListeners.ZOOM_IN);
+    api.general_zoomIn();
   } else if(zoomFactor > minZoom && key === '-') { // zoom out
     e.preventDefault();
-    ipcRenderer.send(ipcMainListeners.ZOOM_OUT);
+    api.general_zoomOut();
   } else if(key === '0') { // reset zoom
     e.preventDefault();
-    ipcRenderer.send(ipcMainListeners.ZOOM_RESET);
+    api.general_zoomReset();
   }
 });
 
@@ -33,15 +34,15 @@ let scrolling = false;
 window.addEventListener('mousewheel', e => {
   if(!scrolling) {
     const { deltaY, ctrlKey, metaKey } = e;
-    const ctrlCmd = platform === 'darwin' ? metaKey : ctrlKey;
+    const ctrlCmd = platform === platforms.mac ? metaKey : ctrlKey;
     if(!ctrlCmd) return;
     e.preventDefault();
     const zoomFactor = getZoomFactor();
     scrolling = true;
     if(zoomFactor < maxZoom && deltaY < 0 ) { // zoom in
-      ipcRenderer.send(ipcMainListeners.ZOOM_IN);
+      api.general_zoomIn();
     } else if(zoomFactor > minZoom && deltaY > 0) { // zoom out
-      ipcRenderer.send(ipcMainListeners.ZOOM_OUT);
+      api.general_zoomOut();
     }
     setTimeout(() => {
       scrolling = false;
@@ -60,13 +61,13 @@ const showZoomLevel = percent => {
   }, 2000);
 };
 
-const applyZoomFactor = (e , zoomFactor) => {
-  webFrame.setZoomFactor(zoomFactor);
+const applyZoomFactor = zoomFactor => {
+  api.general_setZoomFactor(zoomFactor);
   showZoomLevel(zoomFactor * 100);
 };
 
-ipcRenderer.on(ipcRendererListeners.ZOOM_IN, applyZoomFactor);
-ipcRenderer.on(ipcRendererListeners.ZOOM_OUT, applyZoomFactor);
-ipcRenderer.on(ipcRendererListeners.ZOOM_RESET, e => {
-  applyZoomFactor(e, 1);
+api.general_onZoomIn(applyZoomFactor);
+api.general_onZoomOut(applyZoomFactor);
+api.general_onZoomReset(() => {
+  applyZoomFactor(DEFAULT_ZOOM_FACTOR);
 });

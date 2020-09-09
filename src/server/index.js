@@ -1,7 +1,7 @@
 import Api from './modules/api';
 import CloudChains from './modules/cloudchains';
 import {DATA_DIR, getLocaleData, storageKeys} from './constants';
-import {DEFAULT_LOCALE, DEFAULT_ZOOM_FACTOR, ipcMainListeners} from '../app/constants';
+import {DEFAULT_LOCALE, DEFAULT_ZOOM_FACTOR} from '../app/constants';
 import Localize from '../app/components/shared/localize';
 import {logger} from './modules/logger';
 import openAppWindow from './windows/app-window';
@@ -67,12 +67,7 @@ if (CC_WALLET_PASS !== '') {
 
 // Handle zoom changes
 if(!storage.getItem(storageKeys.ZOOM_FACTOR)) storage.setItem(storageKeys.ZOOM_FACTOR, DEFAULT_ZOOM_FACTOR);
-ipcMain.on(ipcMainListeners.SET_ZOOM_FACTOR, (e, zoomFactor) => storage.setItem(storageKeys.ZOOM_FACTOR, zoomFactor));
-ipcMain.on(ipcMainListeners.GET_ZOOM_FACTOR, (e) => e.returnValue = storage.getItem(storageKeys.ZOOM_FACTOR));
 const zoomController = new ZoomController(storage);
-ipcMain.on(ipcMainListeners.ZOOM_IN, zoomController.zoomIn);
-ipcMain.on(ipcMainListeners.ZOOM_OUT, zoomController.zoomOut);
-ipcMain.on(ipcMainListeners.ZOOM_RESET, zoomController.zoomReset);
 
 // Add a default context menu
 contextMenu();
@@ -168,7 +163,7 @@ app.on('ready', async () => {
 
   // displayFatalError = makeError('Test', '123'); // force debug error screen
   // Create the api
-  api = new Api(storage, app, ipcMain, displayFatalError, cloudChains, confController, walletController);
+  api = new Api(storage, app, ipcMain, displayFatalError, cloudChains, confController, walletController, zoomController);
 
   // Notify of fatal error
   if (displayFatalError) {
