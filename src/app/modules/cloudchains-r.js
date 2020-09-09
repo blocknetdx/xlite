@@ -145,6 +145,19 @@ class CloudChains {
   }
 
   /**
+   * Return the last known cloudchains wallet mnemonic. This is decrypted.
+   * @param password {string}
+   * @return {string|null}
+   */
+  async getDecryptedMnemonic(password) {
+    try {
+      return await this._api.cloudChains_getDecryptedMnemonic(password);
+    } catch (err) {
+      return null;
+    }
+  }
+
+  /**
    * Read all CloudChains token confs from disk. Returns false on error.
    * Fatal error throws. Individual token conf failures do not result in fatal error,
    * however, will return false. Returns true if no errors occurred.
@@ -257,6 +270,22 @@ class CloudChains {
   async changePassword(oldPassword, newPassword) {
     try {
       return await this._api.cloudChains_changePassword(oldPassword, newPassword);
+    } catch (e) {
+      parseAPIError(e);
+      throw e; // bubble up
+    }
+  }
+
+  /**
+   * Returns true if password matches stored password.
+   * Returns false otherwise.
+   * @param password
+   * @return {Promise<boolean>}
+   * @throws {Error}
+   */
+  async matchesStoredPassword(password) {
+    try {
+      return await this._api.cloudChains_matchesStoredPassword(password);
     } catch (e) {
       parseAPIError(e);
       throw e; // bubble up

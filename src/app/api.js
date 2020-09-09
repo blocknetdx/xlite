@@ -32,6 +32,7 @@ export const apiConstants = {
   cloudChains_getStoredPassword: 'cloudChains_getStoredPassword',
   cloudChains_getStoredSalt: 'cloudChains_getStoredSalt',
   cloudChains_getStoredMnemonic: 'cloudChains_getStoredMnemonic',
+  cloudChains_getDecryptedMnemonic: 'cloudChains_getDecryptedMnemonic',
   cloudChains_loadConfs: 'cloudChains_loadConfs',
   cloudChains_getCCSPVVersion: 'cloudChains_getCCSPVVersion',
   cloudChains_isWalletRPCRunning: 'cloudChains_isWalletRPCRunning',
@@ -41,6 +42,7 @@ export const apiConstants = {
   cloudChains_createSPVWallet: 'cloudChains_createSPVWallet',
   cloudChains_enableAllWallets: 'cloudChains_enableAllWallets',
   cloudChains_changePassword: 'cloudChains_changePassword',
+  cloudChains_matchesStoredPassword: 'cloudChains_matchesStoredPassword',
 
   confController_getManifest: 'confController_getManifest',
   confController_getManifestHash: 'confController_getManifestHash',
@@ -155,6 +157,9 @@ const cloudChains_API = {
   [apiConstants.cloudChains_getStoredMnemonic]: async () => {
     return ipcRenderer.invoke(apiConstants.cloudChains_getStoredMnemonic);
   },
+  [apiConstants.cloudChains_getDecryptedMnemonic]: async (password) => {
+    return ipcRenderer.invoke(apiConstants.cloudChains_getDecryptedMnemonic, password);
+  },
   [apiConstants.cloudChains_loadConfs]: async () => {
     return ipcRenderer.invoke(apiConstants.cloudChains_loadConfs);
   },
@@ -181,6 +186,9 @@ const cloudChains_API = {
   },
   [apiConstants.cloudChains_changePassword]: async (oldPassword, newPassword) => {
     return ipcRenderer.invoke(apiConstants.cloudChains_changePassword, oldPassword, newPassword);
+  },
+  [apiConstants.cloudChains_matchesStoredPassword]: async (password) => {
+    return ipcRenderer.invoke(apiConstants.cloudChains_matchesStoredPassword, password);
   },
 };
 

@@ -556,6 +556,19 @@ class CloudChains {
   }
 
   /**
+   * Returns true if the password matches the stored password.
+   * Returns false otherwise.
+   * @param password
+   * @return {boolean}
+   */
+  matchesStoredPassword(password) {
+    const currentPassword = this.getStoredPassword();
+    const currentSalt = this.getStoredSalt();
+    const checkPassword = pbkdf2(password, currentSalt);
+    return checkPassword === currentPassword;
+  }
+
+  /**
    * Returns true if the cli is available.
    * @return {boolean}
    * @private
