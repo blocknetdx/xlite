@@ -146,7 +146,7 @@
           ]
         }
       ],
-      "icon": "./src/images/favicon.ico",
+      "icon": "./src/static/images/favicon.ico",
       "publish": {
         "provider": "github",
         "releaseType": "draft"
@@ -158,7 +158,7 @@
         "zip"
       ],
       "category": "public.app-category.utilities",
-      "icon": "./src/images/favicon.icns",
+      "icon": "./src/static/images/favicon.icns",
       "gatekeeperAssess": false,
       "publish": {
         "provider": "github",
@@ -171,7 +171,7 @@
         "tar.gz",
         "deb"
       ],
-      "icon": "./src/images/linux/",
+      "icon": "./src/static/images/linux/",
       "synopsis": "Copyright © 2020 Blocknet",
       "description": "Copyright © 2020 Blocknet",
       "category": "Utility",
