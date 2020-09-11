@@ -232,3 +232,14 @@ export const setAltCurrency = altCurrency => ({
     altCurrency
   }
 });
+
+/**
+ * @param pricing {Map<{string}, {PriceData[]}>}
+ * @returns {{payload: {pricing: Map<{string}, {PriceData[]}>}, type: string}}
+ */
+export const setPricing = pricing => ({
+  type: actions.SET_PRICING,
+  payload: {
+    pricing
+  }
+});

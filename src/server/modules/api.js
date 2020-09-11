@@ -67,6 +67,12 @@ class Api {
   _zoomController = null;
 
   /**
+   * @type {Pricing}
+   * @private
+   */
+  _pricing = null;
+
+  /**
    * Default list of whitelisted fields (included in api results)
    * @type {[string]}
    * @private
@@ -90,8 +96,12 @@ class Api {
    * @param confController {ConfController}
    * @param walletController {WalletController}
    * @param zoomController {ZoomController}
+   * @param pricing {Pricing}
    */
-  constructor(storage, app, proc, err, cloudChains = null, confController = null, walletController = null, zoomController = null) {
+  constructor(storage, app, proc, err,
+              cloudChains = null, confController = null,
+              walletController = null, zoomController = null,
+              pricing = null) {
     this._storage = storage;
     this._app = app;
     this._proc = proc;
@@ -100,6 +110,7 @@ class Api {
     this._confController = confController;
     this._walletController = walletController;
     this._zoomController = zoomController;
+    this._pricing = pricing;
     this._init();
   }
 
@@ -121,6 +132,8 @@ class Api {
       this._initWalletController();
       this._initWallet();
     }
+    if (this._pricing)
+      this._initPricing();
   }
 
   /**
@@ -354,6 +367,16 @@ class Api {
     this._proc.handle(apiConstants.wallet_send, (evt, ticker, recipients) => {
       recipients = recipients.map(r => new Recipient(r));
       return this._walletController.getWallet(ticker).send(recipients);
+    });
+  }
+
+  /**
+   * Pricing api handlers.
+   * @private
+   */
+  _initPricing() {
+    this._proc.handle(apiConstants.pricing_getPrice, (evt, ticker, currency) => {
+      return this._pricing.getPrice(ticker, currency);
     });
   }
 

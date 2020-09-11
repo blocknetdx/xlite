@@ -74,6 +74,8 @@ export const apiConstants = {
   wallet_generateNewAddress: 'wallet_generateNewAddress',
   wallet_getCachedUnspent: 'wallet_getCachedUnspent',
   wallet_send: 'wallet_send',
+
+  pricing_getPrice: 'pricing_getPrice',
 };
 
 /**
@@ -297,6 +299,13 @@ const wallet_API = {
   },
 };
 
+// Pricing api
+const pricing_API = {
+  [apiConstants.pricing_getPrice]: async (ticker, currency) => {
+    return ipcRenderer.invoke(apiConstants.pricing_getPrice, ticker, currency);
+  },
+};
+
 let init = false;
 if (contextBridge && !init) {
   init = true;
@@ -310,5 +319,6 @@ if (contextBridge && !init) {
     ...confController_API,
     ...walletController_API,
     ...wallet_API,
+    ...pricing_API,
   });
 }
