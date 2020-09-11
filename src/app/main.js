@@ -127,39 +127,40 @@ function startupInit(walletController, confController, pricingController, confNe
     }
 
     // Notify UI of existing cached info
-    await walletController.dispatchBalances(appActions.setBalances, store);
-    await walletController.dispatchTransactions(appActions.setTransactions, store);
-    await walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
-    await walletController.dispatchWallets(appActions.setWallets, store);
+    walletController.dispatchBalances(appActions.setBalances, store);
+    walletController.dispatchTransactions(appActions.setTransactions, store);
+    walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
+    walletController.dispatchWallets(appActions.setWallets, store);
 
     // Update latest balance info
-    await walletController.updateAllBalances();
-    await walletController.dispatchBalances(appActions.setBalances, store);
-    await walletController.dispatchTransactions(appActions.setTransactions, store);
+    walletController.updateAllBalances()
+      .then(() => {
+        walletController.dispatchBalances(appActions.setBalances, store);
+        walletController.dispatchTransactions(appActions.setTransactions, store);
+      });
 
     // Update pricing info
-    const prices = await updatePrices(pricingController, walletController);
-    store.dispatch(appActions.setPricing(prices));
-
-    // Active wallets
-    await walletController.dispatchWallets(appActions.setWallets, store);
+    updatePrices(pricingController, walletController)
+      .then(prices => store.dispatch(appActions.setPricing(prices)));
 
     // Update currency information
-    await walletController.updatePriceMultipliers();
-    await walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
+    walletController.updatePriceMultipliers()
+      .then(() => walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store));
 
     // Watch for updates
-    await walletController.pollUpdates(30000, async () => { // every 30 sec
-      await walletController.updateAllBalances();
-      walletController.dispatchBalances(appActions.setBalances, store);
-      walletController.dispatchTransactions(appActions.setTransactions, store);
+    walletController.pollUpdates(30000, () => { // every 30 sec
+      walletController.updateAllBalances()
+        .then(() => {
+          walletController.dispatchBalances(appActions.setBalances, store);
+          walletController.dispatchTransactions(appActions.setTransactions, store);
+        });
     });
-    await walletController.pollPriceMultipliers(300000, async () => { // every 5 min
-      await walletController.updatePriceMultipliers();
-      walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
+    walletController.pollPriceMultipliers(300000, () => { // every 5 min
+      walletController.updatePriceMultipliers()
+        .then(() => walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store));
       // Update pricing info
-      const prices1 = await updatePrices(pricingController, walletController);
-      store.dispatch(appActions.setPricing(prices1));
+      updatePrices(pricingController, walletController)
+        .then(prices => store.dispatch(appActions.setPricing(prices)));
     });
 
     // Update the manifest if necessary

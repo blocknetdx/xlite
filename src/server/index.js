@@ -130,7 +130,7 @@ const startup = async () => {
   }
 
   // No need to await and hold up the whole process for this
-  await cloudChains.getCCSPVVersion()
+  cloudChains.getCCSPVVersion()
     .then(ccVersion => {
       logger.info(`Using CloudChains Litewallet version ${ccVersion}`);
     })
