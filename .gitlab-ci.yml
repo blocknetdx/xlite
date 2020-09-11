@@ -7,12 +7,18 @@ stages:
   - build
   - check
 
-test:
+test_main:
   stage: test
   image: blocknetdx/devbuilds:electron-tests
   script:
     - "npm install --no-audit"
-    - "npm run test-headless"
+    - "npm run test-headless-main"
+test_renderer:
+  stage: test
+  image: blocknetdx/devbuilds:electron-tests
+  script:
+    - "npm install --no-audit"
+    - "npm run test-headless-renderer"
 
 build_linux:
   stage: build
