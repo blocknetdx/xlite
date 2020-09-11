@@ -1,8 +1,9 @@
 /* global after, before, describe, it, should */
-
 import should from 'should';
 import Dexie from 'dexie';
 import * as uuid from 'uuid';
+
+import './rtests';
 import { DBTable, DBQuery, db, TableConfig, DB } from '../src/app/modules/db';
 
 class TestInitializer {

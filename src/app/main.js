@@ -3,6 +3,7 @@ window.$ = require('jquery');
 require('popper.js');
 require('bootstrap');
 
+import './util/public-path-r'; // must be first
 import './modules/window-zoom-handlers';
 import * as appActions from './actions/app-actions';
 import {activeViews, MIN_UI_HEIGHT, MIN_UI_WIDTH} from './constants';

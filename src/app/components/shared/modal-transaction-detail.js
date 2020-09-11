@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import { Modal, ModalBody, ModalHeader } from './modal';
 import Localize from './localize';
+import {publicPath} from '../../util/public-path-r';
 import { Column, Row } from './flex';
 import {currencyLinter, multiplierForCurrency} from '../../util';
 import { all, create } from 'mathjs';
@@ -17,14 +18,6 @@ const {api} = window;
 const Divider = () => <div style={{flexGrow: 1, height: 1, backgroundColor: 'rgba(0, 0, 0, 0.2)'}} />;
 
 const TransactionDetailModal = ({ altCurrency, currencyMultipliers, selectedTx, onClose }) => {
-  const [ imageDir, setImageDir ] = useState('');
-
-  useEffect(() => {
-    api.general_getImageDir('').then(dir => {
-      setImageDir(dir);
-    });
-  });
-
   const { ticker } = selectedTx.wallet;
   const selectedAltMultiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
   const selectedBTCMultiplier = multiplierForCurrency(ticker, 'BTC', currencyMultipliers);
@@ -44,11 +37,11 @@ const TransactionDetailModal = ({ altCurrency, currencyMultipliers, selectedTx, 
       <ModalBody className={'lw-modal-transaction-body'}>
         <Row justify={'center'}>
           <img alt={Localize.text('Transaction icon', 'transactions')}
-               srcSet={imageDir ? (selectedTx.tx.isSend() ?
-                 `${imageDir}/icons/icon-sent-large.png, ${imageDir}/icons/icon-sent-large@2x.png 2x, ${imageDir}/icons/icon-sent-large@3x.png 3x`
+               srcSet={(selectedTx.tx.isSend() ?
+                 `${publicPath}/images/icons/icon-sent-large.png, ${publicPath}/images/icons/icon-sent-large@2x.png 2x, ${publicPath}/images/icons/icon-sent-large@3x.png 3x`
                  :
-                 `${imageDir}/icons/icon-received-large.png, ${imageDir}/icons/icon-received-large@2x.png 2x, ${imageDir}/icons/icon-received-large@3x.png 3x`
-               ) : null}
+                 `${publicPath}/images/icons/icon-received-large.png, ${publicPath}/images/icons/icon-received-large@2x.png 2x, ${publicPath}/images/icons/icon-received-large@3x.png 3x`
+               )}
                className={'lw-modal-transaction-image'} />
         </Row>
         <Row justify={'center'}>

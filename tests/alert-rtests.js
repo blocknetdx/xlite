@@ -1,6 +1,7 @@
 /* global describe, it */
-
 import 'should';
+
+import './rtests';
 import Alert from '../src/app/modules/alert';
 import { swalConfirmed, swalCanceled, setFakePromptInput } from './fake-swal';
 import Localize from '../src/app/components/shared/localize';

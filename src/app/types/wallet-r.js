@@ -1,5 +1,6 @@
 import {localStorageKeys} from '../constants';
 import {logger} from '../modules/logger-r';
+import {publicPath} from '../util/public-path-r';
 import RPCTransaction from './rpc-transaction';
 import Token from './token';
 import {unixTime} from '../util';
@@ -52,6 +53,19 @@ class Wallet {
   // instances, any persistent data should be added to dom storage.
 
   /**
+   * Takes a ticker and returns the coin's image set or a default blank image
+   * @param ticker {string}
+   * @returns {string}
+   */
+  static getImage(ticker) {
+    const coinImageDir = `${publicPath}/images/coins`;
+    const tickerLower = ticker.toLowerCase();
+    const imagePath1x = `${coinImageDir}/icon-${tickerLower}.png`;
+    const imagePath2x = `${coinImageDir}/icon-${tickerLower}@2x.png`;
+    return `${imagePath1x}, ${imagePath2x} 2x`;
+  }
+
+  /**
    * Constructs a wallet
    * @param api {Object} Context bridge api
    * @param stor {DOMStorage}
@@ -62,6 +76,7 @@ class Wallet {
       Object.assign(this, data);
     this._api = api;
     this._storage = stor;
+    this.imagePath = Wallet.getImage(this.ticker);
   }
 
   /**

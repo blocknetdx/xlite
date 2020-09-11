@@ -4,6 +4,7 @@ import should from 'should';
 import {combineReducers, createStore} from 'redux';
 import {Map as IMap} from 'immutable';
 
+import './rtests';
 import * as appActions from '../src/app/actions/app-actions';
 import appReducer from '../src/app/reducers/app-reducer';
 import domStorage from '../src/app/modules/dom-storage';
@@ -16,8 +17,6 @@ import TokenManifest from '../src/app/modules/token-manifest';
 import Wallet from '../src/app/types/wallet-r';
 import WalletController from '../src/app/modules/wallet-controller-r';
 import XBridgeInfo from '../src/app/types/xbridgeinfo';
-
-window.api = {isDev: true}; // required for simulating renderer api calls
 
 describe('WalletController Test Suite', function() {
   const storage = domStorage;

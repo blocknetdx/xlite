@@ -1,4 +1,3 @@
-import {IMAGE_DIR} from '../constants';
 import {logger} from './logger';
 import Recipient from '../../app/types/recipient';
 import RPCController from './rpc-controller';
@@ -8,8 +7,6 @@ import {unixTime} from '../../app/util';
 
 import _ from 'lodash';
 import {all, create} from 'mathjs';
-import fs from 'fs-extra';
-import path from 'path';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -21,27 +18,6 @@ const { bignumber } = math;
  * Class representing a wallet
  */
 class Wallet {
-
-  /**
-   * Takes a ticker and returns the coin's image set or a default blank image
-   * @param ticker {string}
-   * @returns {string}
-   */
-  static getImage(ticker) {
-    const coinImageDir = path.join(IMAGE_DIR, 'coins');
-    const tickerLower = ticker.toLowerCase();
-    const imagePath1x = path.join(coinImageDir, `icon-${tickerLower}.png`);
-    const imagePath2x = path.join(coinImageDir, `icon-${tickerLower}@2x.png`);
-    const image1xExists = fs.pathExistsSync(imagePath1x);
-    const image2xExists = fs.pathExistsSync(imagePath2x);
-    if(image1xExists && image2xExists) {
-      return `${imagePath1x}, ${imagePath2x} 2x`;
-    } else if(image1xExists) {
-      return imagePath1x;
-    } else {
-      return path.join(IMAGE_DIR, 'blank_icon.png');
-    }
-  }
 
   /**
    * RPCController Instance for enabled wallets
@@ -58,12 +34,6 @@ class Wallet {
    * @type {string}
    */
   name = '';
-
-  /**
-   * Coin logo image path
-   * @type {string}
-   */
-  imagePath = '';
 
   /**
    * Associated cloudchains wallet conf.
@@ -101,7 +71,6 @@ class Wallet {
     this._storage = storage;
     this.ticker = token.ticker;
     this.name = token.blockchain;
-    this.imagePath = Wallet.getImage(token.ticker);
     this.initRpcIfEnabled();
   }
 

@@ -16,7 +16,7 @@ export const apiConstants = {
   general_userLocale: 'general_userLocale',
   general_getLocaleData: 'general_getLocaleData',
   general_getAppVersion: 'general_getAppVersion',
-  general_getImageDir: 'general_getImageDir',
+  general_getStaticDir: 'general_getStaticDir',
   general_openUrl: 'general_openUrl',
   general_qrCode: 'general_qrCode',
   general_setClipboard: 'general_setClipboard',
@@ -116,8 +116,8 @@ const general_API = {
   [apiConstants.general_getAppVersion]: async () => {
     return ipcRenderer.invoke(apiConstants.general_getAppVersion);
   },
-  [apiConstants.general_getImageDir]: async (image) => {
-    return ipcRenderer.invoke(apiConstants.general_getImageDir, image);
+  [apiConstants.general_getStaticDir]: () => {
+    return ipcRenderer.sendSync(apiConstants.general_getStaticDir);
   },
   [apiConstants.general_openUrl]: async (data) => {
     ipcRenderer.send(apiConstants.general_openUrl, data);

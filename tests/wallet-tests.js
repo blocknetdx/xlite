@@ -63,7 +63,6 @@ describe('Wallet Test Suite', function() {
     wallet.ticker.should.be.equal(token.ticker);
     wallet.ticker.should.be.equal(conf.ticker());
     wallet.name.should.be.equal(token.blockchain);
-    wallet.imagePath.should.be.equal(Wallet.getImage(wallet.ticker));
     wallet.rpcEnabled().should.be.true();
     wallet.rpc.should.be.eql(new RPCController(41414, 'testUser', 'test'));
   });

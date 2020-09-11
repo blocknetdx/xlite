@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const path = require('path');
 
 const appDir = path.resolve(__dirname, 'src/app');
@@ -13,20 +14,9 @@ const common = {
         ],
         exclude: [],
         use: {
-          loader: 'babel-loader',
-          // Defer to options in babel.config.js
-          // options: {
-          //   presets: [
-          //     ['@babel/preset-env', {targets: {'chrome': 83}}],
-          //     '@babel/preset-react',
-          //   ],
-          //   plugins: [
-          //     '@babel/plugin-transform-modules-commonjs',
-          //     '@babel/plugin-proposal-class-properties',
-          //   ],
-          // }
+          loader: 'babel-loader'
         }
-      }
+      },
     ]
   },
   resolve: {
@@ -45,7 +35,7 @@ const common = {
     ],
   },
   devtool: 'source-map',
-  context: __dirname,
+  context: __dirname
 };
 
 const errorjs = {
@@ -55,9 +45,9 @@ const errorjs = {
     path: destDir,
     filename: 'error.js',
     sourceMapFilename: '[file].map', // string
-    libraryTarget: 'umd',
+    libraryTarget: 'umd'
   },
-  target: 'web',
+  target: 'web'
 };
 
 const mainjs = {
@@ -67,13 +57,13 @@ const mainjs = {
     path: destDir,
     filename: 'main.js',
     sourceMapFilename: '[file].map', // string
-    libraryTarget: 'umd',
+    libraryTarget: 'umd'
   },
-  target: 'web',
+  target: 'web'
 };
 
-Object.assign(errorjs, common);
-Object.assign(mainjs, common);
+_.merge(errorjs, common);
+_.merge(mainjs, common);
 
 module.exports = (env, argv) => {
   if (!argv.mode)
