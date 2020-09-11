@@ -22,7 +22,7 @@ export default class Chart extends React.Component {
     className: PropTypes.string,
     style: PropTypes.object,
     chartData: PropTypes.arrayOf(Array),
-    currency : PropTypes.string,
+    currency: PropTypes.string,
     simple: PropTypes.bool,
     simpleStrokeColor: PropTypes.string,
     hideAxes: PropTypes.bool,
@@ -118,21 +118,46 @@ export default class Chart extends React.Component {
     let x_min = 0;
     let y_max = 0;
     let y_min = 0;
-    for (const [x, y] of data) {
-      if (x < x_min)
-        x_min = x;
-      if (x > x_max)
-        x_max = x;
-      if (y < y_min)
-        y_min = y;
-      if (y > y_max)
-        y_max = y;
-    }
-    const y_ratio = chartHeight / y_max;
-    for (let i = 0; i < data.length; i++) {
-      const arr = data[i];
-      arr[2] = i === 0 ? 0 : (chartWidth/data.length*i);
-      arr[3] = (y_max-arr[1]) * y_ratio;
+
+    if (simple) { // the simple chart starts at y_min
+      x_max = -1;
+      x_min = Number.MAX_SAFE_INTEGER;
+      y_max = -1;
+      y_min = Number.MAX_SAFE_INTEGER;
+      for (const [x, y] of data) {
+        if (x < x_min)
+          x_min = x;
+        if (x > x_max)
+          x_max = x;
+        if (y < y_min)
+          y_min = y;
+        if (y > y_max)
+          y_max = y;
+      }
+      const y_diff = y_max - y_min;
+      const y_ratio = chartHeight / y_diff;
+      for (let i = 0; i < data.length; i++) {
+        const arr = data[i];
+        arr[2] = i === 0 ? 0 : (chartWidth/data.length*i);
+        arr[3] = (arr[1] - y_min) * y_ratio;
+      }
+    } else { // regular chart starts at y_min = 0
+      for (const [x, y] of data) {
+        if (x < x_min)
+          x_min = x;
+        if (x > x_max)
+          x_max = x;
+        if (y < y_min)
+          y_min = y;
+        if (y > y_max)
+          y_max = y;
+      }
+      const y_ratio = chartHeight / y_max;
+      for (let i = 0; i < data.length; i++) {
+        const arr = data[i];
+        arr[2] = i === 0 ? 0 : (chartWidth/data.length*i);
+        arr[3] = (y_max-arr[1]) * y_ratio;
+      }
     }
 
     if (data.length > 0) {

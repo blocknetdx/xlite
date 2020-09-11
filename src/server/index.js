@@ -5,6 +5,7 @@ import {DEFAULT_LOCALE, DEFAULT_ZOOM_FACTOR} from '../app/constants';
 import Localize from '../app/components/shared/localize';
 import {logger} from './modules/logger';
 import openAppWindow from './windows/app-window';
+import Pricing from './modules/pricing';
 import SimpleStorage from './modules/storage';
 import windowMenu from './modules/window-menu';
 import ZoomController from './modules/zoom-controller';
@@ -84,6 +85,7 @@ const makeError = (title, msg) => {
 let confController = null;
 let walletController = null;
 let api = null;
+const pricing = new Pricing(Pricing.defaultPricingApi); // create pricing manager
 
 const startup = async () => {
   try {
@@ -163,7 +165,13 @@ app.on('ready', async () => {
 
   // displayFatalError = makeError('Test', '123'); // force debug error screen
   // Create the api
-  api = new Api(storage, app, ipcMain, displayFatalError, cloudChains, confController, walletController, zoomController);
+  api = new Api(storage, app, ipcMain, displayFatalError,
+    cloudChains,
+    confController,
+    walletController,
+    zoomController,
+    pricing,
+  );
 
   // Notify of fatal error
   if (displayFatalError) {

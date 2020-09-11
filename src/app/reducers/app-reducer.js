@@ -11,6 +11,7 @@ const getInitialState = () => ({
   windowHeight: window.innerHeight < MIN_UI_HEIGHT ? MIN_UI_HEIGHT : window.innerHeight,
   windowWidth: window.innerWidth < MIN_UI_WIDTH ? MIN_UI_WIDTH : window.innerWidth,
   manifest: new TokenManifest([], []),
+  pricing: Map(),
   wallets: [],
   activeWallet: '',
   altCurrency: altCurrencies.USD,
@@ -135,6 +136,11 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         altCurrency: payload.altCurrency
+      };
+    case actions.SET_PRICING:
+      return {
+        ...state,
+        pricing: payload.pricing
       };
     default:
       return state;

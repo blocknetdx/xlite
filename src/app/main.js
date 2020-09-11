@@ -12,10 +12,13 @@ import CloudChains from './modules/cloudchains-r';
 import ConfController from './modules/conf-controller-r';
 import domStorage from './modules/dom-storage';
 import Localize from './components/shared/localize';
+import {logger} from './modules/logger-r';
+import Pricing from './modules/pricing-r';
 import TokenManifest from './modules/token-manifest';
 import WalletController from './modules/wallet-controller-r';
 
 import { combineReducers, createStore } from 'redux';
+import {Map as IMap} from 'immutable';
 import { Provider } from 'react-redux';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -86,13 +89,33 @@ window.addEventListener('resize', e => {
 store.dispatch(appActions.setActiveView(activeViews.LOADING));
 
 /**
+ * Return pricing data from cache.
+ * @param pricing {Pricing}
+ * @param walletController {WalletController}
+ * @return {Promise<Map<{string}, {PriceData[]}>>}
+ */
+const updatePrices = async (pricing, walletController) => {
+  let prices = new IMap();
+  try {
+    // Always pull from cache (do not trigger network requests here)
+    const tickers = (await walletController.getWallets()).map(w => w.ticker);
+    const priceData = await pricing.updatePricing(tickers, ['USD']);
+    prices = new IMap(priceData);
+  } catch (e) {
+    logger.error('failed initial pricing update', e.message);
+  }
+  return prices;
+};
+
+/**
  * Startup initialization should happen on login.
  * @param walletController {WalletController}
  * @param confController {ConfController}
+ * @param pricingController {Pricing}
  * @param confNeedsManifestUpdate {boolean}
  * @return {function}
  */
-function startupInit(walletController, confController, confNeedsManifestUpdate) {
+function startupInit(walletController, confController, pricingController, confNeedsManifestUpdate) {
   return async () => {
     try {
       await walletController.loadWallets();
@@ -114,12 +137,16 @@ function startupInit(walletController, confController, confNeedsManifestUpdate) 
     await walletController.dispatchBalances(appActions.setBalances, store);
     await walletController.dispatchTransactions(appActions.setTransactions, store);
 
-    // Update currency information
-    await walletController.updatePriceMultipliers();
-    await walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
+    // Update pricing info
+    const prices = await updatePrices(pricingController, walletController);
+    store.dispatch(appActions.setPricing(prices));
 
     // Active wallets
     await walletController.dispatchWallets(appActions.setWallets, store);
+
+    // Update currency information
+    await walletController.updatePriceMultipliers();
+    await walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
 
     // Watch for updates
     await walletController.pollUpdates(30000, async () => { // every 30 sec
@@ -130,6 +157,9 @@ function startupInit(walletController, confController, confNeedsManifestUpdate) 
     await walletController.pollPriceMultipliers(300000, async () => { // every 5 min
       await walletController.updatePriceMultipliers();
       walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
+      // Update pricing info
+      const prices1 = await updatePrices(pricingController, walletController);
+      store.dispatch(appActions.setPricing(prices1));
     });
 
     // Update the manifest if necessary
@@ -161,6 +191,7 @@ function startupInit(walletController, confController, confNeedsManifestUpdate) 
   const walletController = new WalletController(api, tokenManifest, domStorage);
   // Create the wallet controller
   const cloudChains = new CloudChains(api);
+  const pricingController = new Pricing(api, domStorage);
 
   // These calls to the store will trigger the UI startup process.
   // i.e. the loading screen is displayed until these calls complete
@@ -168,7 +199,7 @@ function startupInit(walletController, confController, confNeedsManifestUpdate) 
   store.dispatch(appActions.setManifest(tokenManifest));
   store.dispatch(appActions.setCloudChains(cloudChains));
   store.dispatch(appActions.setWalletController(walletController));
-  store.dispatch(appActions.setStartupInitializer(startupInit(walletController, confController, confManifest.length === 0)));
+  store.dispatch(appActions.setStartupInitializer(startupInit(walletController, confController, pricingController, confManifest.length === 0)));
   store.dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
 })();
 

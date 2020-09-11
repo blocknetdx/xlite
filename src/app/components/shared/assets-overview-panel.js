@@ -10,10 +10,11 @@ import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
 import { Column } from './flex';
 import PercentBar from './percent-bar';
 import { walletSorter } from '../../util';
-import { Map } from 'immutable';
+import {Map as IMap} from 'immutable';
 import Wallet from '../../types/wallet-r';
 import { all, create } from 'mathjs';
-import Chart, {chartSampleData} from './chart';
+import Chart from './chart';
+import moment from 'moment';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -21,8 +22,17 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
-const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideVolume = false, altCurrency, balances, currencyMultipliers, style = {}, wallets, showAllButton = false, setActiveView }) => {
+/**
+ * Convert price data into expected chart data.
+ * @param priceData {PriceData}
+ */
+const chartDataFromPriceData = priceData => {
+  if (!priceData)
+    return [];
+  return [moment(priceData.date).unix(), priceData.close || priceData.open];
+};
 
+const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideVolume = false, altCurrency, balances, currencyMultipliers, style = {}, wallets, showAllButton = false, setActiveView, pricingData }) => {
   const filteredWallets = wallets
     .filter(w => w.rpcEnabled())
     .sort(walletSorter(balances));
@@ -37,6 +47,17 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
     const balance = math.multiply(bignumber(Number(totalBalance)), altMultiplier);
     altBalances[ticker] = balance;
     totalAltBalance = math.add(totalAltBalance, balance);
+  }
+
+  const pricingChartData = new Map();
+  if (pricingData) {
+    for (const [key, value] of pricingData.entries()) {
+      if (!value || value.length === 0)
+        continue; // skip if no data
+      const sortedData = value.map(pd => chartDataFromPriceData(pd))
+                           .sort((a,b) => b[0] - a[0]); // sort by unix time descending (recent time first)
+      pricingChartData.set(key, sortedData.slice(0, 7)); // 1 week of data
+    }
   }
 
   const styles = {
@@ -72,6 +93,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
 
               const percent = totalAltBalance > 0 ? Number(math.multiply(math.divide(altBalances[ticker], totalAltBalance), bignumber(100)).toFixed(2))
                                                   : (0).toFixed(2);
+              const priceChartData = pricingChartData.get(ticker) || [];
 
               return (
                 <TableRow key={ticker}>
@@ -81,7 +103,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                   {!hideTicker ? <TableData>{ticker}</TableData> : null}
                   <TableData className={'text-monospace'}>{Number(altMultiplier.toFixed(MAX_DECIMAL_PLACE))}</TableData>
                   <TableData>
-                    <Chart chartData={chartSampleData} simple={true} simpleStrokeColor={'#ccc'}
+                    <Chart chartData={priceChartData} simple={true} simpleStrokeColor={'#ccc'}
                            hideAxes={true} defaultWidth={108} defaultHeight={26}
                            chartGridColor={'#949494'} chartScale={'week'} />
                   </TableData>
@@ -125,12 +147,13 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
   );
 };
 AssetsOverviewPanel.propTypes = {
+  pricingData: PropTypes.instanceOf(IMap),
   hidePercentBar: PropTypes.bool,
   hideTicker: PropTypes.bool,
   hideVolume: PropTypes.bool,
   activeWallet: PropTypes.string,
   altCurrency: PropTypes.string,
-  balances: PropTypes.instanceOf(Map),
+  balances: PropTypes.instanceOf(IMap),
   currencyMultipliers: PropTypes.object,
   style: PropTypes.object,
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
@@ -140,6 +163,7 @@ AssetsOverviewPanel.propTypes = {
 
 export default connect(
   ({ appState }) => ({
+    pricingData: appState.pricing,
     activeWallet: appState.activeWallet,
     altCurrency: appState.altCurrency,
     balances: appState.balances,

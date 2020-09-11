@@ -1,4 +1,6 @@
+/*eslint quotes: 0, key-spacing: 0*/
 import FakeRPCController from './fake-rpc-controller';
+import PriceData from '../src/app/types/pricedata';
 import RPCTransaction from '../src/app/types/rpc-transaction';
 import {unixTime} from '../src/app/util';
 
@@ -96,6 +98,21 @@ const FakeApi = (fakeApi) => {
     wallet_generateNewAddress: (ticker) => resolvePromise('address' + Math.random()),
     wallet_getCachedUnspent: async (ticker) => resolvePromise(await fakeRpc.listUnspent()),
     wallet_send: (ticker) => resolvePromise('txid_for_sent_tx'),
+    pricing_getPrice: async (ticker, currency) => {
+      if (ticker === 'BLOCK') {
+        return resolvePromise([
+          new PriceData({date: "2020-09-07T00:00:00.000Z", close: 1.0, high: 1.9, low: 1.0, open: 1.67, volume: 10000.12, ticker: ticker, currency: currency}),
+          new PriceData({date: "2020-09-08T00:00:00.000Z", close: 1.69, high: 1.91, low: 1.83, open: 1.0, volume: 15000.34, ticker: ticker, currency: currency}),
+          new PriceData({date: "2020-09-09T00:00:00.000Z", close: 1.95, high: 1.9, low: 1.34, open: 1.41, volume: 47000.56, ticker: ticker, currency: currency}),
+        ]);
+      } else if (ticker === 'BTC') {
+        return resolvePromise([
+          new PriceData({date: "2020-08-01T00:00:00.000Z", close: 10375.0, high: 10410.9, low: 9880.0, open: 10258.67, volume: 11996.92866276, ticker: ticker, currency: currency}),
+          new PriceData({date: "2020-08-02T00:00:00.000Z", close: 10125.69, high: 10440.91, low: 9819.83, open: 10375.0, volume: 15768.31017626, ticker: ticker, currency: currency}),
+          new PriceData({date: "2020-08-03T00:00:00.000Z", close: 10239.95, high: 10286.9, low: 9983.34, open: 10126.41, volume: 4766.43687842, ticker: ticker, currency: currency}),
+        ]);
+      }
+    },
   });
   return fakeApi;
 };
