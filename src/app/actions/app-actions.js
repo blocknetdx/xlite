@@ -243,3 +243,14 @@ export const setPricing = pricing => ({
     pricing
   }
 });
+
+/**
+ * @param pricingController {Pricing}
+ * @returns {{payload: {pricingController: Pricing}, type: string}}
+ */
+export const setPricingController = pricingController => ({
+  type: actions.SET_PRICING_CONTROLLER,
+  payload: {
+    pricingController
+  }
+});

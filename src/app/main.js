@@ -200,6 +200,7 @@ function startupInit(walletController, confController, pricingController, confNe
   store.dispatch(appActions.setManifest(tokenManifest));
   store.dispatch(appActions.setCloudChains(cloudChains));
   store.dispatch(appActions.setWalletController(walletController));
+  store.dispatch(appActions.setPricingController(pricingController));
   store.dispatch(appActions.setStartupInitializer(startupInit(walletController, confController, pricingController, confManifest.length === 0)));
   store.dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
 })();
