@@ -1,6 +1,6 @@
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import { Card, CardBody, CardFooter, CardHeader } from './card';
 import { Table, TableColumn, TableData, TableRow } from './table';
 import Localize from './localize';
@@ -10,6 +10,7 @@ import AssetWithImage from './asset-with-image';
 import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
 import {Map as IMap} from 'immutable';
 import {multiplierForCurrency, currencyLinter} from '../../util';
+import {publicPath} from '../../util/public-path-r';
 import { all, create } from 'mathjs';
 import Wallet from '../../types/wallet-r';
 import TransactionDetailModal from './modal-transaction-detail';
@@ -28,14 +29,7 @@ const {api} = window;
 const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = false, brief = false, activeWallet, altCurrency, currencyMultipliers, transactions, wallets, style = {}, showAllButton = false, setActiveView }) => {
 
   const [ selectedTx, setSelectedTx ] = useState(null);
-  const [ imageDir, setImageDir ] = useState('');
   const [ transactionFilter, setTransactionFilter ] = useState(transactionFilters.all);
-
-  useEffect(() => {
-    api.general_getImageDir('').then(dir => {
-      setImageDir(dir);
-    });
-  });
 
   const walletLookup = new Map(wallets.map(t => [t.ticker, t]));
   const filteredTxs = [...transactions.entries()]
@@ -105,19 +99,19 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                       <Column justify={'center'}>
                         <img alt={Localize.text('Received icon', 'transactions')}
                              style={{marginRight: 10, height: 24, width: 'auto'}}
-                             srcSet={imageDir ? (t.type === 'send' ?
+                             srcSet={(t.type === 'send' ?
                                  [
-                                   `${imageDir}/icons/icon-sent.png`,
-                                   `${imageDir}/icons/icon-sent@2x.png 2x`,
-                                   `${imageDir}/icons/icon-sent@3x.png 3x`,
+                                   `${publicPath}/images/icons/icon-sent.png`,
+                                   `${publicPath}/images/icons/icon-sent@2x.png 2x`,
+                                   `${publicPath}/images/icons/icon-sent@3x.png 3x`,
                                  ]
                                  :
                                  [
-                                   `${imageDir}/icons/icon-received.png`,
-                                   `${imageDir}/icons/icon-received@2x.png 2x`,
-                                   `${imageDir}/icons/icon-received@3x.png 3x`,
+                                   `${publicPath}/images/icons/icon-received.png`,
+                                   `${publicPath}/images/icons/icon-received@2x.png 2x`,
+                                   `${publicPath}/images/icons/icon-received@3x.png 3x`,
                                  ]
-                             ).join(', ') : null} />
+                             ).join(', ')} />
                       </Column>
                       {!brief ?
                       <div style={{flexGrow: 1}}>

@@ -1,3 +1,4 @@
+import {publicPath} from './util/public-path'; // must be at top
 import Api from './modules/api';
 import CloudChains from './modules/cloudchains';
 import {DATA_DIR, getLocaleData, storageKeys} from './constants';
@@ -13,7 +14,7 @@ import ConfController from './modules/conf-controller';
 import TokenManifest from '../app/modules/token-manifest';
 import WalletController from './modules/wallet-controller';
 
-import { app, ipcMain,  Menu } from 'electron';
+import {app, ipcMain, Menu} from 'electron';
 import contextMenu from 'electron-context-menu';
 import fs from 'fs-extra';
 import isDev from 'electron-is-dev';
@@ -27,6 +28,7 @@ process.on('unhandledRejection', err => {
   logger.error('', err);
 });
 
+logger.info(`Static assets ${publicPath}`);
 const devtools = isDev && process.env.SHOWDEVTOOLS !== 'false' && process.env.SHOWDEVTOOLS !== '0';
 
 let appWindow;
@@ -175,12 +177,12 @@ app.on('ready', async () => {
 
   // Notify of fatal error
   if (displayFatalError) {
-    openAppWindow(path.resolve(__dirname, '../error.html'), storage, devtools);
+    openAppWindow(path.resolve(__dirname, '../static/error.html'), storage, devtools);
     return;
   }
 
   // Create the app window
-  appWindow = openAppWindow(path.resolve(__dirname, '../index.html'), storage, devtools);
+  appWindow = openAppWindow(path.resolve(__dirname, '../static/index.html'), storage, devtools);
   // Shutdown the cli on window close if it's running.
   appWindow._window.once('close', () => {
     if (cloudChains.spvIsRunning()) {

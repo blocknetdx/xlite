@@ -6,8 +6,6 @@ import path from 'path';
 import fs from 'fs-extra';
 
 export const DATA_DIR = app ? app.getPath('userData') : '';
-export const ICON_DIR = app ? path.join(app.getPath('userData'), 'icons') : '';
-export const IMAGE_DIR = path.resolve(__dirname, '../../images');
 
 export const getLocaleData = locale => {
   const localesPath = path.resolve(__dirname, '../../../locales');

@@ -1,12 +1,12 @@
 /*global describe,it,beforeEach,after*/
 /*eslint quotes: 0, key-spacing: 0*/
 import should from 'should';
+
+import './rtests';
 import domStorage from '../src/app/modules/dom-storage';
 import FakeApi from './fake-api';
 import PriceData from '../src/app/types/pricedata';
 import Pricing from '../src/app/modules/pricing-r';
-
-window.api = {isDev: true}; // required for simulating renderer api calls
 
 describe('Pricing Renderer Test Suite', function() {
   const fakeApi = window.api;

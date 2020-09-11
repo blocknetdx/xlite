@@ -19,7 +19,7 @@
     "watch-js": "babel src/server -d dist/server --watch --verbose & babel src/app -d dist/app --watch --verbose & npm run watch-js-app",
     "watch-js-app": "webpack --config-name=mainjs --watch",
     "watch-js-error": "webpack --config-name=errorjs --watch",
-    "scss": "node-sass --output-style expanded --source-map true --source-map-contents true --precision 6 src/scss/main.scss dist/css/main.css",
+    "scss": "node-sass --output-style expanded --source-map true --source-map-contents true --precision 6 src/scss/main.scss dist/static/css/main.css",
     "watch-scss": "nodemon -w src/scss -e scss -x \"npm run scss\"",
     "copy-static-files": "node ./build-scripts/copy-files.js",
     "watch-static-files": "nodemon -w src -i app/* -i scss/* -e html,css,scss,js,ttf,ico,jpg,png,svg -x \"npm run copy-static-files\"",

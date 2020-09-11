@@ -1,11 +1,6 @@
 import 'should';
-import {all, create} from 'mathjs';
-const math = create(all, {
-  number: 'BigNumber',
-  precision: 64
-});
-const { bignumber } = math;
 
+import './rtests';
 import {DUST_SATOSHIS} from '../src/app/constants'
 import Recipient from '../src/app/types/recipient';
 import RPCUnspent from '../src/app/types/rpc-unspent';

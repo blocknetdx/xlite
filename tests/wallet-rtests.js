@@ -2,6 +2,7 @@
 /*eslint quotes: 0, key-spacing: 0*/
 import should from 'should';
 
+import './rtests';
 import domStorage from '../src/app/modules/dom-storage';
 import FakeApi, {resolvePromise} from './fake-api';
 import {localStorageKeys} from '../src/app/constants';
@@ -11,8 +12,7 @@ import Token from '../src/app/types/token';
 import {unixTime} from '../src/app/util';
 import Wallet from '../src/app/types/wallet-r';
 import XBridgeInfo from '../src/app/types/xbridgeinfo';
-
-window.api = {isDev: true}; // required for simulating renderer api calls
+import {publicPath} from '../src/app/util/public-path-r';
 
 describe('Wallet Test Suite', function() {
   const appStorage = domStorage;
@@ -40,7 +40,7 @@ describe('Wallet Test Suite', function() {
       "wallet_conf": "blocknet--v4.0.1.conf"
     });
     token.xbinfo = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000, rpcport: 41414 });
-    walletData = {ticker: token.ticker, name: token.blockchain, imagePath: 'images/img.png', _token: token};
+    walletData = {ticker: token.ticker, name: token.blockchain, _token: token};
     Object.assign(fakeApi, FakeApi(fakeApi));
   });
 
@@ -50,7 +50,7 @@ describe('Wallet Test Suite', function() {
     wallet._storage.should.be.eql(appStorage);
     wallet.ticker.should.be.equal(token.ticker);
     wallet.name.should.be.equal(token.blockchain);
-    wallet.imagePath.should.be.equal(walletData.imagePath);
+    wallet.imagePath.should.be.equal(Wallet.getImage(wallet.ticker));
     await wallet.rpcEnabled().should.finally.be.true();
   });
   it('Wallet.rpcEnabled()', async function() {

@@ -1,6 +1,7 @@
 import {apiConstants} from '../../app/api';
-import {getLocaleData, IMAGE_DIR, storageKeys} from '../constants';
+import {getLocaleData, storageKeys} from '../constants';
 import {logger} from './logger';
+import {publicPath} from '../util/public-path';
 import Recipient from '../../app/types/recipient';
 import WalletController from './wallet-controller';
 
@@ -8,7 +9,6 @@ import _ from 'lodash';
 import electron from 'electron';
 import isDev from 'electron-is-dev';
 import {Map as IMap} from 'immutable';
-import path from 'path';
 import QRCode from 'qrcode';
 
 /**
@@ -177,8 +177,8 @@ class Api {
     this._proc.handle(apiConstants.general_getAppVersion, (evt, arg) => {
       return this._storage.getItem(storageKeys.APP_VERSION);
     });
-    this._proc.handle(apiConstants.general_getImageDir, (evt, image) => {
-      return path.join(IMAGE_DIR, image);
+    this._proc.on(apiConstants.general_getStaticDir, (evt) => {
+      evt.returnValue = publicPath;
     });
     this._proc.on(apiConstants.general_openUrl, (evt, url) => {
       if (/^https:\/\/(?!file)[a-zA-Z0-9_]+\.(?:(?!\/\/)[a-zA-Z0-9_%$?/.])+$/i.test(url))
