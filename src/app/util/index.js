@@ -80,7 +80,11 @@ export const currencyLinter = val => {
   return bn.toFixed(MAX_DECIMAL_CURRENCY);
 };
 
-export const timeout = length => new Promise(resolve => setTimeout(resolve, length));
+/**
+ * @param length {number}
+ * @returns {Promise<void>}
+ */
+export const timeout = (length = 0) => new Promise(resolve => setTimeout(resolve, length));
 
 export const oneHourSeconds = 3600;
 export const oneDaySeconds = 86400;
