@@ -93,7 +93,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
 
               const percent = totalAltBalance > 0 ? Number(math.multiply(math.divide(altBalances[ticker], totalAltBalance), bignumber(100)).toFixed(2))
                                                   : (0).toFixed(2);
-              const priceChartData = pricingChartData.get(ticker) || [];
+              const priceChartData = pricingChartData.get(ticker) || null;
 
               return (
                 <TableRow key={ticker}>
@@ -103,9 +103,10 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                   {!hideTicker ? <TableData>{ticker}</TableData> : null}
                   <TableData className={'text-monospace'}>{Number(altMultiplier.toFixed(MAX_DECIMAL_PLACE))}</TableData>
                   <TableData>
-                    <Chart chartData={priceChartData} simple={true} simpleStrokeColor={'#ccc'}
-                           hideAxes={true} defaultWidth={108} defaultHeight={26}
-                           chartGridColor={'#949494'} chartScale={'week'} />
+                  {/*  Only render chart if data is available */}
+                  {priceChartData ? <Chart chartData={priceChartData} simple={true} simpleStrokeColor={'#ccc'}
+                         hideAxes={true} defaultWidth={108} defaultHeight={26}
+                         chartGridColor={'#949494'} chartScale={'week'} /> : null}
                   </TableData>
                   {!hideVolume ? <TableData></TableData> : null}
                   <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0}}>
