@@ -1,3 +1,4 @@
+
 window.$ = require('jquery');
 require('popper.js');
 require('bootstrap');
@@ -16,6 +17,7 @@ import {logger} from './modules/logger-r';
 import Pricing from './modules/pricing-r';
 import TokenManifest from './modules/token-manifest';
 import WalletController from './modules/wallet-controller-r';
+import { timeout } from './util';
 
 import { combineReducers, createStore } from 'redux';
 import {Map as IMap} from 'immutable';
@@ -64,6 +66,15 @@ const updateScrollbars = (innerWidth, innerHeight) => {
   }
 };
 
+// Add window event handlers
+window.addEventListener('paste', async function(e) {
+  const type = $(e.target).attr('type');
+  if(type === 'password') {
+    // a timeout is necessary to allow the paste event to take place before clearing the clipboard
+    await timeout(10000);
+    api.general_setClipboard('');
+  }
+});
 let resizeTimeout;
 window.addEventListener('resize', e => {
   const { innerWidth: origInnerWidth, innerHeight: origInnerHeight, outerWidth, outerHeight } = e.target;
