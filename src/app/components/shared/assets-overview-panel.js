@@ -9,12 +9,13 @@ import * as appActions from '../../actions/app-actions';
 import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
 import { Column } from './flex';
 import PercentBar from './percent-bar';
-import { walletSorter } from '../../util';
+import { multiplierForCurrency, walletSorter } from '../../util';
 import {Map as IMap} from 'immutable';
 import Wallet from '../../types/wallet-r';
 import { all, create } from 'mathjs';
 import Chart from './chart';
 import moment from 'moment';
+import Pricing from '../../modules/pricing-r';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -32,7 +33,7 @@ const chartDataFromPriceData = priceData => {
   return [moment(priceData.date).unix(), priceData.close || priceData.open];
 };
 
-const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideVolume = false, altCurrency, balances, currencyMultipliers, style = {}, wallets, showAllButton = false, setActiveView, pricingData }) => {
+const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideVolume = false, altCurrency, balances, currencyMultipliers, style = {}, wallets, showAllButton = false, pricingController, setActiveView, pricingData }) => {
   const filteredWallets = wallets
     .filter(w => w.rpcEnabled())
     .sort(walletSorter(balances));
@@ -43,7 +44,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
   for(const w of filteredWallets) {
     const { ticker } = w;
     const [ totalBalance ] = balances.has(ticker) ? balances.get(ticker) : ['0'];
-    const altMultiplier = bignumber(currencyMultipliers[ticker] && currencyMultipliers[ticker][altCurrency] ? currencyMultipliers[ticker][altCurrency] : 0);
+    const altMultiplier = bignumber(multiplierForCurrency(ticker, altCurrency, currencyMultipliers));
     const balance = math.multiply(bignumber(Number(totalBalance)), altMultiplier);
     altBalances[ticker] = balance;
     totalAltBalance = math.add(totalAltBalance, balance);
@@ -66,6 +67,14 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
     }
   };
 
+  const volumeInAltCurrency = ticker => {
+    const volume = bignumber(pricingController.getVolume(ticker, altCurrency));
+    const altMultiplier = bignumber(multiplierForCurrency(ticker, altCurrency, currencyMultipliers));
+    return math
+      .multiply(altMultiplier, volume)
+      .toNumber();
+  };
+
   return (
     <Card style={style}>
       <CardHeader>
@@ -86,8 +95,8 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
 
               const { ticker } = w;
 
-              const altMultiplier = bignumber(currencyMultipliers[ticker] && currencyMultipliers[ticker][altCurrency] ? currencyMultipliers[ticker][altCurrency] : 0);
-              const btcMultiplier = bignumber(currencyMultipliers[ticker] && currencyMultipliers[ticker]['BTC'] ? currencyMultipliers[ticker]['BTC'] : 0);
+              const altMultiplier = bignumber(multiplierForCurrency(ticker, altCurrency, currencyMultipliers));
+              const btcMultiplier = bignumber(multiplierForCurrency(ticker, 'BTC', currencyMultipliers));
 
               const [ totalBalance ] = balances.has(ticker) ? balances.get(ticker) : ['0'];
 
@@ -107,7 +116,11 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                            hideAxes={true} defaultWidth={108} defaultHeight={26}
                            chartGridColor={'#949494'} chartScale={'week'} />
                   </TableData>
-                  {!hideVolume ? <TableData></TableData> : null}
+                  {!hideVolume ?
+                    <TableData>{'$' + Localize.number(volumeInAltCurrency(ticker), 0)}</TableData>
+                    :
+                    null
+                  }
                   <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0}}>
                     {!hidePercentBar ?
                       <Column justify={'center'} style={{marginTop: -14}}>
@@ -158,6 +171,7 @@ AssetsOverviewPanel.propTypes = {
   style: PropTypes.object,
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   showAllButton: PropTypes.bool,
+  pricingController: PropTypes.instanceOf(Pricing),
   setActiveView: PropTypes.func
 };
 
@@ -168,6 +182,7 @@ export default connect(
     altCurrency: appState.altCurrency,
     balances: appState.balances,
     currencyMultipliers: appState.currencyMultipliers,
+    pricingController: appState.pricingController,
     wallets: appState.wallets
   }),
   dispatch => ({

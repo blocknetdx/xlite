@@ -32,6 +32,7 @@ export const actions = {
   SET_CC_VERSION: 'SET_CC_VERSION',
   SET_ALT_CURRENCY: 'SET_ALT_CURRENCY',
   SET_PRICING: 'SET_PRICING',
+  SET_PRICING_CONTROLLER: 'SET_PRICING_CONTROLLER'
 };
 
 export const localStorageKeys = {
