@@ -107,7 +107,6 @@ export default class Chart extends React.Component {
     }
 
     // Retina/HDPI screen support (requires canvas.scaled below)
-    ctx.clearRect(0, 0, w, h);
     canvas.width = w;
     canvas.height = h;
     canvas.style.width = defaultWidth + 'px';
