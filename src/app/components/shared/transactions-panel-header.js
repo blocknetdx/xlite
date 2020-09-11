@@ -4,7 +4,7 @@ import PanelFilters from './button-filters';
 import { SquareButton } from './buttons';
 import { transactionFilters } from '../../constants';
 
-const TransactionsPanelHeader = ({ selectedFilter }) => {
+const TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter }) => {
 
   const [transactionFilter, setTransactionFilter] = useState(selectedFilter || transactionFilters.all);
 
@@ -27,7 +27,7 @@ const TransactionsPanelHeader = ({ selectedFilter }) => {
         <PanelFilters
           selectedFilter={transactionFilters[transactionFilter.toLowerCase()]}
           filters={Object.values(transactionFilters).map(key => key)}
-          onFilterSelected={setTransactionFilter}
+          onFilterSelected={onTransactionFilter}
         />
         <SquareButton title={'Filter'} icon={'fas fa-filter'} onClick={onFilterButton} />
       </div>
@@ -36,7 +36,8 @@ const TransactionsPanelHeader = ({ selectedFilter }) => {
 };
 
 TransactionsPanelHeader.propTypes = {
-  selectedFilter: PropTypes.string
+  selectedFilter: PropTypes.string,
+  onTransactionFilter: PropTypes.func
 };
 
 export default TransactionsPanelHeader;

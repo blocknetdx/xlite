@@ -14,6 +14,7 @@ import { all, create } from 'mathjs';
 import Wallet from '../../types/wallet-r';
 import TransactionDetailModal from './modal-transaction-detail';
 import TransactionsHeader from './transactions-panel-header';
+import { transactionFilters } from '../../constants';
 import * as appActions from '../../actions/app-actions';
 
 const math = create(all, {
@@ -28,6 +29,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
 
   const [ selectedTx, setSelectedTx ] = useState(null);
   const [ imageDir, setImageDir ] = useState('');
+  const [ transactionFilter, setTransactionFilter ] = useState(transactionFilters.all);
 
   useEffect(() => {
     api.general_getImageDir('').then(dir => {
@@ -48,6 +50,21 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
     .reduce((arr, [ ticker, txs]) => {
       return arr.concat(txs.map(tx => [ticker, tx]));
     }, [])
+    .filter(([ticker, t]) => {
+      if (transactionFilter !== transactionFilters.all) {
+        if (
+          transactionFilter === transactionFilters.sent &&
+          !t.isSend()
+        )
+          return false;
+        else if (
+          transactionFilter === transactionFilters.received &&
+          !t.isReceive()
+        )
+          return false;
+      }
+      return true;
+    })
     .sort((a, b) => { // descending
       const dateA = a[1].time;
       const dateB = b[1].time;
@@ -57,7 +74,10 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
   return (
     <Card style={style}>
       <CardHeader>
-        {brief ? <h1>Latest Transactions</h1> : <TransactionsHeader />}
+        {brief
+          ? <h1>Latest Transactions</h1>
+          : <TransactionsHeader selectedFilter={transactionFilter} onTransactionFilter={setTransactionFilter} />
+        }
       </CardHeader>
       <CardBody>
         <Table>
