@@ -77,6 +77,26 @@ export const altCurrencies = {
   GBP: 'GBP',
 };
 
+/**
+ * Must match the altCurrencies obj format. Returns the
+ * currency with right-most space if no symbol was found.
+ * e.g. [BTC] -> [BTC ]
+ * @param currency {string} USD, BTC, EUR, GBP
+ * @return {string} Currency symbol
+ */
+export const altCurrencySymbol = (currency) => {
+  const sym = {
+    USD: '$',
+    BTC: 'BTC ',
+    EUR: '€',
+    GBP: '£',
+  }[currency];
+  if (!sym)
+    return currency + ' ';
+  else
+    return sym;
+};
+
 export const MAX_DECIMAL_PLACE = 8;
 export const MAX_DECIMAL_CURRENCY = 2;
 
