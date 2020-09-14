@@ -80,6 +80,10 @@ $lw-row-padding-vert: 12px;
           font-size: 13px;
           line-height: 16px;
           text-align: center;
+          @media only screen and (max-width: 1056px) {
+            font-size: 10px;
+            line-height: 13px;
+          }
         }
 
         //&:last-child {
