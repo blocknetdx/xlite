@@ -102,3 +102,15 @@ export const passwordValidator = {
   checkNumber: password => /\d/.test(password),
   checkSpecial: password => /[^\s\w\d]/.test(password)
 };
+
+/**
+ * Return only enabled wallets.
+ * @param wallets {Wallet[]}
+ * @return {Promise<Wallet[]>}
+ */
+export const availableWallets = async wallets => {
+  const m = new Map(); // <ticker, rpcEnabled>
+  for (const w of wallets)
+    m.set(w.ticker, await w.rpcEnabled());
+  return wallets.filter(w => m.get(w.ticker));
+};

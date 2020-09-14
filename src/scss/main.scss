@@ -4,6 +4,7 @@
 @import "./fontawesome/brands";
 @import "./fontawesome/fontawesome";
 @import "../../node_modules/react-perfect-scrollbar/dist/css/styles";
+@import "../../node_modules/sweetalert2/dist/sweetalert2";
 @import "./lw/variables";
 @import "./lw/login";
 @import "./lw/navbar";
@@ -23,6 +24,11 @@
 @import "./lw/dashboard";
 @import "./lw/alerts";
 @import "./lw/spinner";
+
+// Change default sweetalert z-index
+.swal2-container {
+  z-index: 10000;
+}
 
 .color-negative {
   color: $lw-negative-1;

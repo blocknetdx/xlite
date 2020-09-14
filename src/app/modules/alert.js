@@ -1,13 +1,14 @@
-import swal from 'sweetalert';
 import Localize from '../components/shared/localize';
+
+import Swal from 'sweetalert2/dist/sweetalert2'; // exclude inline styles (required by content-security-policy)
 
 class Alert {
 
   /**
-   * @type {SweetAlert}
+   * @type {Swal}
    * @private
    */
-  static _swal = swal;
+  static _swal = Swal;
 
   /**
    * @returns {string}
@@ -31,7 +32,7 @@ class Alert {
    * @returns {Object}
    * @private
    */
-  static _constructSwalConfiguration(icon, title, text, content, confirmButtonText, cancelButtonText) {
+  static _constructSwalConfiguration(icon, title, text, content, confirmButtonText, cancelButtonText = '') {
     const options = {
       title,
       text
@@ -39,30 +40,29 @@ class Alert {
     if(icon)
       options.icon = icon;
     if(content)
-      options.content = content;
-    if(confirmButtonText && cancelButtonText) {
-      options.buttons = [cancelButtonText, confirmButtonText];
-    } else if(confirmButtonText) {
-      options.button = confirmButtonText;
-    }
+      Object.assign(options, content);
+    if (confirmButtonText)
+      options.confirmButtonText = confirmButtonText;
+    if (cancelButtonText)
+      options.cancelButtonText = cancelButtonText;
     return options;
   }
 
   /**
    * @param title {string}
    * @param text {string}
-   * @param buttonText {string}
-   * @returns {Promise<boolean>}
+   * @param confirmButtonText {string}
+   * @returns {Promise<Object>} SweetAlert result object (i.e. result.value, result.dismiss)
    */
-  static alert(title = '', text = '', buttonText = Alert._defaultConfirmText()) {
+  static alert(title = '', text = '', confirmButtonText = Alert._defaultConfirmText()) {
     const options = Alert._constructSwalConfiguration(
       '',
       title,
       text,
       null,
-      buttonText
+      confirmButtonText
     );
-    return Alert._swal(options);
+    return Alert._swal.fire(options);
   }
 
   /**
@@ -70,7 +70,7 @@ class Alert {
    * @param text {string}
    * @param confirmButtonText {string}
    * @param cancelButtonText {string}
-   * @returns {Promise<boolean>}
+   * @returns {Promise<Object>} SweetAlert result object (i.e. result.value, result.dismiss)
    */
   static confirm(title = '', text = '', confirmButtonText = Alert._defaultConfirmText(), cancelButtonText = Alert._defaultCancelText()) {
     const options = Alert._constructSwalConfiguration(
@@ -81,7 +81,7 @@ class Alert {
       confirmButtonText,
       cancelButtonText
     );
-    return Alert._swal(options);
+    return Alert._swal.fire(options);
   }
 
   /**
@@ -90,30 +90,25 @@ class Alert {
    * @param confirmButtonText {string}
    * @param cancelButtonText {string}
    * @param obscure {boolean}
-   * @returns {Promise<boolean>}
+   * @returns {Promise<Object>} SweetAlert result object (i.e. result.value, result.dismiss)
    */
   static prompt(title = '', text = '', confirmButtonText = Alert._defaultConfirmText(), cancelButtonText = Alert._defaultCancelText(), obscure = false) {
     const options = Alert._constructSwalConfiguration(
       '',
       title,
       text,
-      {
-        element: 'input',
-        attributes: {
-          type: obscure ? 'password' : 'text'
-        }
-      },
+      {input: (obscure ? 'password' : 'text')},
       confirmButtonText,
       cancelButtonText
     );
-    return Alert._swal(options);
+    return Alert._swal.fire(options);
   }
 
   /**
    * @param title {string}
    * @param text {string}
    * @param buttonText {string}
-   * @returns {Promise<boolean>}
+   * @returns {Promise<Object>} SweetAlert result object (i.e. result.value, result.dismiss)
    */
   static error(title = '', text = '', buttonText = Alert._defaultConfirmText()) {
     const options = Alert._constructSwalConfiguration(
@@ -123,14 +118,14 @@ class Alert {
       null,
       buttonText
     );
-    return Alert._swal(options);
+    return Alert._swal.fire(options);
   }
 
   /**
    * @param title {string}
    * @param text {string}
    * @param buttonText {string}
-   * @returns {Promise<boolean>}
+   * @returns {Promise<Object>} SweetAlert result object (i.e. result.value, result.dismiss)
    */
   static success(title = '', text = '', buttonText = Alert._defaultConfirmText()) {
     const options = Alert._constructSwalConfiguration(
@@ -140,7 +135,7 @@ class Alert {
       null,
       buttonText
     );
-    return Alert._swal(options);
+    return Alert._swal.fire(options);
   }
 
   /**
@@ -148,7 +143,7 @@ class Alert {
    * @param text {string}
    * @param confirmButtonText {string}
    * @param cancelButtonText {string}
-   * @returns {Promise<boolean>}
+   * @returns {Promise<Object>} SweetAlert result object (i.e. result.value, result.dismiss)
    */
   static warning(title = '', text = '', confirmButtonText = Alert._defaultConfirmText(), cancelButtonText = Alert._defaultCancelText()) {
     const options = Alert._constructSwalConfiguration(
@@ -159,14 +154,14 @@ class Alert {
       confirmButtonText,
       cancelButtonText
     );
-    return Alert._swal(options);
+    return Alert._swal.fire(options);
   }
 
   /**
    * @param title {string}
    * @param text {string}
    * @param buttonText {string}
-   * @returns {Promise<boolean>}
+   * @returns {Promise<Object>} SweetAlert result object (i.e. result.value, result.dismiss)
    */
   static info(title = '', text = '', buttonText = Alert._defaultConfirmText()) {
     const options = Alert._constructSwalConfiguration(
@@ -176,7 +171,7 @@ class Alert {
       null,
       buttonText
     );
-    return Alert._swal(options);
+    return Alert._swal.fire(options);
   }
 
 }
