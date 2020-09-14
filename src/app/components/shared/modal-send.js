@@ -58,6 +58,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   const [ txid, setTXID ] = useState('');
   const [ fees, setFees ] = useState(0);
   const [ total, setTotal ] = useState(0);
+  const [ alertShowing, setAlertShowing ] = useState(false);
 
   const availableBalance = selected && balances.has(selected) ? balances.get(selected)[1] : 0;
   const noWallets = !wallets || wallets.length === 0 || !balances || balances.size === 0;
@@ -97,9 +98,12 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
     // Display an alert if the user is attempting to select a wallet
     // that's not available (i.e. has no coin).
     const wallet = availableWallets.find(w => w.ticker === sel);
-    if (!wallet && sel !== '')
-      Alert.alert(Localize.text('Issue'), Localize.text('No {{coin}} is available.', 'sendModal', {coin: sel}));
-  }, [activeWallet, availableWallets]);
+    if (!alertShowing && !wallet && sel !== '') {
+      Alert.alert(Localize.text('Issue'), Localize.text('No {{coin}} is available.', 'sendModal', {coin: sel}))
+        .then(() => hideSendModal(true));
+      setAlertShowing(true);
+    }
+  }, [activeWallet, alertShowing, availableWallets, hideSendModal]);
 
   // Use the blank modal on missing data or other errors
   const blankModal = <div />;

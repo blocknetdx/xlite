@@ -26,43 +26,38 @@ describe('Alert static methods', function() {
 
   it('Alert._constructSwalConfiguration()', function() {
     Alert._constructSwalConfiguration.should.be.a.Function();
-    const res1 = Alert._constructSwalConfiguration('info', 'title', 'text', {element: 'input'}, 'ok', 'cancel');
+    const res1 = Alert._constructSwalConfiguration('info', 'title', 'text', {input: 'text'}, 'ok', 'cancel');
     res1.should.be.an.Object();
-    res1.content.should.be.an.Object();
-    Object.keys(res1).includes('button').should.be.false();
-    res1.buttons.should.be.an.Array();
-    res1.buttons.length.should.equal(2);
-    res1.buttons.every(s => s.length > 0).should.be.true();
+    res1.input.should.be.a.String();
+    res1.confirmButtonText.should.be.equal('ok');
+    res1.cancelButtonText.should.be.equal('cancel');
     const res2 = Alert._constructSwalConfiguration('', 'title', 'text', null, 'ok');
     res2.should.be.an.Object();
-    res2.button.should.be.a.String();
-    res2.button.length.should.be.greaterThan(0);
-    Object.keys(res2).includes('content').should.be.false();
-    Object.keys(res2).includes('buttons').should.be.false();
+    res2.confirmButtonText.should.be.equal('ok');
   });
 
   it('Alert.alert()', async function() {
     Alert.alert.should.be.a.Function();
     Alert._swal = swalConfirmed;
     const res1 = await Alert.alert('title', 'text', 'ok');
-    res1.should.be.a.Boolean();
-    res1.should.be.true();
+    res1.value.should.be.a.Boolean();
+    res1.value.should.be.true();
     Alert._swal = swalCanceled;
     const res2 = await Alert.alert('title', 'text', 'ok');
-    res2.should.be.a.Boolean();
-    res2.should.be.false();
+    res2.value.should.be.a.Boolean();
+    res2.value.should.be.false();
   });
 
   it('Alert.confirm()', async function() {
     Alert.confirm.should.be.a.Function();
     Alert._swal = swalConfirmed;
     const res1 = await Alert.confirm('title', 'text', 'ok', 'cancel');
-    res1.should.be.a.Boolean();
-    res1.should.be.true();
+    res1.value.should.be.a.Boolean();
+    res1.value.should.be.true();
     Alert._swal = swalCanceled;
     const res2 = await Alert.alert('title', 'text', 'ok', 'cancel');
-    res2.should.be.a.Boolean();
-    res2.should.be.false();
+    res2.value.should.be.a.Boolean();
+    res2.value.should.be.false();
   });
 
   it('Alert.prompt()', async function() {
@@ -83,48 +78,48 @@ describe('Alert static methods', function() {
     Alert.error.should.be.a.Function();
     Alert._swal = swalConfirmed;
     const res1 = await Alert.error('title', 'text', 'ok');
-    res1.should.be.a.Boolean();
-    res1.should.be.true();
+    res1.value.should.be.a.Boolean();
+    res1.value.should.be.true();
     Alert._swal = swalCanceled;
     const res2 = await Alert.error('title', 'text', 'ok');
-    res2.should.be.a.Boolean();
-    res2.should.be.false();
+    res2.value.should.be.a.Boolean();
+    res2.value.should.be.false();
   });
 
   it('Alert.success()', async function() {
     Alert.success.should.be.a.Function();
     Alert._swal = swalConfirmed;
     const res1 = await Alert.success('title', 'text', 'ok');
-    res1.should.be.a.Boolean();
-    res1.should.be.true();
+    res1.value.should.be.a.Boolean();
+    res1.value.should.be.true();
     Alert._swal = swalCanceled;
     const res2 = await Alert.success('title', 'text', 'ok');
-    res2.should.be.a.Boolean();
-    res2.should.be.false();
+    res2.value.should.be.a.Boolean();
+    res2.value.should.be.false();
   });
 
   it('Alert.warning()', async function() {
     Alert.warning.should.be.a.Function();
     Alert._swal = swalConfirmed;
     const res1 = await Alert.warning('title', 'text', 'ok', 'cancel');
-    res1.should.be.a.Boolean();
-    res1.should.be.true();
+    res1.value.should.be.a.Boolean();
+    res1.value.should.be.true();
     Alert._swal = swalCanceled;
     const res2 = await Alert.warning('title', 'text', 'ok', 'cancel');
-    res2.should.be.a.Boolean();
-    res2.should.be.false();
+    res2.value.should.be.a.Boolean();
+    res2.value.should.be.false();
   });
 
   it('Alert.info()', async function() {
     Alert.info.should.be.a.Function();
     Alert._swal = swalConfirmed;
     const res1 = await Alert.info('title', 'text', 'ok');
-    res1.should.be.a.Boolean();
-    res1.should.be.true();
+    res1.value.should.be.a.Boolean();
+    res1.value.should.be.true();
     Alert._swal = swalCanceled;
     const res2 = await Alert.info('title', 'text', 'ok');
-    res2.should.be.a.Boolean();
-    res2.should.be.false();
+    res2.value.should.be.a.Boolean();
+    res2.value.should.be.false();
   });
 
 });

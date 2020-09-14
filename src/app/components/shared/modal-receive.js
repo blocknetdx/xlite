@@ -5,7 +5,7 @@ import { Modal, ModalBody, ModalHeader } from './modal';
 import Localize from './localize';
 import Wallet from '../../types/wallet-r';
 import * as appActions from '../../actions/app-actions';
-import { handleError } from '../../util';
+import {availableWallets, handleError} from '../../util';
 import { Button } from './buttons';
 import SelectWalletDropdown from './select-wallet-dropdown';
 import { AddressInput } from './inputs';
@@ -17,12 +17,17 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
   const [ selected, setSelected ] = useState('');
   const [ address, setAddress ] = useState('');
   const [ addressDataUrl, setAddressDataUrl ] = useState('');
+  const [ availWallets, setAvailWallets ] = useState(null);
 
-  const wallet = wallets ? wallets.find(w => w.ticker === selected) : null;
+  const wallet = availWallets ? availWallets.find(w => w.ticker === selected) : null;
 
   useEffect(() => {
     setSelected(activeWallet);
   }, [activeWallet]);
+
+  useEffect(() => {
+    availableWallets(wallets).then(ws => setAvailWallets(ws)); // filter available wallets
+  }, [wallets]);
 
   useEffect(() => {
     if(wallet) {
@@ -30,6 +35,8 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
         .then(arr => {
           if (arr && arr.length > 0) // make sure arr is valid
             setAddress(arr[arr.length - 1]);
+          else
+            setAddress('');
         })
         .catch(handleError);
     }
@@ -42,10 +49,11 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
           setAddressDataUrl(url);
         })
         .catch(handleError);
-    }
+    } else
+      setAddressDataUrl(null); // clear on bad address
   }, [address]);
 
-  if(!wallets) // wait for data
+  if (!wallets || !availWallets) // wait for data
     return <Modal />;
 
   const onGenerateNewAddress = async function(e) {
@@ -71,7 +79,7 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
       <ModalHeader><Localize context={'receive-modal'}>Receive</Localize></ModalHeader>
       <ModalBody>
         <div className={'lw-modal-field-label'}><Localize context={'receive-modal'}>Select currency to receive</Localize>:</div>
-        <SelectWalletDropdown wallets={wallets} style={{marginBottom: 30}} selected={selected} onSelect={ticker => setSelected(ticker) || setAddress('')} />
+        <SelectWalletDropdown wallets={availWallets} style={{marginBottom: 30}} selected={selected} onSelect={ticker => setSelected(ticker) || setAddress('')} />
         <div className={'lw-modal-field-label'}><Localize context={'receive-modal'}>Your address</Localize>:</div>
         <AddressInput
           value={address}
