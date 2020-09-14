@@ -60,7 +60,7 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
 
   const onCopyAddress = () => {
     try {
-      api.general_clipboard(address.trim());
+      api.general_setClipboard(address.trim());
     } catch(err) {
       handleError(err);
     }
