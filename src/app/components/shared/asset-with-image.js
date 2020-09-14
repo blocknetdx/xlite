@@ -8,17 +8,21 @@ const AssetWithImage = ({ shortenName = false, wallet }) => {
   const { ticker } = wallet;
 
   const styles = {
+    container: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center'
+    },
     image: {
       display: 'inline-block',
       height: 24,
       width: 'auto',
-      marginTop: -4,
       marginRight: 10
     }
   };
 
   return (
-    <div><img alt={Localize.text('{{coin}} icon', 'universal', {coin: ticker})} style={styles.image} srcSet={wallet.imagePath} />{ shortenName ? ticker : wallet.name}</div>
+    <div style={styles.container}><img alt={Localize.text('{{coin}} icon', 'universal', {coin: ticker})} style={styles.image} srcSet={wallet.imagePath} />{ shortenName ? ticker : wallet.name}</div>
   );
 };
 AssetWithImage.propTypes = {

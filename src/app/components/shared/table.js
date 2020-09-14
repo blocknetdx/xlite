@@ -2,14 +2,15 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 
-export const TableColumn = ({ size = 1, children, idx, final, style = {} }) => {
+export const TableColumn = ({ className = '', size = 1, children, idx, final, style = {} }) => {
   return (
-    <div className={'lw-table-column-heading'} style={{flexGrow: size, flexBasis: 1, textAlign: idx === 0 ? 'left' : final ? 'right' : 'center', ...style }}>
+    <div className={`lw-table-column-heading ${className}`} style={{flexGrow: size, flexBasis: 1, textAlign: idx === 0 ? 'left' : final ? 'right' : 'center', ...style }}>
       {children}
     </div>
   );
 };
 TableColumn.propTypes = {
+  className: PropTypes.string,
   children: PropTypes.any,
   final: PropTypes.bool,
   idx: PropTypes.number,

@@ -85,7 +85,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
           <TableColumn size={1}><Localize context={'portfolio'}>Asset</Localize></TableColumn>
           {!hideTicker ? <TableColumn size={1}><Localize context={'portfolio'}>Ticker</Localize></TableColumn> : null}
           <TableColumn size={1}><Localize context={'portfolio'}>Price</Localize> ({altCurrency})</TableColumn>
-          <TableColumn size={1}><Localize context={'portfolio'}>Price graph (7d)</Localize></TableColumn>
+          <TableColumn className={'lw-card-tablecolumn-hideable'} size={1}><Localize context={'portfolio'}>Price graph (7d)</Localize></TableColumn>
           {!hideVolume ? <TableColumn size={1}><Localize context={'portfolio'}>Volume (24hr)</Localize></TableColumn> : null}
           <TableColumn size={1}><Localize context={'portfolio'}>Portfolio %</Localize></TableColumn>
           <TableColumn size={1}><Localize context={'portfolio'}>Amount</Localize></TableColumn>
@@ -111,7 +111,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                   </TableData>
                   {!hideTicker ? <TableData>{ticker}</TableData> : null}
                   <TableData className={'text-monospace'}>{Number(altMultiplier.toFixed(MAX_DECIMAL_PLACE))}</TableData>
-                  <TableData>
+                  <TableData className={'lw-card-tablecolumn-hideable'}>
                   {/*  Only render chart if data is available */}
                   {priceChartData ? <Chart chartData={priceChartData} simple={true} simpleStrokeColor={'#ccc'}
                          hideAxes={true} defaultWidth={108} defaultHeight={26}

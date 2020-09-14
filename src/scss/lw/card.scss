@@ -90,3 +90,9 @@
     color: $lw-secondary-4;
   }
 }
+
+.lw-card-tablecolumn-hideable {
+  @media only screen and (max-width: 1222px) {
+    display: none;
+  }
+}
