@@ -6,6 +6,7 @@ import {publicPath} from '../../util/public-path-r';
 import { Column, Row } from './flex';
 import {currencyLinter, multiplierForCurrency} from '../../util';
 import { all, create } from 'mathjs';
+import { connect } from 'react-redux';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -17,14 +18,19 @@ const {api} = window;
 
 const Divider = () => <div style={{flexGrow: 1, height: 1, backgroundColor: 'rgba(0, 0, 0, 0.2)'}} />;
 
-const TransactionDetailModal = ({ altCurrency, currencyMultipliers, selectedTx, onClose }) => {
+const TransactionDetailModal = ({ altCurrency, currencyMultipliers, openExternalLinks, selectedTx, onClose }) => {
   const { ticker } = selectedTx.wallet;
   const selectedAltMultiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
   const selectedBTCMultiplier = multiplierForCurrency(ticker, 'BTC', currencyMultipliers);
 
   const onViewOnExplorer = e => {
     e.preventDefault();
-    api.general_openUrl(selectedTx.wallet.getExplorerLinkForTx(selectedTx.tx.txId));
+    const explorerLink = selectedTx.wallet.getExplorerLinkForTx(selectedTx.tx.txId);
+    if(openExternalLinks) {
+      api.general_openUrl(explorerLink);
+    } else {
+      api.general_setClipboard(explorerLink);
+    }
   };
 
   return (
@@ -82,7 +88,13 @@ const TransactionDetailModal = ({ altCurrency, currencyMultipliers, selectedTx, 
         </Row>
         <Row justify={'space-between'} style={{fontSize: 14, paddingTop: 16, paddingBottom: 48}}>
           <div className={'lw-color-secondary-6'}><Localize context={'transactions'}>Transaction details</Localize></div>
-          <div className={'lw-color-secondary-10'} style={{fontSize: 15, fontWeight: 'bold'}}><a className={'lw-color-secondary-10'} href={'#'} onClick={onViewOnExplorer}><span style={{marginRight: 8}}><Localize context={'transactions'}>View on explorer</Localize></span><i className={'fas fa-long-arrow-alt-right'} /></a></div>
+          <div className={'lw-color-secondary-10'} style={{fontSize: 15, fontWeight: 'bold'}}>
+            {openExternalLinks ?
+              <a className={'lw-color-secondary-10'} href={'#'} onClick={onViewOnExplorer}><span style={{marginRight: 8}}><Localize context={'transactions'}>View on explorer</Localize></span><i className={'fas fa-long-arrow-alt-right'} /></a>
+              :
+              <a className={'lw-color-secondary-10'} href={'#'} onClick={onViewOnExplorer}><span style={{marginRight: 8}}><Localize context={'transactions'}>Copy explorer link</Localize></span><i className={'fas fa-copy'} /></a>
+            }
+          </div>
         </Row>
       </ModalBody>
     </Modal>
@@ -91,8 +103,13 @@ const TransactionDetailModal = ({ altCurrency, currencyMultipliers, selectedTx, 
 TransactionDetailModal.propTypes = {
   altCurrency: PropTypes.string,
   currencyMultipliers: PropTypes.object,
+  openExternalLinks: PropTypes.bool,
   selectedTx: PropTypes.object, // { tx: RPCTransaction, wallet: Wallet }
   onClose: PropTypes.func
 };
 
-export default TransactionDetailModal;
+export default connect(
+  ({ appState }) => ({
+    openExternalLinks: appState.openExternalLinks
+  })
+)(TransactionDetailModal);

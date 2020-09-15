@@ -26,8 +26,10 @@ const getInitialState = () => ({
   showSecurityModal: false,
   showBackupModal: false,
   showAboutModal: false,
+  showGuidesModal: false,
   xVaultVersion: '',
-  ccVersion: ''
+  ccVersion: '',
+  openExternalLinks: false
 });
 
 export default (state = getInitialState(), { type, payload }) => {
@@ -117,6 +119,11 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         showBackupModal: payload.show
+      };
+    case actions.SET_SHOW_GUIDES_MODAL:
+      return {
+        ...state,
+        showGuidesModal: payload.show
       };
     case actions.SET_SHOW_ABOUT_MODAL:
       return {

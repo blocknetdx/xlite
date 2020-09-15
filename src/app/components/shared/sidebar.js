@@ -62,7 +62,7 @@ SidebarButton.propTypes = {
   onClick: PropTypes.func
 };
 
-let Sidebar = ({ activeView, wallets, balances, showSettings, setActiveView, setActiveWallet, setCCWalletStarted, setShowSettings, showPreferencesModal, showSecurityModal, showBackupModal, showAboutModal }) => {
+let Sidebar = ({ activeView, wallets, balances, showSettings, setActiveView, setActiveWallet, setCCWalletStarted, setShowSettings, showPreferencesModal, showSecurityModal, showBackupModal, showAboutModal, showGuidesModal }) => {
 
   const onLockClick = async function(e) {
     e.preventDefault();
@@ -75,6 +75,12 @@ let Sidebar = ({ activeView, wallets, balances, showSettings, setActiveView, set
       setActiveView(activeViews.DASHBOARD);
     }
   };
+
+  const onGuidesClick = e => {
+    e.preventDefault();
+    showGuidesModal();
+  };
+
   return (
     <div className={'lw-sidebar-container'} style={{width: SIDEBAR_WIDTH, minWidth: SIDEBAR_WIDTH, overflowY: 'hidden', flexWrap: 'nowrap', maxHeight: '100%'}}>
 
@@ -84,7 +90,7 @@ let Sidebar = ({ activeView, wallets, balances, showSettings, setActiveView, set
         <SidebarButton onClick={() => showSecurityModal()}><i className={'fas fa-shield-alt'} /> <Localize context={'sidebar'}>Security</Localize></SidebarButton>
         <SidebarButton onClick={() => showBackupModal()}><i className={'fas fa-cloud-download-alt'} /> <Localize context={'sidebar'}>Backup</Localize></SidebarButton>
         <SidebarButton onClick={() => showAboutModal()}><i className={'fas fa-info-circle'} /> <Localize context={'sidebar'}>About</Localize></SidebarButton>
-        <SidebarButton onClick={() => api.general_openUrl('https://docs.blocknet.co/')}><i className={'fas fa-question-circle'} /> <Localize context={'sidebar'}>Setup guides</Localize></SidebarButton>
+        <SidebarButton onClick={onGuidesClick}><i className={'fas fa-question-circle'} /> <Localize context={'sidebar'}>Setup guides</Localize></SidebarButton>
       </div>
 
       <SidebarButton active={activeView === activeViews.DASHBOARD} onClick={onDashboard}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${publicPath}/images/icons/icon-home.png, ${publicPath}/images/icons/icon-home@2x.png 2x`} /> <Localize context={'sidebar'}>Dashboard</Localize></SidebarButton>
@@ -118,7 +124,8 @@ Sidebar.propTypes = {
   showPreferencesModal: PropTypes.func,
   showSecurityModal: PropTypes.func,
   showBackupModal: PropTypes.func,
-  showAboutModal: PropTypes.func
+  showAboutModal: PropTypes.func,
+  showGuidesModal: PropTypes.func,
 };
 Sidebar = connect(
   ({ appState }) => ({
@@ -141,6 +148,7 @@ Sidebar = connect(
     showSecurityModal: () => dispatch(appActions.setShowSecurityModal(true)),
     showBackupModal: () => dispatch(appActions.setShowBackupModal(true)),
     showAboutModal: () => dispatch(appActions.setShowAboutModal(true)),
+    showGuidesModal: () => dispatch(appActions.setShowGuidesModal(true)),
   })
 )(Sidebar);
 

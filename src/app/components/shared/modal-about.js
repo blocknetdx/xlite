@@ -4,6 +4,7 @@ import React from 'react';
 import { Modal, ModalBody, ModalHeader } from './modal';
 import Localize from './localize';
 import * as appActions from '../../actions/app-actions';
+import { CopyableLink } from './copyable-link';
 
 const AboutModal = ({ xVaultVersion, ccVersion, hideAboutModal }) => {
 
@@ -22,7 +23,7 @@ const AboutModal = ({ xVaultVersion, ccVersion, hideAboutModal }) => {
         <p style={styles.paragraph}>{Localize.text('XLite v{{version}}', 'aboutModal', {version: xVaultVersion})}</p>
         <p style={styles.paragraph}>{Localize.text('Cloudchains-SPV {{version}}', 'aboutModal', {version: ccVersion})}</p>
         <p style={styles.paragraph}>{Localize.text('Copyright © {{year}} The Blocknet Developers', 'aboutModal', {year: new Date().getFullYear()})}</p>
-        <p style={styles.paragraph}>{Localize.text('Learn more at blocknet.co', 'aboutModal')}</p>
+        <p style={styles.paragraph}>{Localize.text('Learn more at:', 'aboutModal')} <CopyableLink className={'lw-modal-copyable-link'} href={'https://blocknet.co'}>{'blocknet.co'}</CopyableLink></p>
       </ModalBody>
     </Modal>
   );

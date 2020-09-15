@@ -1,0 +1,41 @@
+@import './variables';
+
+.lw-copyable-link-container {
+
+  display: inline-block;
+
+  .lw-copyable-link-text {
+    color: $lw-text-primary;
+    cursor: pointer;
+    opacity: 1;
+
+    &:hover {
+      opacity: .85;
+    }
+  }
+
+  .lw-copyable-link-button {
+    color: $lw-text-primary;
+    text-decoration: none;
+    opacity: 1;
+
+    &:hover, &:focus {
+      text-decoration: none;
+      opacity: .85;
+    }
+    &:active {
+      text-decoration: none;
+      opacity: 1;
+    }
+  }
+
+}
+
+.lw-modal-copyable-link {
+  span.lw-copyable-link-text {
+    color: $lw-modal-default-text-color;
+  }
+  a.lw-copyable-link-button {
+    color: $lw-modal-default-text-color;
+  }
+}

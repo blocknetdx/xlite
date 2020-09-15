@@ -254,3 +254,15 @@ export const setPricingController = pricingController => ({
     pricingController
   }
 });
+
+/**
+ * @param show {boolean}
+ * @returns {{payload: {show: boolean}, type: string}}
+ */
+export const setShowGuidesModal = show => ({
+  type: actions.SET_SHOW_GUIDES_MODAL,
+  payload: {
+    show
+  }
+});
+

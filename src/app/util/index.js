@@ -114,3 +114,19 @@ export const availableWallets = async wallets => {
     m.set(w.ticker, await w.rpcEnabled());
   return wallets.filter(w => m.get(w.ticker));
 };
+
+/**
+ * @param target {any}
+ * @param toggle {boolean}
+ */
+export const selectAllInElement = (target, toggle = false) => {
+  const selection = window.getSelection();
+  if(toggle && selection.anchorNode === target) {
+    selection.removeAllRanges();
+    return;
+  }
+  const range = document.createRange();
+  range.selectNodeContents(target);
+  selection.removeAllRanges();
+  selection.addRange(range);
+};

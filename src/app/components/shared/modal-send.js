@@ -45,7 +45,7 @@ ProgressMarker.propTypes = {
   total: PropTypes.number
 };
 
-const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, balances, hideSendModal }) => {
+const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, balances, openExternalLinks, hideSendModal }) => {
 
   const [ progress, setProgress ] = useState(0);
   const [ selected, setSelected ] = useState('');
@@ -311,7 +311,12 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
   const onViewOnExplorer = e => {
     e.preventDefault();
-    api.general_openUrl(wallet.getExplorerLinkForTx(txid));
+    const explorerLink = wallet.getExplorerLinkForTx(txid);
+    if(openExternalLinks) {
+      api.general_openUrl(explorerLink);
+    } else {
+      api.general_setClipboard(explorerLink);
+    }
   };
 
   const minHeight = 538;
@@ -447,7 +452,11 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
                 <div style={{flexGrow: 1}} />
 
                 <Row style={{fontSize, marginBottom: defaultMarginBottom * 2}} justify={'flex-end'}>
-                  <Button type={'button'} onClick={onViewOnExplorer}><Localize context={'sendModal'}>View on explorer</Localize> <i className={'fas fa-long-arrow-alt-right'} /></Button>
+                  {openExternalLinks ?
+                    <Button type={'button'} onClick={onViewOnExplorer}><Localize context={'sendModal'}>View on explorer</Localize> <i className={'fas fa-long-arrow-alt-right'} /></Button>
+                    :
+                    <Button type={'button'} onClick={onViewOnExplorer}><Localize context={'sendModal'}>Copy explorer link</Localize> <i className={'fas fa-copy'} /></Button>
+                  }
                 </Row>
 
                 <ProgressMarker progress={progress} total={4} />
@@ -465,6 +474,7 @@ SendModal.propTypes = {
   altCurrency: PropTypes.string,
   currencyMultipliers: PropTypes.object,
   balances: PropTypes.instanceOf(IMap),
+  openExternalLinks: PropTypes.bool,
   hideSendModal: PropTypes.func
 };
 
@@ -483,7 +493,8 @@ export default connect(
     wallets: appState.wallets,
     altCurrency: appState.altCurrency,
     currencyMultipliers: appState.currencyMultipliers,
-    balances: appState.balances
+    balances: appState.balances,
+    openExternalLinks: appState.openExternalLinks
   }),
   dispatch => ({
     hideSendModal: () => dispatch(appActions.setShowSendModal(false))
