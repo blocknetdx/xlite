@@ -3,14 +3,21 @@ import PropTypes from 'prop-types';
 import { connect, useStore } from 'react-redux';
 import * as appActions from '../../actions/app-actions';
 import WalletController from '../../modules/wallet-controller-r';
+import Wallet from '../../types/wallet-r';
 import PanelFilters from './button-filters';
+import FilterMenu from './filter-menu';
 import { SquareButton } from './buttons';
 import { transactionFilters } from '../../constants';
+import { publicPath } from '../../util/public-path-r';
+import {walletSorter} from '../../util';
+import {Map as IMap} from 'immutable';
+import Localize from './localize';
 
-let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletController }) => {
+let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletController, wallets, balances }) => {
 
   const store = useStore();
-  const [transactionFilter, setTransactionFilter] = useState(selectedFilter || transactionFilters.all);
+  const [transactionFilter] = useState(selectedFilter || transactionFilters.all);
+  const [filterMenuActive, setFilterMenuActive] = useState(false);
 
   const onRefreshButton = () => {
     walletController.updateAllBalances()
@@ -21,7 +28,7 @@ let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletCont
   };
 
   const onFilterButton = () => {
-    // ToDo: Implement single filter button action
+    setFilterMenuActive(!filterMenuActive);
   };
 
   return (
@@ -37,8 +44,15 @@ let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletCont
           filters={Object.values(transactionFilters).map(key => key)}
           onFilterSelected={onTransactionFilter}
         />
-        <SquareButton title={'Filter'} icon={'fas fa-filter'} onClick={onFilterButton} />
+        <SquareButton title={Localize.text('Filter', 'transactions-panel-header')} image={`${publicPath}/images/icons/icon-filter.svg`} active={filterMenuActive} onClick={onFilterButton} />
       </div>
+      <FilterMenu
+        items={[...wallets]
+        .sort(walletSorter(balances))
+        .map(w => ({id: w.ticker, text: w.name, image: w.imagePath}))
+        }
+        active={filterMenuActive}
+      />
     </div>
   );
 };
@@ -46,11 +60,15 @@ let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletCont
 TransactionsPanelHeader.propTypes = {
   selectedFilter: PropTypes.string,
   onTransactionFilter: PropTypes.func,
-  walletController: PropTypes.instanceOf(WalletController)
+  walletController: PropTypes.instanceOf(WalletController),
+  wallets: PropTypes.instanceOf(Wallet),
+  balances: PropTypes.instanceOf(IMap)
 };
 
 TransactionsPanelHeader = connect(
   ({ appState }) => ({
+    balances: appState.balances,
+    wallets: appState.wallets,
     walletController: appState.walletController,
   })
 )(TransactionsPanelHeader);
