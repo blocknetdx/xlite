@@ -138,7 +138,7 @@ export default class Chart extends React.Component {
       for (let i = 0; i < data.length; i++) {
         const arr = data[i];
         arr[2] = i === 0 ? 0 : (chartWidth/data.length*i);
-        arr[3] = (arr[1] - y_min) * y_ratio;
+        arr[3] = chartHeight + (arr[1] - y_min) * -y_ratio; // invert y
       }
     } else { // regular chart starts at y_min = 0
       for (const [x, y] of data) {
