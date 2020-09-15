@@ -6,7 +6,7 @@ import Localize from './localize';
 import { Table, TableColumn, TableData, TableRow } from './table';
 import AssetWithImage from './asset-with-image';
 import * as appActions from '../../actions/app-actions';
-import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
+import { activeViews, MAX_DECIMAL_PLACE, altCurrencySymbol, altCurrencies } from '../../constants';
 import { Column } from './flex';
 import PercentBar from './percent-bar';
 import { multiplierForCurrency, walletSorter } from '../../util';
@@ -89,14 +89,14 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
           {!hideVolume ? <TableColumn size={1}><Localize context={'portfolio'}>Volume (24hr)</Localize></TableColumn> : null}
           <TableColumn size={1}><Localize context={'portfolio'}>Portfolio %</Localize></TableColumn>
           <TableColumn size={1}><Localize context={'portfolio'}>Amount</Localize></TableColumn>
-          <TableColumn size={1}><Localize context={'portfolio'}>Value</Localize> (BTC)</TableColumn>
+          <TableColumn size={1}><Localize context={'portfolio'}>Value</Localize> ({altCurrencies.BTC})</TableColumn>
           {filteredWallets
             .map(w => {
 
               const { ticker } = w;
 
               const altMultiplier = bignumber(multiplierForCurrency(ticker, altCurrency, currencyMultipliers));
-              const btcMultiplier = bignumber(multiplierForCurrency(ticker, 'BTC', currencyMultipliers));
+              const btcMultiplier = bignumber(multiplierForCurrency(ticker, altCurrencies.BTC, currencyMultipliers));
 
               const [ totalBalance ] = balances.has(ticker) ? balances.get(ticker) : ['0'];
 
@@ -110,7 +110,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                     <AssetWithImage shortenName={hideTicker} wallet={w} />
                   </TableData>
                   {!hideTicker ? <TableData>{ticker}</TableData> : null}
-                  <TableData className={'text-monospace'}>{Number(altMultiplier.toFixed(MAX_DECIMAL_PLACE))}</TableData>
+                  <TableData className={'text-monospace'}>{altCurrencySymbol(altCurrency)}{Number(altMultiplier.toFixed(MAX_DECIMAL_PLACE))}</TableData>
                   <TableData className={'lw-card-tablecolumn-hideable'}>
                   {/*  Only render chart if data is available */}
                   {priceChartData ? <Chart chartData={priceChartData} simple={true} simpleStrokeColor={'#ccc'}
@@ -118,13 +118,13 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                          chartGridColor={'#949494'} chartScale={'week'} /> : null}
                   </TableData>
                   {!hideVolume ?
-                    <TableData>{'$' + Localize.number(volumeInAltCurrency(ticker), 0)}</TableData>
+                    <TableData>{altCurrencySymbol(altCurrency) + Localize.number(volumeInAltCurrency(ticker), 0)}</TableData>
                     :
                     null
                   }
                   <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0}}>
                     {!hidePercentBar ?
-                      <Column justify={'center'} style={{marginTop: -14}}>
+                      <Column justify={'center'} style={{marginTop: -8}}>
                         <div style={{marginBottom: 3, textAlign: 'left'}}>{percent}</div>
                         <PercentBar percent={Number(percent)} />
                       </Column>
@@ -138,7 +138,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                       {Number(math.multiply(bignumber(Number(totalBalance)), btcMultiplier).toFixed(MAX_DECIMAL_PLACE))}
                     </div>
                     <div className={'lw-card-tablerow-bottom-label'}>
-                      {`${altCurrency} ${altBalances[ticker].toFixed(2)}`}
+                      {`${altCurrencySymbol(altCurrency)}${altBalances[ticker].toFixed(2)}`}
                     </div>
                   </TableData>
                 </TableRow>

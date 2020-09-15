@@ -7,7 +7,7 @@ import Localize from './localize';
 import { Column, Row } from './flex';
 import moment from 'moment';
 import AssetWithImage from './asset-with-image';
-import { activeViews, MAX_DECIMAL_PLACE } from '../../constants';
+import { activeViews, MAX_DECIMAL_PLACE, altCurrencies, altCurrencySymbol } from '../../constants';
 import {Map as IMap} from 'immutable';
 import {multiplierForCurrency, currencyLinter} from '../../util';
 import {publicPath} from '../../util/public-path-r';
@@ -23,8 +23,6 @@ const math = create(all, {
   precision: 64
 });
 const { bignumber } = math;
-
-const {api} = window;
 
 const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = false, brief = false, activeWallet, altCurrency, currencyMultipliers, transactions, wallets, style = {}, showAllButton = false, setActiveView }) => {
 
@@ -79,7 +77,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
           <TableColumn size={2}><Localize context={'transactions'}>Asset</Localize></TableColumn>
           {!brief ? <TableColumn size={7}><Localize context={'transactions'}>To address</Localize></TableColumn> : null}
           {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn> : null}
-          {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Value (BTC)</Localize></TableColumn>
+          {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Value ({altCurrencies.BTC})</Localize></TableColumn>
                   : <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn>}
           {filteredTxs.map(([ticker, t]) => {
               const wallet = walletLookup.get(ticker);
@@ -90,7 +88,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
               };
 
               const currencyMultiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
-              const btcMultiplier = multiplierForCurrency(ticker, 'BTC', currencyMultipliers);
+              const btcMultiplier = multiplierForCurrency(ticker, altCurrencies.BTC, currencyMultipliers);
 
               return (
                 <TableRow key={t.key()} clickable={selectable} onClick={onRowClick}>
@@ -138,7 +136,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                       {sent ? '-' : '+'}{math.multiply(bignumber(t.amount), btcMultiplier).toFixed(MAX_DECIMAL_PLACE)}
                     </div>
                     <div className={'lw-table-bottom-label'}>
-                      {sent ? '-' : '+'}{altCurrency+' '}{currencyLinter(math.multiply(bignumber(t.amount), currencyMultiplier))}
+                      {sent ? '-' : '+'}{altCurrencySymbol(altCurrency)}{currencyLinter(math.multiply(bignumber(t.amount), currencyMultiplier))}
                     </div>
                   </TableData>
                   :  // Brief requires displaying the actual amount and currency equivalent
@@ -147,7 +145,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                       {sent ? '-' : '+'}{bignumber(t.amount).toFixed(4)}
                     </div>
                     <div className={'lw-table-bottom-label'}>
-                    {sent ? '-' : '+'}{altCurrency+' '}{currencyLinter(math.multiply(bignumber(t.amount), currencyMultiplier))}
+                    {sent ? '-' : '+'}{altCurrencySymbol(altCurrency)}{currencyLinter(math.multiply(bignumber(t.amount), currencyMultiplier))}
                     </div>
                   </TableData>
                   }
