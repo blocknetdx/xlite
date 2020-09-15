@@ -11,6 +11,7 @@ import { connect } from 'react-redux';
 import {Map as IMap} from 'immutable';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { CopyableLink } from './copyable-link';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -32,20 +33,10 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
   const altAmount = math.multiply(altMultiplier, bignumber(Number(total)));
 
   // ToDo get website data from somewhere
-    const website = wallet.ticker === 'BLOCK' ? 'blocknet.co' : 'n/a';
+  const website = wallet.ticker === 'BLOCK' ? 'blocknet.co' : '';
   const explorerLink = `https://chainz.cryptoid.info/${wallet.ticker.toLowerCase()}/`;
 
   // ToDo add change over time data
-
-  const onExplorerClick = e => {
-    e.preventDefault();
-    api.general_openUrl(explorerLink);
-  };
-    const onWebsiteClick = e => {
-      e.preventDefault();
-      if (website !== 'n/a')
-        api.general_openUrl(`https://${website}`);
-    };
 
     return (
       <div className={'lw-balance-outer-container d-flex flex-column justify-content-center'}>
@@ -59,8 +50,8 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
             <div className={'lw-balance-coindetails'}><h2>{total} {activeWallet}</h2> <h4>{altCurrency} {currencyLinter(altAmount)}</h4></div>
           </div>
           <div className={'d-flex flex-column justify-content-start lw-color-secondary-3'} style={{fontSize: 14, textAlign: 'right'}}>
-            <div><Localize context={'balance'}>Website</Localize>: {website ? <a onClick={onWebsiteClick} className={'lw-text-primary'} href={'#'}>{website}</a> : <span className={'lw-text-primary'}>{Localize.text('n/a', 'balance')}</span>}</div>
-            <div><Localize context={'balance'}>Explorer</Localize>: <a onClick={onExplorerClick} className={'lw-text-primary'} href={'#'}>{explorerLink}</a></div>
+            <div><Localize context={'balance'}>Website</Localize>: {website ? <CopyableLink href={`https://${website}`}>{website}</CopyableLink> : <span className={'lw-text-primary'}>{Localize.text('n/a', 'balance')}</span>}</div>
+            <div><Localize context={'balance'}>Explorer</Localize>: <CopyableLink href={explorerLink}>{explorerLink}</CopyableLink></div>
           </div>
         </div>
       </div>
