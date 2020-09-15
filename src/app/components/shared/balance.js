@@ -1,7 +1,10 @@
 import {currencyLinter, multiplierForCurrency} from '../../util';
 import Localize from './localize';
 import {MAX_DECIMAL_PLACE} from '../../constants';
+import {oneSat} from '../../util';
 import Wallet from '../../types/wallet-r';
+import Pricing from '../../modules/pricing-r';
+import IconTrend from './icon-trend';
 
 import {all, create} from 'mathjs';
 import { connect } from 'react-redux';
@@ -17,7 +20,7 @@ const { bignumber } = math;
 
 const {api} = window;
 
-let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, balances, currencyMultipliers }) => {
+let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, balances, currencyMultipliers, pricing }) => {
 
   if(showCoinDetails) { // coin details
   const wallet = activeWallet ? wallets.find(w => w.ticker === activeWallet) : null;
@@ -74,11 +77,25 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
     const totalBalance = allCoinBtc.toFixed(MAX_DECIMAL_PLACE);
     const btcMultiplier = currencyMultipliers[BTC] && currencyMultipliers[BTC][altCurrency] ? currencyMultipliers[BTC][altCurrency] : 0;
     const totalAltCurrency = math.multiply(allCoinBtc, bignumber(btcMultiplier)).toFixed(2);
+    const priceChange = pricing.getPriceChange(BTC, altCurrency);
+    const btcPriceChange = math.multiply(allCoinBtc, bignumber(priceChange));
+    const currencyPriceChange = math.multiply(btcPriceChange, bignumber(btcMultiplier)).toFixed(2);
+    const n = math.multiply(100, bignumber(priceChange)).toFixed(2);
+    const negativeValue = btcPriceChange < 0 ? -1 : 1;
+    const btcPriceChangeFinal = Math.abs(btcPriceChange) < oneSat
+      ? math.multiply(oneSat, negativeValue).toFixed(MAX_DECIMAL_PLACE)
+      : btcPriceChange.toFixed(MAX_DECIMAL_PLACE);
     return (
       <div className={'lw-balance-outer-container'}>
         <div className={'lw-balance-note'}><Localize context={'balance'}>Total wallet balance</Localize></div>
         <div className={'lw-balance-container'}>
           <h2>{BTC + ' ' + totalBalance}</h2> <h4>{altCurrency} {totalAltCurrency}</h4>
+        </div>
+        <div className={'lw-balance-volume'}>
+          <IconTrend negative={n < 0} />
+          <div className={'lw-balance-volume-text'}>
+            {`${n}% (+BTC ${btcPriceChangeFinal} USD ${currencyPriceChange})`}
+          </div>
         </div>
       </div>
     );
@@ -90,7 +107,8 @@ Balance.propTypes = {
   altCurrency: PropTypes.string,
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   balances: PropTypes.instanceOf(IMap),
-  currencyMultipliers: PropTypes.object
+  currencyMultipliers: PropTypes.object,
+  pricing: PropTypes.instanceOf(Pricing)
 };
 
 Balance = connect(
@@ -99,7 +117,8 @@ Balance = connect(
     altCurrency: appState.altCurrency,
     wallets: appState.wallets,
     balances: appState.balances,
-    currencyMultipliers: appState.currencyMultipliers
+    currencyMultipliers: appState.currencyMultipliers,
+    pricing: appState.pricingController
   })
 )(Balance);
 
