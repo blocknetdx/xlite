@@ -30,7 +30,7 @@ const Portfolio = ({ windowWidth, altCurrency, currencyMultipliers, balanceOverT
 
   const containerHorizPadding = 25;
   const headCol1Width = 200;
-  const headCol3Width = 400;
+  const headCol3Width = 320;
   const headCol2Width = windowWidth - SIDEBAR_WIDTH - headCol1Width - headCol3Width - containerHorizPadding * 2;
 
   return (
@@ -45,7 +45,7 @@ const Portfolio = ({ windowWidth, altCurrency, currencyMultipliers, balanceOverT
                  gradientTopColor={'#00ffff'} gradientBottomColor={'rgba(0, 71, 255, 0)'}
                  chartGridColor={'#949494'} chartScale={chartScale} />
         </Column>
-        <Column style={{marginTop: 'auto', marginBottom: '20px'}}>
+        <Column style={{margin: 'auto 0 20px auto'}}>
           <BalanceFilters selectedFilter={balanceFilters[chartScale]} filters={Object.values(balanceFilters).map(key => key)} onFilterSelected={onBalanceFilterSelected} />
         </Column>
       </Row>

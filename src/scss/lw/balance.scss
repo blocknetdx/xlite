@@ -11,7 +11,28 @@
   }
 
   .lw-balance-container {
-    margin-top: 5px;
+    height: 26px;
+  }
+
+  .lw-balance-volume {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .lw-balance-volume-text {
+      font-family: IBMPlexSans;
+      font-size: 14px;
+      font-weight: 500;
+      font-stretch: normal;
+      font-style: normal;
+      line-height: 1.29;
+      letter-spacing: normal;
+      color: $lw-secondary-2;
+    }
+
+    img {
+      margin-right: 5px;
+    }
   }
 
   h2 {
