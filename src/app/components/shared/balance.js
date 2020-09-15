@@ -1,6 +1,6 @@
 import {currencyLinter, multiplierForCurrency} from '../../util';
 import Localize from './localize';
-import {MAX_DECIMAL_PLACE} from '../../constants';
+import {MAX_DECIMAL_PLACE, altCurrencies} from '../../constants';
 import {oneSat} from '../../util';
 import Wallet from '../../types/wallet-r';
 import Pricing from '../../modules/pricing-r';
@@ -66,22 +66,23 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
       </div>
     );
   } else { // btc balance from all coins combined (not the specific coin details)
-    const BTC = 'BTC';
+    const BTC = altCurrencies.BTC;
     let allCoinBtc = bignumber(0);
     for (const wallet of wallets) {
-      const currencyMultiplier = currencyMultipliers[wallet.ticker] && currencyMultipliers[wallet.ticker][BTC] ? currencyMultipliers[wallet.ticker][BTC] : 0;
+      const currencyMultiplier = multiplierForCurrency(wallet.ticker, BTC, currencyMultipliers);
       const [ total, spendable ] = balances.has(wallet.ticker) ? balances.get(wallet.ticker) : ['0', '0'];
       const coinBtc = math.multiply(bignumber(total), bignumber(currencyMultiplier));
       allCoinBtc = math.add(allCoinBtc, coinBtc);
     }
     const totalBalance = allCoinBtc.toFixed(MAX_DECIMAL_PLACE);
-    const btcMultiplier = currencyMultipliers[BTC] && currencyMultipliers[BTC][altCurrency] ? currencyMultipliers[BTC][altCurrency] : 0;
+    const btcMultiplier = multiplierForCurrency(BTC, altCurrency, currencyMultipliers);
     const totalAltCurrency = math.multiply(allCoinBtc, bignumber(btcMultiplier)).toFixed(2);
     const priceChange = pricing.getPriceChange(BTC, altCurrency);
     const btcPriceChange = math.multiply(allCoinBtc, bignumber(priceChange));
     const currencyPriceChange = math.multiply(btcPriceChange, bignumber(btcMultiplier)).toFixed(2);
     const n = math.multiply(100, bignumber(priceChange)).toFixed(2);
     const negativeValue = btcPriceChange < 0 ? -1 : 1;
+    const btcSign = btcPriceChange < 0 ? '-' : '+';
     const btcPriceChangeFinal = Math.abs(btcPriceChange) < oneSat
       ? math.multiply(oneSat, negativeValue).toFixed(MAX_DECIMAL_PLACE)
       : btcPriceChange.toFixed(MAX_DECIMAL_PLACE);
@@ -94,7 +95,7 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
         <div className={'lw-balance-volume'}>
           <IconTrend negative={n < 0} />
           <div className={'lw-balance-volume-text'}>
-            {`${n}% (+BTC ${btcPriceChangeFinal} USD ${currencyPriceChange})`}
+            {`${n}% (${btcSign} BTC ${btcPriceChangeFinal} USD ${currencyPriceChange})`}
           </div>
         </div>
       </div>
