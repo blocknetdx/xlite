@@ -311,7 +311,10 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
   const onViewOnExplorer = e => {
     e.preventDefault();
-    const explorerLink = wallet.getExplorerLinkForTx(txid);
+    // Need to use wallets rather than available wallets because the wallet
+    // is no longer available if the full balance was sent
+    const selectedWallet = wallets.find(w => w.ticker === selected);
+    const explorerLink = selectedWallet.getExplorerLinkForTx(txid);
     if(openExternalLinks) {
       api.general_openUrl(explorerLink);
     } else {
