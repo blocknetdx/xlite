@@ -3,7 +3,7 @@ import { AddressInput, CurrencyInput, Textarea } from './inputs';
 import Alert from '../../modules/alert';
 import { Button } from './buttons';
 import { Column, Row } from './flex';
-import {handleError, multiplierForCurrency, currencyLinter} from '../../util';
+import {handleError, multiplierForCurrency, currencyLinter, availableWallets} from '../../util';
 import Localize from './localize';
 import {MAX_DECIMAL_CURRENCY, MAX_DECIMAL_PLACE} from '../../constants';
 import {Modal, ModalBody, ModalHeader} from './modal';
@@ -17,7 +17,7 @@ import { all, create } from 'mathjs';
 import { connect } from 'react-redux';
 import {Map as IMap} from 'immutable';
 import PropTypes from 'prop-types';
-import React, { useEffect, useState } from 'react';
+import React, {useState} from 'react';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -48,7 +48,6 @@ ProgressMarker.propTypes = {
 const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, balances, openExternalLinks, hideSendModal }) => {
 
   const [ progress, setProgress ] = useState(0);
-  const [ selected, setSelected ] = useState('');
   const [ address, setAddress ] = useState('');
   const [ description, setDescription ] = useState('');
   const [ maxSelected, setMaxSelected ] = useState(false);
@@ -60,50 +59,39 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   const [ total, setTotal ] = useState(0);
   const [ alertShowing, setAlertShowing ] = useState(false);
 
-  const availableBalance = selected && balances.has(selected) ? balances.get(selected)[1] : 0;
   const noWallets = !wallets || wallets.length === 0 || !balances || balances.size === 0;
 
-  // Wallets with valid coin
-  const availableWallets = [];
-  if (!noWallets) {
-    for (const w of wallets) {
-      if (!w.rpcEnabled())
+  // Only allow sending from wallets with valid coin
+  const availWallets = availableWallets(wallets);
+  const remove = i => availWallets.splice(i, 1);
+  if (availWallets.length > 0) {
+    // Remove bad wallets
+    for (let i = availWallets.length - 1; i >= 0; i--) {
+      const w = availWallets[i];
+      if (!balances.has(w.ticker)) { // don't show invalid balances
+        remove(i);
         continue;
-      if (!balances.has(w.ticker))
-        continue;
+      }
       const tb = new TransactionBuilder(w.token().xbinfo);
       const balance = balances.get(w.ticker);
       // balance[1] is spendable coin
       const spendable = bignumber(balance[1]).toNumber();
-      if (isNaN(spendable))
+      if (isNaN(spendable)) { // don't show invalid amounts
+        remove(i);
         continue;
+      }
       const dust = tb.isDust(spendable);
-      if (!dust)
-        availableWallets.push(w);
+      if (dust) { // don't show dust wallets
+        remove(i);
+        continue;
+      }
     }
   }
 
-  useEffect(() => {
-    let sel = '';
-    // If no wallet is selected and there's only one wallet available then
-    // automatically select that wallet.
-    if ((activeWallet === '') && availableWallets.length === 1) {
-      sel = availableWallets[0].ticker;
-      setSelected(sel);
-    }
-    else { // select the active wallet
-      sel = activeWallet;
-      setSelected(sel);
-    }
-    // Display an alert if the user is attempting to select a wallet
-    // that's not available (i.e. has no coin).
-    const wallet = availableWallets.find(w => w.ticker === sel);
-    if (!alertShowing && !wallet && sel !== '') {
-      Alert.alert(Localize.text('Issue'), Localize.text('No {{coin}} is available.', 'sendModal', {coin: sel}))
-        .then(() => hideSendModal(true));
-      setAlertShowing(true);
-    }
-  }, [activeWallet, alertShowing, availableWallets, hideSendModal]);
+  // If no wallet is selected and there's only one wallet available then
+  // automatically select that wallet.
+  const selected = activeWallet === '' ? availWallets[0].ticker : activeWallet;
+  const availableBalance = selected && balances.has(selected) ? balances.get(selected)[1] : 0;
 
   // Use the blank modal on missing data or other errors
   const blankModal = <div />;
@@ -112,13 +100,22 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   if (noWallets)
     return blankModal;
 
-  // No wallets or balance info available, display alert
-  if (noWallets) {
-    Alert.alert(Localize.text('Issue'), Localize.text('No coin available.'));
-    return blankModal;
+  // Display an alert if the user is attempting to select a wallet
+  // that's not available (i.e. has no coin).
+  const selWallet = availWallets.find(w => w.ticker === selected);
+  if (!alertShowing && !selWallet && selected !== '') {
+    Alert.alert(Localize.text('Issue'), Localize.text('No {{coin}} is available.', 'sendModal', {coin: selected}))
+      .then(() => hideSendModal(true));
+    setAlertShowing(true);
   }
 
-  const wallet = availableWallets.find(w => w.ticker === selected);
+  // No wallets or balance info available, display alert
+  if (!alertShowing && noWallets) {
+    Alert.alert(Localize.text('Issue'), Localize.text('No coin available.'));
+    setAlertShowing(true);
+  }
+
+  const wallet = availWallets.find(w => w.ticker === selected);
   const { ticker = '' } = wallet || {};
   const defaultMarginBottom = 20;
 
@@ -329,7 +326,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
         <ModalBody>
 
           <div className={'lw-modal-field-label'}><Localize context={'sendModal'}>Select currency to send</Localize>:</div>
-          <SelectWalletDropdown wallets={availableWallets} style={{marginBottom: defaultMarginBottom}} selected={selected} onSelect={t => setSelected(t)} />
+          <SelectWalletDropdown wallets={availWallets} style={{marginBottom: defaultMarginBottom}} selected={selected} onSelect={t => setSelected(t)} />
 
           <Row justify={'space-between'}>
             <span className={'lw-modal-field-label'}><Localize context={'sendModal'}>Send to address</Localize>:</span>

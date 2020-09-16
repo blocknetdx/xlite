@@ -17,17 +17,13 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
   const [ selected, setSelected ] = useState('');
   const [ address, setAddress ] = useState('');
   const [ addressDataUrl, setAddressDataUrl ] = useState('');
-  const [ availWallets, setAvailWallets ] = useState(null);
 
+  const availWallets = availableWallets(wallets);
   const wallet = availWallets ? availWallets.find(w => w.ticker === selected) : null;
 
   useEffect(() => {
     setSelected(activeWallet);
   }, [activeWallet]);
-
-  useEffect(() => {
-    availableWallets(wallets).then(ws => setAvailWallets(ws)); // filter available wallets
-  }, [wallets]);
 
   useEffect(() => {
     if(wallet) {
