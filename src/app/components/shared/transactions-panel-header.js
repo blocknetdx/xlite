@@ -7,17 +7,18 @@ import Wallet from '../../types/wallet-r';
 import PanelFilters from './button-filters';
 import FilterMenu from './filter-menu';
 import { SquareButton } from './buttons';
-import { transactionFilters } from '../../constants';
+import {activeViews, transactionFilters} from '../../constants';
 import { publicPath } from '../../util/public-path-r';
 import {walletSorter} from '../../util';
 import {Map as IMap} from 'immutable';
 import Localize from './localize';
 
-let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletController, wallets, balances }) => {
+let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletController, wallets, balances, setActiveView, setActiveWallet, activeView }) => {
 
   const store = useStore();
   const [transactionFilter] = useState(selectedFilter || transactionFilters.all);
   const [filterMenuActive, setFilterMenuActive] = useState(false);
+  const [selectedTicker, setSelectedTicker] = useState(null);
 
   const onRefreshButton = () => {
     walletController.updateAllBalances()
@@ -31,10 +32,21 @@ let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletCont
     setFilterMenuActive(!filterMenuActive);
   };
 
+  const onFilterMenuClick = ticker => {
+    setSelectedTicker(ticker);
+    setFilterMenuActive(false);
+    setActiveWallet(ticker);
+    setActiveView(activeViews.COIN_TRANSACTIONS);
+  };
+
+  const isCoinTransactions = activeView === activeViews.COIN_TRANSACTIONS;
+  const wallet = selectedTicker ? wallets.find(w => w.ticker === selectedTicker) : null;
+  const headerTitle = isCoinTransactions && wallet ? `Latest ${wallet.name} Transactions` : 'Latest Transactions';
+
   return (
     <div className={'lw-transactions-panel-header'}>
       <div className={'lw-transactions-panel-header-title'}>
-        <h1>Latest Transactions</h1>
+        <h1>{headerTitle}</h1>
         <i className={'fas fa-undo fa-flip-horizontal'} onClick={onRefreshButton} />
       </div>
       <div className={'lw-transactions-panel-header-filters'}>
@@ -52,6 +64,7 @@ let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletCont
         .map(w => ({id: w.ticker, text: w.name, image: w.imagePath}))
         }
         active={filterMenuActive}
+        onClick={onFilterMenuClick}
       />
     </div>
   );
@@ -62,14 +75,22 @@ TransactionsPanelHeader.propTypes = {
   onTransactionFilter: PropTypes.func,
   walletController: PropTypes.instanceOf(WalletController),
   wallets: PropTypes.instanceOf(Wallet),
-  balances: PropTypes.instanceOf(IMap)
+  balances: PropTypes.instanceOf(IMap),
+  setActiveView: PropTypes.func,
+  setActiveWallet: PropTypes.func,
+  activeView: PropTypes.string
 };
 
 TransactionsPanelHeader = connect(
   ({ appState }) => ({
+    activeView: appState.activeView,
     balances: appState.balances,
     wallets: appState.wallets,
     walletController: appState.walletController,
+  }),
+  dispatch => ({
+    setActiveView: activeView => dispatch(appActions.setActiveView(activeView)),
+    setActiveWallet: activeWallet => dispatch(appActions.setActiveWallet(activeWallet)),
   })
 )(TransactionsPanelHeader);
 
