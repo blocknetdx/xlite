@@ -28,6 +28,8 @@ class TokenManifest {
     for (const t of this._manifest) {
       const token = new Token(t);
       token.xbinfo = infos.get(token.ticker);
+      if (token.ticker === 'BLOCK')
+        token.xbinfo.rpcport = 41419; // default BLOCK port to ensure no clash with DX
       this._tokens.set(token.ticker, token);
     }
   }

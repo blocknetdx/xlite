@@ -224,7 +224,7 @@ describe('CloudChains Test Suite', function() {
       masterConf.ticker().should.be.equal('master'); // master conf should be valid
       masterConf.rpcPort.should.equal(DEFAULT_MASTER_PORT); // master conf should have correct port
     });
-    it('CloudChains.checkUpdateMasterConf', function() {
+    it('CloudChains._checkUpdateMasterConf', function() {
       const ticker = 'master';
       const rpcEnabled = true;
       const rpcUsername = 'someusername';
@@ -263,8 +263,8 @@ describe('CloudChains Test Suite', function() {
         })
       ];
       const cc = new CloudChains(ccFunc, storage);
-      cc.checkUpdateMasterConf.should.be.a.Function();
-      const returnedConf = cc.checkUpdateMasterConf(goodConf);
+      cc._checkUpdateMasterConf.should.be.a.Function();
+      const returnedConf = cc._checkUpdateMasterConf(goodConf);
       // If conf is good, check that the same conf is returned
       returnedConf.should.equal(goodConf);
       for(const badConf of badConfs) {
@@ -275,7 +275,7 @@ describe('CloudChains Test Suite', function() {
           savedData = data;
         };
         const fakeFilePath = 'filepath';
-        const fixedConf = cc.checkUpdateMasterConf(badConf, fakeFilePath, fakeWriteJsonSync);
+        const fixedConf = cc._checkUpdateMasterConf(badConf, fakeFilePath, fakeWriteJsonSync);
         // Check that the conf is now valid
         fixedConf.should.not.equal(badConf);
         fixedConf.rpcEnabled.should.be.true();
