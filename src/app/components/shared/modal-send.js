@@ -248,6 +248,11 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   };
 
   const insufficient = availableBalance < total;
+  let inputAmountIsDust = false;
+  if (wallet && inputAmount && !isNaN(inputAmount)) {
+    const tb = new TransactionBuilder(wallet.token().xbinfo);
+    inputAmountIsDust = tb.isDust(bignumber(inputAmount).toNumber());
+  }
 
   const onContinue = e => {
     e.preventDefault();
@@ -355,6 +360,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
             <div style={{width: 40, minWidth: 40}} />
             <Row style={{flexGrow: 1, flexBasis: 1}} justify={'flex-end'}>
               {insufficient ? <span className={'color-negative'}><Localize context={'sendModal'}>Insufficient funds</Localize></span> : null}
+              {inputAmountIsDust ? <span className={'color-negative'}><Localize context={'sendModal'}>Input amount is too small (dust)</Localize></span> : null}
             </Row>
           </Row>
 
@@ -387,7 +393,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
               <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Network fee</Localize>:</span> <span className={'lw-modal-description-value'}>{fees} {ticker}</span></div>
               <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Total to send</Localize>:</span> <span className={'lw-modal-description-value-bold'}>{total.toFixed(MAX_DECIMAL_PLACE)} {ticker}</span></div>
             </div>
-            <Button type={'button'} onClick={onContinue} disabled={!address || insufficient}><Localize context={'sendModal'}>Continue</Localize></Button>
+            <Button type={'button'} onClick={onContinue} disabled={!address || insufficient || inputAmountIsDust}><Localize context={'sendModal'}>Continue</Localize></Button>
           </Row>
 
           <ProgressMarker progress={progress} total={4} />
@@ -425,7 +431,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
             <div style={{flexGrow: 1}} />
 
             <Row style={{fontSize, marginBottom: defaultMarginBottom * 2}} justify={'flex-end'}>
-              <Button type={'button'} onClick={progress === 1 ? onConfirm : onSend} disabled={!address || insufficient || (progress === 1 && confirmTimer > 0)}>
+              <Button type={'button'} onClick={progress === 1 ? onConfirm : onSend} disabled={!address || insufficient || inputAmountIsDust || (progress === 1 && confirmTimer > 0)}>
                 {progress === 1 && confirmTimer ?
                   Localize.text('Wait {{time}}', 'sendModal', {time: confirmTimer})
                   :
