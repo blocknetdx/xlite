@@ -3,12 +3,12 @@ import {getLocaleData, storageKeys} from '../constants';
 import {logger} from './logger';
 import {publicPath} from '../util/public-path';
 import Recipient from '../../app/types/recipient';
+import {sanitize, Blacklist, Whitelist} from '../../app/modules/api-r';
 import WalletController from './wallet-controller';
 
 import _ from 'lodash';
 import electron from 'electron';
 import isDev from 'electron-is-dev';
-import {Map as IMap} from 'immutable';
 import QRCode from 'qrcode';
 
 /**
@@ -71,20 +71,6 @@ class Api {
    * @private
    */
   _pricing = null;
-
-  /**
-   * Default list of whitelisted fields (included in api results)
-   * @type {[string]}
-   * @private
-   */
-  _whitelist = ['_token'];
-
-  /**
-   * Default list of blacklisted fields (omitted from api results)
-   * @type {[string]}
-   * @private
-   */
-  _blacklist = ['rpc', 'rpcPassword', 'rpcUsername', 'rpcPort', 'rpcport'];
 
   /**
    * Constructor
@@ -233,13 +219,13 @@ class Api {
       return this._cloudChains.hasSettings();
     });
     this._proc.handle(apiConstants.cloudChains_getWalletConf, async (evt, ticker) => {
-      return this.sanitize(await this._cloudChains.getWalletConf(ticker), this._blacklist, this._whitelist);
+      return sanitize(await this._cloudChains.getWalletConf(ticker), Blacklist, Whitelist);
     });
     this._proc.handle(apiConstants.cloudChains_getWalletConfs, async (evt, arg) => {
-      return this.sanitize(await this._cloudChains.getWalletConfs(), this._blacklist, this._whitelist);
+      return sanitize(await this._cloudChains.getWalletConfs(), Blacklist, Whitelist);
     });
     this._proc.handle(apiConstants.cloudChains_getMasterConf, async (evt, arg) => {
-      return this.sanitize(await this._cloudChains.getMasterConf(), this._blacklist, this._whitelist);
+      return sanitize(await this._cloudChains.getMasterConf(), Blacklist, Whitelist);
     });
     this._proc.handle(apiConstants.cloudChains_isWalletCreated, (evt, arg) => {
       return this._cloudChains.isWalletCreated();
@@ -303,7 +289,7 @@ class Api {
       return this._confController.getManifestHash();
     });
     this._proc.handle(apiConstants.confController_getXBridgeInfo, async (evt, arg) => {
-      return this.sanitize(await this._confController.getXBridgeInfo(), this._blacklist, this._whitelist);
+      return sanitize(await this._confController.getXBridgeInfo(), Blacklist, Whitelist);
     });
   }
 
@@ -312,14 +298,23 @@ class Api {
    * @private
    */
   _initWalletController() {
+    const walletSerializer = w => {
+      w._rpcEnabled = w.rpcEnabled(); // for ui
+      return w;
+    };
+    const walletsSerializer = wallets => {
+      for (const w of wallets)
+        walletSerializer(w);
+      return wallets;
+    };
     this._proc.handle(apiConstants.walletController_getWallets, async (evt, arg) => {
-      return this.sanitize(_.cloneDeep(await this._walletController.getWallets()), this._blacklist, this._whitelist);
+      return sanitize(_.cloneDeep(walletsSerializer(await this._walletController.getWallets())), Blacklist, Whitelist);
     });
     this._proc.handle(apiConstants.walletController_getWallet, async (evt, ticker) => {
-      return this.sanitize(_.cloneDeep(await this._walletController.getWallet(ticker)), this._blacklist, this._whitelist);
+      return sanitize(_.cloneDeep(walletSerializer(await this._walletController.getWallet(ticker))), Blacklist, Whitelist);
     });
     this._proc.handle(apiConstants.walletController_getEnabledWallets, async (evt, arg) => {
-      return this.sanitize(_.cloneDeep(await this._walletController.getEnabledWallets()), this._blacklist, this._whitelist);
+      return sanitize(_.cloneDeep(walletsSerializer(await this._walletController.getEnabledWallets())), Blacklist, Whitelist);
     });
     this._proc.handle(apiConstants.walletController_getBalances, (evt, arg) => {
       return this._walletController.getBalances();
@@ -353,7 +348,7 @@ class Api {
       return this._walletController.getWallet(ticker).getBalance();
     });
     this._proc.handle(apiConstants.wallet_getTransactions, async (evt, ticker, startTime, endTime) => {
-      return this.sanitize(await this._walletController.getWallet(ticker).getTransactions(startTime, endTime), this._blacklist, this._whitelist);
+      return sanitize(await this._walletController.getWallet(ticker).getTransactions(startTime, endTime), Blacklist, Whitelist);
     });
     this._proc.handle(apiConstants.wallet_getAddresses, (evt, ticker) => {
       return this._walletController.getWallet(ticker).getAddresses();
@@ -362,7 +357,7 @@ class Api {
       return this._walletController.getWallet(ticker).generateNewAddress();
     });
     this._proc.handle(apiConstants.wallet_getCachedUnspent, async (evt, ticker, cacheExpirySeconds) => {
-      return this.sanitize(await this._walletController.getWallet(ticker).getCachedUnspent(cacheExpirySeconds), this._blacklist, this._whitelist);
+      return sanitize(await this._walletController.getWallet(ticker).getCachedUnspent(cacheExpirySeconds), Blacklist, Whitelist);
     });
     this._proc.handle(apiConstants.wallet_send, (evt, ticker, recipients) => {
       recipients = recipients.map(r => new Recipient(r));
@@ -378,55 +373,6 @@ class Api {
     this._proc.handle(apiConstants.pricing_getPrice, (evt, ticker, currency) => {
       return this._pricing.getPrice(ticker, currency);
     });
-  }
-
-  /**
-   * Removes all private fields (those starting with _) and supports
-   * whitelisting any fields. Blacklisted fields take precedence over
-   * whitelisted fields.
-   * @param o {Object}
-   * @param blacklist {Array<string>} Remove all these fields
-   * @param whitelist {Array<string>} Do not remove any of these fields
-   * @return {*}
-   */
-  sanitize(o, blacklist=[], whitelist=[]) {
-    if (_.isNil(o))
-      return o;
-    const b = new Set(blacklist);
-    const w = new Set(whitelist);
-    this.sanitizeObj(o, b, w);
-    return o;
-  }
-
-  /**
-   * Sanitizes a non-array object by removing private fields beginning
-   * with an underscore _ and optionally blacklisting and whitelisting
-   * the specified fields. Blacklisting takes precedence over
-   * whitelisting.
-   * @param o {*}
-   * @param blacklist {Set}
-   * @param whitelist {Set}
-   */
-  sanitizeObj(o, blacklist, whitelist) {
-    if (_.isNull(o) || _.isString(o) || _.isNumber(o) || _.isFunction(o) || _.isBoolean(o))
-      return;
-
-    if (_.isArray(o) || typeof o[Symbol.iterator] === 'function' || o instanceof Set) {
-      for (const item of o)
-        this.sanitizeObj(item, blacklist, whitelist);
-    } else if (o instanceof Map || o instanceof IMap) {
-      for (const [key, value] of o)
-        this.sanitizeObj(value, blacklist, whitelist);
-    } else {
-      for (const key in o) {
-        if ({}.hasOwnProperty.call(o, key)) {
-          if (blacklist.has(key) || (key.startsWith('_') && !whitelist.has(key)))
-            delete o[key];
-          else
-            this.sanitizeObj(o[key], blacklist, whitelist);
-        }
-      }
-    }
   }
 }
 

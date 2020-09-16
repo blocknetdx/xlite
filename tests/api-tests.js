@@ -4,6 +4,7 @@ import should from 'should';
 import {Map as IMap} from 'immutable';
 
 import Api from '../src/server/modules/api';
+import {sanitize, sanitizeObj, Blacklist, Whitelist} from '../src/app/modules/api-r';
 import SimpleStorage from '../src/server/modules/storage';
 
 describe('Api Test Suite', function() {
@@ -31,11 +32,10 @@ describe('Api Test Suite', function() {
     api._confController.should.be.eql(confController);
     api._walletController.should.be.eql(walletController);
     api._zoomController.should.be.eql(zoomController);
-    api._whitelist.should.be.an.Array();
-    api._blacklist.should.be.an.Array();
+    Whitelist.should.be.an.Array();
+    Blacklist.should.be.an.Array();
   });
-  it('Api.sanitize()', function() {
-    const api = new Api(storage, app, proc, null);
+  it('sanitize()', function() {
     const test = {
       _one: [{one_one: '_one_one_value'}],
       two: 'two_value',
@@ -44,10 +44,9 @@ describe('Api Test Suite', function() {
       five: {five_five: {_ok: false, ok: [{_no: false, yes: true}, {_no2: false, yes2: true}]}},
     };
     const expected = {two: 'two_value', five: {five_five: {ok: [{yes: true}, {yes2: true}]}}};
-    api.sanitize(test, api._blacklist.concat(['four']), api._whitelist).should.be.eql(expected);
+    sanitize(test, Blacklist.concat(['four']), Whitelist).should.be.eql(expected);
   });
-  it('Api.sanitizeObj()', function() {
-    const api = new Api(storage, app, proc, null);
+  it('sanitizeObj()', function() {
     const test = {
       _one: [{one_one: '_one_one_value'}],
       two: 'two_value',
@@ -56,11 +55,10 @@ describe('Api Test Suite', function() {
       five: {five_five: {_ok: false, ok: [{_no: false, yes: true}, {_no2: false, yes2: true}]}},
     };
     const expected = {two: 'two_value', five: {five_five: {ok: [{yes: true}, {yes2: true}]}}};
-    api.sanitizeObj(test, new Set(api._blacklist.concat(['four'])), new Set(api._whitelist));
+    sanitizeObj(test, new Set(Blacklist.concat(['four'])), new Set(Whitelist));
     test.should.be.eql(expected);
   });
-  it('Api.sanitizeObj() with Map', function() {
-    const api = new Api(storage, app, proc, null);
+  it('sanitizeObj() with Map', function() {
     const test = {
       _one: [{one_one: '_one_one_value'}],
       two: new Map([['twoKEY1', {_no: false, yes: true}], ['twoKEY2', 'twoVALUE2']]),
@@ -71,11 +69,10 @@ describe('Api Test Suite', function() {
       two: new Map([['twoKEY1', {yes: true}], ['twoKEY2', 'twoVALUE2']]),
       _four: new Map([['four', 'four_value']]),
     };
-    api.sanitizeObj(test, new Set(api._blacklist), new Set(api._whitelist.concat(['_four'])));
+    sanitizeObj(test, new Set(Blacklist), new Set(Whitelist.concat(['_four'])));
     test.should.be.eql(expected);
   });
-  it('Api.sanitizeObj() with IMap', function() {
-    const api = new Api(storage, app, proc, null);
+  it('sanitizeObj() with IMap', function() {
     const test = {
       _one: [{one_one: '_one_one_value'}],
       two: new IMap([['twoKEY1', {_no: false, yes: true}], ['twoKEY2', 'twoVALUE2']]),
@@ -86,11 +83,10 @@ describe('Api Test Suite', function() {
       two: new IMap([['twoKEY1', {yes: true}], ['twoKEY2', 'twoVALUE2']]),
       _four: new IMap([['four', 'four_value']]),
     };
-    api.sanitizeObj(test, new Set(api._blacklist), new Set(api._whitelist.concat(['_four'])));
+    sanitizeObj(test, new Set(Blacklist), new Set(Whitelist.concat(['_four'])));
     test.should.be.eql(expected);
   });
-  it('Api.sanitizeObj() with Set', function() {
-    const api = new Api(storage, app, proc, null);
+  it('sanitizeObj() with Set', function() {
     const test = {
       _one: [{one_one: '_one_one_value'}],
       two: new Set(['one', 'two', 'three']),
@@ -101,7 +97,7 @@ describe('Api Test Suite', function() {
       two: new Set(['one', 'two', 'three']),
       _four: null,
     };
-    api.sanitizeObj(test, new Set(api._blacklist), new Set(api._whitelist.concat(['_four'])));
+    sanitizeObj(test, new Set(Blacklist), new Set(Whitelist.concat(['_four'])));
     test.should.be.eql(expected);
   });
 });

@@ -8,11 +8,11 @@ import FakeApi, {resolvePromise} from './fake-api';
 import {localStorageKeys} from '../src/app/constants';
 import Recipient from '../src/app/types/recipient';
 import RPCTransaction from '../src/app/types/rpc-transaction';
+import {sanitize, Blacklist, Whitelist} from '../src/app/modules/api-r';
 import Token from '../src/app/types/token';
 import {unixTime} from '../src/app/util';
 import Wallet from '../src/app/types/wallet-r';
 import XBridgeInfo from '../src/app/types/xbridgeinfo';
-import {publicPath} from '../src/app/util/public-path-r';
 
 describe('Wallet Test Suite', function() {
   const appStorage = domStorage;
@@ -40,7 +40,7 @@ describe('Wallet Test Suite', function() {
       "wallet_conf": "blocknet--v4.0.1.conf"
     });
     token.xbinfo = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000, rpcport: 41414 });
-    walletData = {ticker: token.ticker, name: token.blockchain, _token: token};
+    walletData = sanitize({ticker: token.ticker, name: token.blockchain, _token: token, _rpcEnabled: true}, Blacklist, Whitelist);
     Object.assign(fakeApi, FakeApi(fakeApi));
   });
 
@@ -51,15 +51,17 @@ describe('Wallet Test Suite', function() {
     wallet.ticker.should.be.equal(token.ticker);
     wallet.name.should.be.equal(token.blockchain);
     wallet.imagePath.should.be.equal(Wallet.getImage(wallet.ticker));
-    await wallet.rpcEnabled().should.finally.be.true();
+    wallet.rpcEnabled().should.be.true();
   });
-  it('Wallet.rpcEnabled()', async function() {
+  it('Wallet.rpcEnabled() Wallet._rpcFetch()', async function() {
     const wallet = new Wallet(fakeApi, appStorage, walletData);
-    await wallet.rpcEnabled().should.finally.be.true();
+    await wallet._rpcFetch(unixTime());
+    wallet.rpcEnabled().should.be.true();
     should.not.exist(wallet.rpc);
     fakeApi.wallet_rpcEnabled = () => resolvePromise(false);
     const wallet2 = new Wallet(fakeApi, appStorage, walletData);
-    await wallet2.rpcEnabled().should.finally.be.false();
+    await wallet2._rpcFetch(unixTime());
+    wallet2.rpcEnabled().should.be.false();
   });
   it('Wallet.blockchain()', function() {
     const wallet = new Wallet(fakeApi, appStorage, walletData);

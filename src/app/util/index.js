@@ -106,12 +106,14 @@ export const passwordValidator = {
 /**
  * Return only enabled wallets.
  * @param wallets {Wallet[]}
- * @return {Promise<Wallet[]>}
+ * @return {Wallet[]}
  */
-export const availableWallets = async wallets => {
+export const availableWallets = wallets => {
+  if (!wallets || wallets.length === 0)
+    return [];
   const m = new Map(); // <ticker, rpcEnabled>
   for (const w of wallets)
-    m.set(w.ticker, await w.rpcEnabled());
+    m.set(w.ticker, w.rpcEnabled());
   return wallets.filter(w => m.get(w.ticker));
 };
 

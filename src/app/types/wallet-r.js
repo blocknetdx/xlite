@@ -49,6 +49,18 @@ class Wallet {
    */
   _storage = null;
 
+  /**
+   * @type {number}
+   * @private
+   */
+  _rpcLastFetchTime = 0;
+
+  /**
+   * @type {boolean}
+   * @private
+   */
+  _rpcEnabled = false;
+
   // Do not store any in memory state, this class creates ephemeral
   // instances, any persistent data should be added to dom storage.
 
@@ -81,15 +93,20 @@ class Wallet {
 
   /**
    * RPC enabled. Returns false if config explicitly set rpc to false or
-   * if there's no config.
+   * if there's no config. By default this method will pull the
+   * rpcEnabled state from the cache.
+   * @param expiry {number} Pull from cache up to this expiry time
    * @return {boolean}
    */
-  async rpcEnabled() {
-    try {
-      return await this._api.wallet_rpcEnabled(this.ticker);
-    } catch (err) {
-      return false;
-    }
+  rpcEnabled(expiry = 10) {
+    const t = unixTime();
+    // Pull from cache
+    if (t - this._rpcLastFetchTime <= expiry)
+      return this._rpcEnabled;
+
+    // Fetch latest from server
+    this._rpcFetch(t);
+    return this._rpcEnabled;
   }
 
   /**
@@ -335,6 +352,27 @@ class Wallet {
     this._addTransactionsToStorage(txs);
     this._setLastTransactionFetchTime(endTime);
     return existingTxs.concat(txs); // return all local and network transactions
+  }
+
+  /**
+   * Fetch latest rpc enabled state. This always fetches the latest
+   * state bypassing any caching in the renderer.
+   * @param fetchTime {number}
+   * @private {Promise<void>}
+   */
+  _rpcFetch(fetchTime) {
+    return new Promise(resolve => {
+      this._api.wallet_rpcEnabled(this.ticker)
+        .then(enabled => {
+          this._rpcLastFetchTime = fetchTime;
+          this._rpcEnabled = enabled;
+          resolve();
+        })
+        .catch(e => {
+          this._rpcEnabled = false; // disable on error
+          resolve();
+        });
+    });
   }
 }
 
