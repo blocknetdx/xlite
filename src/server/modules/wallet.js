@@ -164,7 +164,7 @@ class Wallet {
     try {
       return await this.rpc.listTransactions(startTime, endTime);
     } catch (e) {
-      logger.error('', e);
+      logger.error(`${this.ticker}`, e);
       throw e;
     }
   }
