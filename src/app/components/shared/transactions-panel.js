@@ -77,7 +77,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
           <TableColumn size={2}><Localize context={'transactions'}>Asset</Localize></TableColumn>
           {!brief ? <TableColumn size={7}><Localize context={'transactions'}>To address</Localize></TableColumn> : null}
           {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn> : null}
-          {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Value ({altCurrencies.BTC})</Localize></TableColumn>
+          {!brief ? <TableColumn size={2}>{Localize.text('Value ({{value}})', 'transactions', {value: altCurrencies.BTC})}</TableColumn>
                   : <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn>}
           {filteredTxs.map(([ticker, t]) => {
               const wallet = walletLookup.get(ticker);

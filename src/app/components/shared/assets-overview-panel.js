@@ -89,7 +89,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
           {!hideVolume ? <TableColumn size={1}><Localize context={'portfolio'}>Volume (24hr)</Localize></TableColumn> : null}
           <TableColumn size={1}><Localize context={'portfolio'}>Portfolio %</Localize></TableColumn>
           <TableColumn size={1}><Localize context={'portfolio'}>Amount</Localize></TableColumn>
-          <TableColumn size={1}><Localize context={'portfolio'}>Value</Localize> ({altCurrencies.BTC})</TableColumn>
+          <TableColumn size={1}>{Localize.text('Value ({{value}})', 'portfolio', {value: altCurrencies.BTC})}</TableColumn>
           {filteredWallets
             .map(w => {
 
