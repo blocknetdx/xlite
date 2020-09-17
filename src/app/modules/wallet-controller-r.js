@@ -206,7 +206,7 @@ class WalletController {
     // based on user's timeframe filter.
     const coinBalances = new Map();
     const data = await this.getTransactions();
-    for (const [ticker, transactions] of data) {
+    for (let [ticker, transactions] of data) {
       if (transactions.length === 0)
         continue; // skip, no transactions
 
@@ -218,11 +218,13 @@ class WalletController {
       // TODO Need to cache the running balance on disk to prevent expensive lookups here
       // Determine the running balance
       let runningBalance = 0;
+      let txRemaining = false;
       for (let i = 0; i < transactions.length; i++) {
         const tx = transactions[i];
         if (tx.time >= startTime) {
           // remove all items up to index
           transactions.splice(0, i);
+          txRemaining = true;
           break; // done, sorted array ensures nothing missing
         }
         if (tx.isSend())
@@ -230,6 +232,8 @@ class WalletController {
         if (tx.isReceive())
           runningBalance += Math.abs(tx.amount) * multiplier;
       }
+      if (!txRemaining)
+        transactions = []; // remove because all txs have been processed
 
       // Only advance the search index if a transaction falls within the time period
       const balances = [];
