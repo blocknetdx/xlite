@@ -77,12 +77,6 @@ describe('Wallet Test Suite', function() {
     wallet2.rpcEnabled().should.be.false();
     wallet2.rpc.should.be.eql(new RPCController(0, '', ''));
   });
-  it('Wallet.initRpcIfEnabled() should set default port from token conf', function() {
-    conf.rpcPort = -1000;
-    const wallet = new Wallet(token, conf, appStorage);
-    wallet.initRpcIfEnabled();
-    wallet.rpc.should.be.eql(new RPCController(41414, 'testUser', 'test'));
-  });
   it('Wallet.blockchain()', function() {
     const wallet = new Wallet(token, conf, appStorage);
     wallet.blockchain().should.be.equal(token.blockchain);

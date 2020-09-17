@@ -90,7 +90,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
   // If no wallet is selected and there's only one wallet available then
   // automatically select that wallet.
-  const selected = activeWallet === '' ? availWallets[0].ticker : activeWallet;
+  const selected = activeWallet === '' && availWallets.length > 0 ? availWallets[0].ticker : activeWallet;
   const availableBalance = selected && balances.has(selected) ? balances.get(selected)[1] : 0;
 
   // Use the blank modal on missing data or other errors

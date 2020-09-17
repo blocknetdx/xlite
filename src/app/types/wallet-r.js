@@ -345,7 +345,7 @@ class Wallet {
       if (r && r.length > 0)
         txs = r.map(tx => new RPCTransaction(tx)); // put raw data into tx class
     } catch (e) {
-      logger.error('', e);
+      logger.error(`${this.ticker}`, e);
       return existingTxs; // return known transactions on error
     }
 

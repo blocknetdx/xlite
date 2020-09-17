@@ -77,21 +77,21 @@ class RPCController {
             const { result, error } = res.body;
             if(error) {
               const { code, message } = error;
-              reject(new Error(`RPC server ${method} request returned with error code ${code} and message "${message}"`));
+              reject(new Error(`RPC server ${method} at port ${this._port} request returned with error code ${code} and message "${message}"`));
             } else {
               resolve(result);
             }
           } else {
-            reject(new Error(`RPC server ${method} request failed with HTTP status code ${statusCode}.`));
+            reject(new Error(`RPC server ${method} at port ${this._port} request failed with HTTP status code ${statusCode}.`));
           }
         })
         .catch(err => {
           if(err.timeout) {
-            reject(new Error(`RPC server ${method} request timed out.`));
+            reject(new Error(`RPC server ${method} at port ${this._port} request timed out.`));
           } else if (_.has(err, 'status')) {
-            reject(new Error(`RPC server ${method} request failed with HTTP status code ${err.status} and message "${err.message}"`));
+            reject(new Error(`RPC server ${method} at port ${this._port} request failed with HTTP status code ${err.status} and message "${err.message}"`));
           } else {
-            reject(new Error(`RPC server ${method} request failed with message "${err.message}"`));
+            reject(new Error(`RPC server ${method} at port ${this._port} request failed with message "${err.message}"`));
           }
         });
     });

@@ -88,6 +88,7 @@ let confController = null;
 let walletController = null;
 let api = null;
 const pricing = new Pricing(Pricing.defaultPricingApi); // create pricing manager
+const xbridgeConfPath = path.resolve(__dirname, '../blockchain-configuration-files');
 
 const startup = async () => {
   try {
@@ -109,6 +110,29 @@ const startup = async () => {
       return;
     }
 
+    try {
+      cloudChains.loadConfs();
+    } catch (e) {
+      logger.error('Problem loading configs');
+      // Fatal error, warn user and exit program
+      displayFatalError = makeError(Localize.text('Issue'), Localize.text('The CloudChains Litewallet configs failed to load.'));
+      return;
+    }
+
+    // Init the conf controller to build the manifest
+    confController = new ConfController(storage, cloudChains.getWalletConfs().map(c => c.ticker()));
+    await confController.init(xbridgeConfPath);
+
+    // Update confs with manifest data
+    try {
+      cloudChains.loadConfs(new TokenManifest(confController.getManifest(), confController.getXBridgeInfo())); // update rpc
+    } catch (e) {
+      logger.error('Problem updating configs');
+      // Fatal error, warn user and exit program
+      displayFatalError = makeError(Localize.text('Issue'), Localize.text('The CloudChains Litewallet configs failed to update.'));
+      return;
+    }
+
     logger.info('Enabling all CloudChains wallets');
     logger.info('Enabling CloudChains master RPC server');
 
@@ -117,6 +141,16 @@ const startup = async () => {
       logger.error('No CloudChains settings found');
       // Fatal error, warn user and exit program
       displayFatalError = makeError(Localize.text('Install Issue'), Localize.text('The CloudChains Litewallet daemon missing. Please reinstall.'));
+      return;
+    }
+  } else { // if not first time install
+    // Load latest configuration prior to any further initialization
+    try {
+      cloudChains.loadConfs();
+    } catch (e) {
+      logger.error('Problem loading configs');
+      // Fatal error, warn user and exit program
+      displayFatalError = makeError(Localize.text('Issue'), Localize.text('The CloudChains Litewallet configs failed to load.'));
       return;
     }
   }
@@ -140,21 +174,8 @@ const startup = async () => {
       logger.error(err);
     });
 
-  // Load latest configuration prior to any further initialization
-  try {
-    cloudChains.loadConfs();
-  } catch (e) {
-    logger.error('Problem loading configs');
-    // Fatal error, warn user and exit program
-    displayFatalError = makeError(Localize.text('Issue'), Localize.text('The CloudChains Litewallet configs failed to load.'));
-    return;
-  }
-
-  const availableWallets = cloudChains.getWalletConfs().map(c => c.ticker());
-  confController = new ConfController(storage, availableWallets);
-  await confController.init(path.resolve(__dirname, '../blockchain-configuration-files'));
-  if (confController.getManifest().length === 0)
-    await confController.updateManifest();
+  confController = new ConfController(storage, cloudChains.getWalletConfs().map(c => c.ticker()));
+  await confController.init(xbridgeConfPath);
   // Create the token manifest from the raw manifest data and fee information
   const tokenManifest = new TokenManifest(confController.getManifest(), confController.getXBridgeInfo());
   // Create the wallet controller

@@ -83,8 +83,7 @@ class Wallet {
       return;
     // Set the default port to the xbridge conf port settings if the
     // cloudchains conf port is invalid.
-    const port = this._conf.rpcPort === -1000 ? this._token.xbinfo.rpcport : this._conf.rpcPort;
-    this.rpc = new RPCController(port, this._conf.rpcUsername, this._conf.rpcPassword);
+    this.rpc = new RPCController(this._conf.rpcPort, this._conf.rpcUsername, this._conf.rpcPassword);
   }
 
   /**
@@ -165,7 +164,7 @@ class Wallet {
     try {
       return await this.rpc.listTransactions(startTime, endTime);
     } catch (e) {
-      logger.error('', e);
+      logger.error(`${this.ticker}`, e);
       throw e;
     }
   }

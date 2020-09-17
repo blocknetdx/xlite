@@ -70,5 +70,9 @@ describe('TokenManifest Test Suite', function() {
     should.not.exist(tm.getToken(''));
     should.not.exist(tm.getToken('BBLOCK'));
   });
+  it('TokenManifest default BLOCK port', () => {
+    const tm = new TokenManifest(data, [feeBLOCK, feeBTC]);
+    tm.getToken('BLOCK').xbinfo.rpcport.should.be.equal(41419);
+  });
 
 });

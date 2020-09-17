@@ -269,11 +269,14 @@ class CloudChains {
   /**
    * Synchronously read all CloudChains token confs from disk. Returns false on error.
    * Fatal error throws. Individual token conf failures do not result in fatal error,
-   * however, will return false. Returns true if no errors occurred.
+   * however, will return false. Returns true if no errors occurred. If the token
+   * manifest is provided this call will overwrite rpc port values for the configs
+   * to match those in the manifest.
+   * @param manifest {TokenManifest} Override with manifest values if specified
    * @return {boolean}
    * @throws {Error} on fatal error (e.g. failure to read settings dir)
    */
-  loadConfs() {
+  loadConfs(manifest = null) {
     const settingsDir = this.getSettingsDir();
     let success = true;
     const confs = fs.readdirSync(settingsDir)
@@ -285,11 +288,15 @@ class CloudChains {
         const filePath = path.join(settingsDir, f);
         try {
           const data = fs.readJsonSync(filePath);
-          let conf = new CCWalletConf(ticker, data);
+          const conf = new CCWalletConf(ticker, data);
           if (ticker === 'master') {
-            conf = this.checkUpdateMasterConf(conf, filePath, fs.writeJsonSync);
-            this._masterConf = conf;
+            this._masterConf = this._checkUpdateMasterConf(conf, filePath, fs.writeJsonSync);
             return null;
+          } else if (manifest && manifest.getToken(ticker)) { // update with manifest rpc ports
+            const token = manifest.getToken(ticker);
+            conf.rpcPort = token.xbinfo.rpcport;
+            this._updateConfRpc(conf, filePath, fs.writeJsonSync);
+            return conf;
           } else
             return conf;
         } catch (err) {
@@ -317,7 +324,7 @@ class CloudChains {
    * @param writeJsonSync
    * @returns {*}
    */
-  checkUpdateMasterConf(conf, filePath, writeJsonSync) {
+  _checkUpdateMasterConf(conf, filePath, writeJsonSync) {
     if(!conf.rpcEnabled
       || !conf.rpcUsername
       || !conf.rpcPassword
@@ -575,6 +582,23 @@ class CloudChains {
    */
   _isCLIAvailable() {
     return !!(this._cli);
+  }
+
+  /**
+   * Checks master conf and updates it if necessary to enable the master RPC server
+   * @param conf {CCWalletConf}
+   * @param filePath {string}
+   * @param writeJsonSync {function}
+   * @return {boolean}
+   */
+  _updateConfRpc(conf, filePath, writeJsonSync) {
+    try {
+      writeJsonSync(filePath, conf, {spaces: 4});
+      return true;
+    } catch (e) {
+      logger.error(`failed to write conf at path ${filePath}`);
+      return false;
+    }
   }
 
 }
