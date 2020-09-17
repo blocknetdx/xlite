@@ -254,7 +254,7 @@ class FakeRPCController {
   }
 
   async getAddressesByAccount(account = 'main') {
-    return [];
+    return ["fakeaddress1", "fakeaddress2"];
   }
 
   async importPrivKey(privKey) {

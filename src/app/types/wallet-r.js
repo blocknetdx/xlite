@@ -89,6 +89,7 @@ class Wallet {
     this._api = api;
     this._storage = stor;
     this.imagePath = Wallet.getImage(this.ticker);
+    this._setLastTransactionFetchTime(0); // TODO Remove this when listtransactions api is ready
   }
 
   /**
@@ -101,7 +102,7 @@ class Wallet {
   rpcEnabled(expiry = 10) {
     const t = unixTime();
     // Pull from cache
-    if (t - this._rpcLastFetchTime <= expiry)
+    if (t - this._rpcLastFetchTime < expiry)
       return this._rpcEnabled;
 
     // Fetch latest from server

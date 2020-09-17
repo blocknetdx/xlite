@@ -136,6 +136,23 @@ describe('Wallet Test Suite', function() {
     txs.should.be.eql(fakeTxs);
     txs.length.should.be.equal(1); // expecting only 1 transaction
   });
+  it('Wallet.getTransactions() should filter only own addresses', async function() {
+    const fakerpc = new FakeRPCController();
+    fakerpc.getAddressesByAccount = async () => ["fakeaddress3", "fakeaddress4"];
+    fakerpc.listTransactions = async () => {
+      const data = [
+        {"address": "fakeaddress3", "category": "receive", "amount": 50.00000000, "vout": 1, "fee": -0.00002250, "confirmations": 10280, "blockhash": "79b04e7945ceb0e72b16c2302277566e9c3b47fa45d122036871b9833789fc16", "blockindex": 5, "blocktime": 1596654098, "txid": "17dc2a8b2af2904dc388d23d2237e493a48f0da4752ebac4311a945785fd082b", "walletconflicts": [], "time": 1596654400, "timereceived": 1596654002, "bip125-replaceable": "no", "abandoned": false},
+        {"address": "fakeaddress4", "category": "send", "amount": -50.00000000, "vout": 1, "fee": -0.00002250, "confirmations": 10280, "blockhash": "79b04e7945ceb0e72b16c2302277566e9c3b47fa45d122036871b9833789fc16", "blockindex": 5, "blocktime": 1596654098, "txid": "17dc2a8b2af2904dc388d23d2237e493a48f0da4752ebac4311a945785fd082b", "walletconflicts": [], "time": 1596654400, "timereceived": 1596654002, "bip125-replaceable": "no", "abandoned": false},
+        {"address": "fakeaddress5", "category": "receive", "amount": 25.00000000, "vout": 1, "fee": -0.00002250, "confirmations": 10280, "blockhash": "79b04e7945ceb0e72b16c2302277566e9c3b47fa45d122036871b9833789fc16", "blockindex": 5, "blocktime": 1596654098, "txid": "17dc2a8b2af2904dc388d23d2237e493a48f0da4752ebac4311a945785fd082b", "walletconflicts": [], "time": 1596654400, "timereceived": 1596654002, "bip125-replaceable": "no", "abandoned": false},
+      ];
+      return data.map(t => new RPCTransaction({txId: t.txid, address: t.address, amount: t.amount, blockHash: t.blockhash, blockTime: t.blocktime, category: t.category, confirmations: t.confirmations, time: t.time, trusted: true}));
+    };
+    const wallet = new Wallet(token, conf, appStorage);
+    wallet.rpc = fakerpc;
+    const fakeTxs = (await fakerpc.listTransactions()).filter(tx => tx.address !== 'fakeaddress5');
+    const txs = await wallet.getTransactions();
+    txs.should.be.eql(fakeTxs);
+  });
   it('Wallet.getAddresses()', async function() {
     const fakerpc = new FakeRPCController();
     const wallet = new Wallet(token, conf, appStorage);
@@ -144,6 +161,25 @@ describe('Wallet Test Suite', function() {
     const addrs = await wallet.getAddresses();
     addrs.should.be.eql(fakeAddrs);
   });
+  it('Wallet.getAddresses() should pull from cache', async function() {
+    const fakerpc = new FakeRPCController();
+    const wallet = new Wallet(token, conf, appStorage);
+    wallet.rpc = fakerpc;
+    const addrs1 = await wallet.getAddresses();
+    fakerpc.getAddressesByAccount = async () => ["fakeaddress3", "fakeaddress4"];
+    const addrs2 = await wallet.getAddresses(60);
+    addrs1.should.be.eql(addrs2);
+  });
+  it('Wallet.getAddresses() should expire', async function() {
+    const fakerpc = new FakeRPCController();
+    const wallet = new Wallet(token, conf, appStorage);
+    wallet.rpc = fakerpc;
+    await wallet.getAddresses();
+    const newAddrs = ["fakeaddress3", "fakeaddress4"];
+    fakerpc.getAddressesByAccount = async () => newAddrs;
+    const addrs = await wallet.getAddresses(0);
+    addrs.should.be.eql(newAddrs);
+  });
   it('Wallet.generateNewAddress()', async function() {
     const fakerpc = new FakeRPCController();
     const wallet = new Wallet(token, conf, appStorage);
@@ -151,6 +187,15 @@ describe('Wallet Test Suite', function() {
     const fakeNewAddr = await fakerpc.getNewAddress();
     const addr = await wallet.generateNewAddress();
     addr.should.be.eql(fakeNewAddr);
+  });
+  it('Wallet.generateNewAddress() should expire fetch time', async function() {
+    const fakerpc = new FakeRPCController();
+    const wallet = new Wallet(token, conf, appStorage);
+    wallet.rpc = fakerpc;
+    await wallet.getAddresses(); // sets fetch time
+    wallet._cachedAddrs.fetchTime.should.be.greaterThan(0);
+    await wallet.generateNewAddress();
+    wallet._cachedAddrs.fetchTime.should.be.equal(0);
   });
   it('Wallet.getCachedUnspent()', async function() {
     const fakerpc = new FakeRPCController();
