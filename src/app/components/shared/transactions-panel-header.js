@@ -74,7 +74,7 @@ TransactionsPanelHeader.propTypes = {
   selectedFilter: PropTypes.string,
   onTransactionFilter: PropTypes.func,
   walletController: PropTypes.instanceOf(WalletController),
-  wallets: PropTypes.instanceOf(Wallet),
+  wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   balances: PropTypes.instanceOf(IMap),
   setActiveView: PropTypes.func,
   setActiveWallet: PropTypes.func,
