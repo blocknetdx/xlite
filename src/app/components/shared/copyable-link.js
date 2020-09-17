@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { selectAllInElement } from '../../util';
 import { connect } from 'react-redux';
+import Localize from '../shared/localize';
 
 let CopyableLink = ({ children = '', className = '', hideButton = false, href = '', openExternalLinks = false, style = {} }) => {
 
@@ -25,7 +26,7 @@ let CopyableLink = ({ children = '', className = '', hideButton = false, href = 
 
   return (
     <span className={`lw-copyable-link-container ${className}`} style={style}>
-      <span className={'lw-copyable-link-text'} onClick={onTextClick}>{children}</span> {!hideButton ? <a href={'#'} className={'lw-copyable-link-button'} onClick={onButtonClick}><i className={'fas fa-copy'} /></a> : null}
+      <span className={'lw-copyable-link-text'} onClick={onTextClick}>{children}</span> {!hideButton ? <a href={'#'} className={'lw-copyable-link-button'} onClick={onButtonClick}><i title={Localize.text('Copy URL', 'copyable-link')} className={'fas fa-copy'} /></a> : null}
     </span>
   );
 };
