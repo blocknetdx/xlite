@@ -53,6 +53,10 @@ const openAppWindow = (file, storage, devtools) => {
     },
     onLoad() {
       this._window.webContents.setZoomFactor(storage.getItem(storageKeys.ZOOM_FACTOR));
+      // Deny all permission requests
+      this._window.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+        return callback(false);
+      });
     }
   });
 };

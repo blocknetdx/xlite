@@ -211,6 +211,18 @@ app.on('ready', async () => {
         logger.error('failed to stop the wallet daemon');
     }
   });
+  // Prevent opening any new windows at this point
+  app.on('web-contents-created', (event, contents) => {
+    contents.on('new-window', (event, navigationUrl) => {
+      event.preventDefault();
+    });
+  });
+  // Prevent new webviews
+  app.on('web-contents-created', (event, contents) => {
+    contents.on('will-attach-webview', (event, webPreferences, params) => {
+      event.preventDefault();
+    });
+  });
 
   if (isDev) {
     // Hot reload
