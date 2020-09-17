@@ -27,8 +27,7 @@ $lw-row-padding-vert: 12px;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    padding-top: $lw-row-padding-vert;
-    padding-bottom: $lw-row-padding-vert;
+    align-items: center;
     padding-left: $lw-row-padding-horiz;
     padding-right: $lw-row-padding-horiz;
 

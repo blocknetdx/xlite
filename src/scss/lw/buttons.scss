@@ -100,13 +100,23 @@ button {
   letter-spacing: normal;
 
   &:hover {
-    color: white;
+    color: $lw-text-primary;
     border: 1px solid $lw-secondary-1;
+
+    img {
+      filter: brightness(0) invert(1);
+      -webkit-filter: brightness(0) invert(1);
+    }
   }
 
   &.active {
-    color: white;
+    color: $lw-text-primary;
     border: 1px solid $lw-secondary-1;
+
+    img {
+      filter: brightness(0) invert(1);
+      -webkit-filter: brightness(0) invert(1);
+    }
   }
 
   &.disabled {
@@ -118,6 +128,13 @@ button {
     font-size: 10px;
     width: 12px;
     min-width: 12px;
+    margin-left: 10px;
+  }
+
+  img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
     margin-left: 10px;
   }
 }
