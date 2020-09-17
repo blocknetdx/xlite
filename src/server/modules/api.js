@@ -73,6 +73,13 @@ class Api {
   _pricing = null;
 
   /**
+   * If true this will allow electron to open external links.
+   * @type {boolean}
+   * @private
+   */
+  _allowOpenExternalLinks = false;
+
+  /**
    * Constructor
    * @param storage {SimpleStorage}
    * @param app {Electron.App}
@@ -98,6 +105,20 @@ class Api {
     this._zoomController = zoomController;
     this._pricing = pricing;
     this._init();
+  }
+
+  /**
+   * Enable open external links functionality.
+   */
+  enableOpenExternalLinks() {
+    this._allowOpenExternalLinks = true;
+  }
+
+  /**
+   * Disable open external links functionality.
+   */
+  disableOpenExternalLinks() {
+    this._allowOpenExternalLinks = false;
   }
 
   /**
@@ -167,8 +188,8 @@ class Api {
       evt.returnValue = publicPath;
     });
     this._proc.on(apiConstants.general_openUrl, (evt, url) => {
-      if (/^https:\/\/(?!file)[a-zA-Z0-9_]+\.(?:(?!\/\/)[a-zA-Z0-9_%$?/.])+$/i.test(url))
-        electron.shell.openExternal(url); // TODO Security whitelist
+      if (this._allowOpenExternalLinks && /^https:\/\/(?!file)[a-zA-Z0-9_]+\.(?:(?!\/\/)[a-zA-Z0-9_%$?/.])+$/i.test(url))
+        electron.shell.openExternal(url); // TODO Improve Security whitelist
     });
     this._proc.handle(apiConstants.general_qrCode, (evt, data) => {
       return new Promise((resolve, reject) => {
