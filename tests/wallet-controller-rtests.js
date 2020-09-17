@@ -11,7 +11,7 @@ import domStorage from '../src/app/modules/dom-storage';
 import FakeApi, {resolvePromise, txBLOCK, txBTC} from './fake-api';
 import {localStorageKeys} from '../src/app/constants';
 import moment from 'moment';
-import {multiplierForCurrency, oneDaySeconds, oneHourSeconds, oneWeekSeconds, unixTime} from '../src/app/util';
+import {multiplierForCurrency, oneDaySeconds, oneHourSeconds, oneMonthSeconds, oneWeekSeconds, unixTime} from '../src/app/util';
 import RPCTransaction from '../src/app/types/rpc-transaction';
 import TokenManifest from '../src/app/modules/token-manifest';
 import Wallet from '../src/app/types/wallet-r';
@@ -62,6 +62,11 @@ describe('WalletController Test Suite', function() {
   }]`);
   const feeBLOCK = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000 });
   const feeBTC = new XBridgeInfo({ ticker: 'BTC', feeperbyte: 120, mintxfee: 7500, coin: 100000000 });
+  const getBalance = (transactions, ticker, currency, currencyMultipliers) => {
+    const mfc = multiplierForCurrency(ticker, currency, currencyMultipliers);
+    return transactions.map(tx => tx.isReceive() ? tx.amount * mfc : -tx.amount * mfc)
+      .reduce((cur, amt) => cur + amt);
+  };
 
   beforeEach(async function() {
     storage.clear();
@@ -140,23 +145,13 @@ describe('WalletController Test Suite', function() {
     const st = moment.unix(et-oneWeekSeconds).startOf('day');
     const expecting = Math.ceil((et-st.unix())/oneHourSeconds);
     balances.length.should.be.equal(expecting);
-    const getBalance = (transactions) => {
-      let balancesTotal = 0;
-      for (const tx of transactions) {
-        if (tx.isReceive())
-          balancesTotal += tx.amount * multiplierForCurrency('BLOCK', 'USD', currencyMultipliers);
-        else
-          balancesTotal -= tx.amount * multiplierForCurrency('BLOCK', 'USD', currencyMultipliers);
-      }
-      return balancesTotal;
-    };
-    balances[balances.length-1][1].should.be.equal(getBalance(await fakeApi.wallet_getTransactions('BLOCK')));
+    balances[balances.length-1][1].should.be.equal(getBalance(await fakeApi.wallet_getTransactions('BLOCK'), 'BLOCK', 'USD', currencyMultipliers));
     // Expecting cache to be pulled when calls are one after the other
     const copyTxs = txs.slice();
     txs.push(new RPCTransaction({ txId: 'Another tx', address: 'afjdsakjfksdajk', amount: 100.50, category: 'receive', time: et - 60 }));
     await blockWallet.updateTransactions();
     const nbalances = await wc.getBalanceOverTime('week', 'USD', currencyMultipliers);
-    nbalances[nbalances.length-1][1].should.be.equal(getBalance(copyTxs)); // expecting to receive old cached data
+    nbalances[nbalances.length-1][1].should.be.equal(getBalance(copyTxs, 'BLOCK', 'USD', currencyMultipliers)); // expecting to receive old cached data
   });
   it('WalletController.getBalanceOverTime() should exclude data outside timeframe', async function() {
     const et = unixTime();
@@ -179,18 +174,38 @@ describe('WalletController Test Suite', function() {
     await blockWallet.updateTransactions();
     const currencyMultipliers = {'BLOCK': {'USD': 1}}; // use 1 for easier debugging
     const balances = await wc.getBalanceOverTime('day', 'USD', currencyMultipliers);
-    const getBalance = (transactions) => {
-      let balancesTotal = 0;
-      for (const tx of transactions) {
-        if (tx.isReceive())
-          balancesTotal += tx.amount * multiplierForCurrency('BLOCK', 'USD', currencyMultipliers);
-        else
-          balancesTotal -= tx.amount * multiplierForCurrency('BLOCK', 'USD', currencyMultipliers);
-      }
-      return balancesTotal;
-    };
     balances[0][1].should.be.equal(50); // Expecting initial balance (A,B txs are outside starting timeframe)
-    balances[balances.length-1][1].should.be.equal(getBalance((await fakeApi.wallet_getTransactions('BLOCK'))));
+    balances[balances.length-1][1].should.be.equal(getBalance(await fakeApi.wallet_getTransactions('BLOCK'), 'BLOCK', 'USD', currencyMultipliers));
+  });
+  it('WalletController.getBalanceOverTime() should exclude already tallied history', async function() {
+    // The purpose of this test is to create a situation that only has past transactions.
+    // i.e. get balance over a timeframe where no new transactions exist and only
+    // historical transactions exist. This test ensures that the algo doesn't
+    // duplicate any tallying efforts between the historical timeframe and time frame
+    // specified in the get balance over time call. This is why we add test transactions
+    // a month in the past and ask the wallet controller for the balance in the past day.
+    const et = unixTime() - oneMonthSeconds;
+    const txs = [
+      new RPCTransaction({ txId: 'E', address: 'afjdsakjfksdajk', amount: 1.99999999, category: 'receive', time: et - oneHourSeconds }),
+      new RPCTransaction({ txId: 'D', address: 'afjdsakjfksdajk', amount: 5.000, category: 'send', time: et - oneHourSeconds*5 }),
+      new RPCTransaction({ txId: 'C', address: 'afjdsakjfksdajk', amount: 10.000, category: 'send', time: et - oneDaySeconds }),
+      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 20.000, category: 'receive', time: et - oneDaySeconds*3 }),
+      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 30.000, category: 'receive', time: et - oneWeekSeconds }),
+    ];
+    fakeApi.wallet_getTransactions = async (ticker) => {
+      if (ticker === 'BLOCK')
+        return txs;
+      else
+        return [];
+    };
+    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    await wc.loadWallets();
+    const blockWallet = await wc.getWallet('BLOCK');
+    await blockWallet.updateTransactions();
+    const currencyMultipliers = {'BLOCK': {'USD': 1}}; // use 1 for easier debugging
+    const balances = await wc.getBalanceOverTime('day', 'USD', currencyMultipliers);
+    balances[0][1].should.be.equal(getBalance(txs, 'BLOCK', 'USD', currencyMultipliers));
+    balances[balances.length-1][1].should.be.equal(getBalance(await fakeApi.wallet_getTransactions('BLOCK'), 'BLOCK', 'USD', currencyMultipliers));
   });
   it('WalletController.getActiveWallet()', async function() {
     const wc = new WalletController(fakeApi, tokenManifest, storage);
