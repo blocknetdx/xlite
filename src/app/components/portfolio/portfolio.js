@@ -29,8 +29,8 @@ const Portfolio = ({ windowWidth, altCurrency, currencyMultipliers, balanceOverT
   };
 
   const containerHorizPadding = 25;
-  const headCol1Width = 200;
-  const headCol3Width = 320;
+  const headCol1Width = 282;
+  const headCol3Width = 250;
   const headCol2Width = windowWidth - SIDEBAR_WIDTH - headCol1Width - headCol3Width - containerHorizPadding * 2;
 
   return (

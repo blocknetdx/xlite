@@ -14,5 +14,11 @@
   .lw-dashboard-info {
     display: flex;
     flex-direction: row;
+
+    .lw-balance-filters {
+      @media only screen and (max-width: 1205px) {
+        display: none;
+      }
+    }
   }
 }
