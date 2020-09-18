@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect} from 'react';
 import $ from 'jquery';
 import Localize from './localize';
+import {ESC_KEY_CODE} from '../../constants';
 
 export const ModalHeader = ({ children }) => {
   return (
@@ -29,6 +30,17 @@ ModalBody.propTypes = {
 
 export const Modal = ({ children, showBackButton = false, disableCloseOnOutsideClick = false, onBack = () => {}, onClose = () => {} }) => {
   const overlay = React.createRef();
+  const onEscKey = event => {
+    if (event.keyCode === ESC_KEY_CODE) {
+      onClose();
+    }
+  };
+  useEffect( () => {
+    document.addEventListener('keydown', onEscKey, false);
+    return () => {
+      document.removeEventListener('keydown', onEscKey, false);
+    };
+  }, []);
   return (
     <div ref={overlay} className={'lw-modal-overlay'} onClick={e => $(e.target).hasClass('lw-modal-overlay') && !disableCloseOnOutsideClick ? onClose() : null}>
       <div className={'lw-modal-container'}>
