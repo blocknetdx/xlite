@@ -145,3 +145,5 @@ export const transactionFilters = {
   // ToDo: enable transfer type when available
   //transfers: 'Transfers'
 };
+
+export const ESC_KEY_CODE = 27;
