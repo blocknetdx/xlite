@@ -174,7 +174,47 @@ describe('WalletController Test Suite', function() {
     await blockWallet.updateTransactions();
     const currencyMultipliers = {'BLOCK': {'USD': 1}}; // use 1 for easier debugging
     const balances = await wc.getBalanceOverTime('day', 'USD', currencyMultipliers);
-    balances[0][1].should.be.equal(50); // Expecting initial balance (A,B txs are outside starting timeframe)
+    // Expected balance calc
+    let m = moment.unix(et-oneDaySeconds); m = m.startOf('day');
+    const expectedInitialBalance = txs.map(tx => {
+      if (tx.time < m.unix())
+        return tx.isSend() ? -tx.amount : tx.amount; // send is subtract, receive is add
+      else
+        return 0;
+    }).reduce((cur, amt) => cur+amt);
+    balances[0][1].should.be.equal(expectedInitialBalance); // Initial balance prior to start time
+    balances[balances.length-1][1].should.be.equal(getBalance(await fakeApi.wallet_getTransactions('BLOCK'), 'BLOCK', 'USD', currencyMultipliers));
+  });
+  it('WalletController.getBalanceOverTime() should exclude data outside timeframe with fixed day', async function() {
+    const et = moment(1600300800*1000 - oneDaySeconds*1000).unix();
+    const txs = [
+      new RPCTransaction({ txId: 'E', address: 'afjdsakjfksdajk', amount: 1.99999999, category: 'receive', time: et - oneHourSeconds }),
+      new RPCTransaction({ txId: 'D', address: 'afjdsakjfksdajk', amount: 5.000, category: 'send', time: et - oneHourSeconds*5 }),
+      new RPCTransaction({ txId: 'C', address: 'afjdsakjfksdajk', amount: 10.000, category: 'send', time: et - oneDaySeconds }),
+      new RPCTransaction({ txId: 'B', address: 'afjdsakjfksdajk', amount: 20.000, category: 'receive', time: et - oneDaySeconds*3 }),
+      new RPCTransaction({ txId: 'A', address: 'afjdsakjfksdajk', amount: 30.000, category: 'receive', time: et - oneWeekSeconds }),
+    ];
+    fakeApi.wallet_getTransactions = async (ticker) => {
+      if (ticker === 'BLOCK')
+        return txs;
+      else
+        return [];
+    };
+    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    await wc.loadWallets();
+    const blockWallet = await wc.getWallet('BLOCK');
+    await blockWallet.updateTransactions();
+    const currencyMultipliers = {'BLOCK': {'USD': 1}}; // use 1 for easier debugging
+    const balances = await wc.getBalanceOverTime('day', 'USD', currencyMultipliers);
+    // Expected balance calc
+    let m = moment.unix(unixTime()-oneDaySeconds); m = m.startOf('day');
+    const expectedInitialBalance = txs.map(tx => {
+        if (tx.time < m.unix())
+          return tx.isSend() ? -tx.amount : tx.amount; // send is subtract, receive is add
+        else
+          return 0;
+      }).reduce((cur, amt) => cur+amt);
+    balances[0][1].should.be.equal(expectedInitialBalance); // Initial balance prior to start time
     balances[balances.length-1][1].should.be.equal(getBalance(await fakeApi.wallet_getTransactions('BLOCK'), 'BLOCK', 'USD', currencyMultipliers));
   });
   it('WalletController.getBalanceOverTime() should exclude already tallied history', async function() {
