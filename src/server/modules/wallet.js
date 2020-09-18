@@ -60,6 +60,13 @@ class Wallet {
   _cachedUtxos = {fetchTime: 0, utxos: []};
 
   /**
+   * Stores cached addresses and last time they were fetched.
+   * @type {{fetchTime: number, addresses: string[]}}
+   * @private
+   */
+  _cachedAddrs = {fetchTime: 0, addresses: []};
+
+  /**
    * Constructs a wallet
    * @param token {Token}
    * @param conf {CCWalletConf}
@@ -162,7 +169,11 @@ class Wallet {
       endTime = unixTime();
 
     try {
-      return await this.rpc.listTransactions(startTime, endTime);
+      // Filter receive transactions to ensure ismine
+      // TODO Workaround for bug where CloudChains listTransactions returns not own txs
+      const addrs = new Set(await this.getAddresses());
+      const txs = await this.rpc.listTransactions(startTime, endTime);
+      return txs.filter(tx => tx.isReceive() ? addrs.has(tx.address) : true);
     } catch (e) {
       logger.error(`${this.ticker}`, e);
       throw e;
@@ -171,20 +182,26 @@ class Wallet {
 
   /**
    * Get addresses. Returns null on error.
-   * @return {Promise<null|string[]>}
+   * @param expiry {number} Pulls from cache until expiry
+   * @return {Promise<string[]>}
    */
-  async getAddresses() {
+  async getAddresses(expiry = 300) {
+    const now = unixTime();
+    if (now - this._cachedAddrs.fetchTime < expiry)
+      return _.cloneDeep(this._cachedAddrs.addresses);
+
     if (this.rpc.isNull() || !this.rpcEnabled()) {
       logger.error(`failed to get addresses for ${this.ticker} because rpc is disabled`);
-      return null;
+      return _.cloneDeep(this._cachedAddrs.addresses);
     }
 
     try {
-      return await this.rpc.getAddressesByAccount();
+      this._cachedAddrs.addresses = await this.rpc.getAddressesByAccount();
+      this._cachedAddrs.fetchTime = now;
     } catch (e) {
       logger.error('', e);
-      return null;
     }
+    return _.cloneDeep(this._cachedAddrs.addresses);
   }
 
   /**
@@ -198,6 +215,7 @@ class Wallet {
     }
 
     try {
+      this._cachedAddrs.fetchTime = 0; // reset addr fetch time when new address is created
       return await this.rpc.getNewAddress();
     } catch (e) {
       logger.error('', e);
@@ -207,25 +225,25 @@ class Wallet {
 
   /**
    * Return cached coins. Fetch if last cache time expired.
-   * @param cacheExpirySeconds {number} Number of seconds until cache expires
+   * @param expiry {number} Number of seconds until cache expires
    * @return {Promise<RPCUnspent[]>}
    */
-  async getCachedUnspent(cacheExpirySeconds) {
+  async getCachedUnspent(expiry) {
+    const now = unixTime();
+    if (now - this._cachedUtxos.fetchTime < expiry)
+      return _.cloneDeep(this._cachedUtxos.utxos);
+
     if (this.rpc.isNull() || !this.rpcEnabled()) {
       logger.error(`failed to get balance info for ${this.ticker} because rpc is disabled`);
-      return this._cachedUtxos.utxos;
+      return _.cloneDeep(this._cachedUtxos.utxos);
     }
 
-    const t = this._cachedUtxos.fetchTime;
-    const now = unixTime();
-    if (now - t >= cacheExpirySeconds) {
-      try {
-        const utxos = await this.rpc.listUnspent();
-        this._cachedUtxos.fetchTime = unixTime();
-        this._cachedUtxos.utxos = utxos;
-      } catch(err) {
-        logger.error(`failed to list utxos for ${this.ticker}`, err);
-      }
+    try {
+      const utxos = await this.rpc.listUnspent();
+      this._cachedUtxos.fetchTime = now;
+      this._cachedUtxos.utxos = utxos;
+    } catch(err) {
+      logger.error(`failed to list utxos for ${this.ticker}`, err);
     }
 
     return _.cloneDeep(this._cachedUtxos.utxos);
