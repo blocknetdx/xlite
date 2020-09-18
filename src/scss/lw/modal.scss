@@ -28,6 +28,9 @@
     //height: $lw-modal-height;
     background-color: #fff;
     position: relative;
+    border-radius: 4px;
+    box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.4);
+    padding: 20px;
 
     a.lw-back-btn {
       display: block;
@@ -52,8 +55,8 @@
       width: 18px;
       height: 18px;
       position: absolute;
-      right: 10px;
-      top: 10px;
+      right: 11px;
+      top: 11px;
 
       &:hover, &:active, &:focus {
         text-decoration: none;
@@ -65,12 +68,12 @@
     .lw-modal-header-container {
 
       h4 {
-        height: $lw-modal-header-height;
+        height: fit-content;
         line-height: $lw-modal-line-height;
         font-size: 24px;
         font-weight: 600;
         text-align: center;
-        padding-top: $lw-modal-header-padding;
+        padding-top: 10px;
         padding-bottom: $lw-modal-header-padding;
         color: $lw-modal-default-text-color;
         margin-bottom: 0;
@@ -81,9 +84,6 @@
     .lw-modal-body-container {
       box-sizing: border-box;
       //height: $lw-modal-height - $lw-modal-header-height;
-      padding-left: 10px;
-      padding-right: 10px;
-      padding-bottom: 10px;
       width: 100%;
       display: flex;
       flex-direction: column;

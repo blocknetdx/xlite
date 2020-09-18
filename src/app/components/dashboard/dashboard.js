@@ -37,7 +37,7 @@ const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultip
     domStorage.setItem(localStorageKeys.ACTIVE_CHART_FILTER, selectedChartScale);
     setChartScale(selectedChartScale);
   };
-  const containerHorizPadding = 25;
+  const containerHorizPadding = 20;
   const centerMargin = 30;
   const chartContainerHeight = 360;
   const chartHeight = 250;
