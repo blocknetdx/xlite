@@ -1,4 +1,5 @@
 import {localStorageKeys} from '../constants';
+import {logger} from './logger-r';
 import {
   oneDaySeconds,
   oneHourSeconds,
@@ -11,7 +12,6 @@ import {
 import Wallet from '../types/wallet-r';
 
 import _ from 'lodash';
-import {logger} from './logger-r';
 import {Map as IMap} from 'immutable';
 import moment from 'moment';
 
@@ -37,6 +37,12 @@ class WalletController {
    * @private
    */
   _domStorage = null;
+
+  /**
+   * @type {LWDB}
+   * @private
+   */
+  _db = null;
 
   /**
    * Stores a cache of balance values.
@@ -71,11 +77,13 @@ class WalletController {
    * @param api {Object} Context bridge api
    * @param manifest {TokenManifest}
    * @param domStorage {DOMStorage}
+   * @param db {LWDB}
    */
-  constructor(api, manifest, domStorage) {
+  constructor(api, manifest, domStorage, db) {
     this._api = api;
     this._manifest = manifest;
     this._domStorage = domStorage;
+    this._db = db;
   }
 
   /**
@@ -88,7 +96,7 @@ class WalletController {
       const r = [];
       for (const wallet of wallets) {
         if (wallet)
-          r.push(new Wallet(this._api, this._domStorage, wallet));
+          r.push(new Wallet(wallet, this._api, this._domStorage, this._db));
       }
       return r;
     } catch (err) {
@@ -106,7 +114,7 @@ class WalletController {
       const wallet = await this._api.walletController_getWallet(ticker);
       if (!wallet)
         return null;
-      return new Wallet(this._api, this._domStorage, wallet);
+      return new Wallet(wallet, this._api, this._domStorage, this._db);
     } catch (err) {
       return null;
     }
@@ -122,7 +130,7 @@ class WalletController {
       const r = [];
       for (const wallet of wallets) {
         if (wallet)
-          r.push(new Wallet(this._api, this._domStorage, wallet));
+          r.push(new Wallet(wallet, this._api, this._domStorage, this._db));
       }
       return r;
     } catch (err) {

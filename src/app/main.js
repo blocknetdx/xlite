@@ -15,6 +15,7 @@ import ConfController from './modules/conf-controller-r';
 import domStorage from './modules/dom-storage';
 import Localize from './components/shared/localize';
 import {logger} from './modules/logger-r';
+import LWDB from './modules/lwdb';
 import Pricing from './modules/pricing-r';
 import TokenManifest from './modules/token-manifest';
 import WalletController from './modules/wallet-controller-r';
@@ -30,6 +31,9 @@ import ReactDOM from 'react-dom';
 const {api} = window;
 const {isDev} = api;
 
+// Init db
+const db = new LWDB('LWDB');
+
 const combinedReducers = combineReducers({
   appState: appReducer
 });
@@ -37,8 +41,8 @@ const combinedReducers = combineReducers({
 const store = createStore(combinedReducers);
 if(isDev) {
   // domStorage.clear(); // <- clear all stored data
-  // domStorage.removeItem('TRANSACTIONS_BLOCK'); // <- clear BLOCK transactions
   // domStorage.removeItem('TX_LAST_FETCH_TIME_BLOCK'); // <- clear BLOCK transaction fetch time
+  // domStorage.removeItem('TX_LAST_FETCH_TIME_LTC'); // <- clear LTC transaction fetch time
   console.log('state', store.getState());
   store.subscribe(() => {
     const state = store.getState();
@@ -201,7 +205,7 @@ function startupInit(walletController, confController, pricingController, confNe
   const xbInfos = await confController.getXBridgeInfo();
   // Create the token manifest from the raw manifest data and fee information
   const tokenManifest = new TokenManifest(confManifest, xbInfos);
-  const walletController = new WalletController(api, tokenManifest, domStorage);
+  const walletController = new WalletController(api, tokenManifest, domStorage, db);
   // Create the wallet controller
   const cloudChains = new CloudChains(api);
   const pricingController = new Pricing(api, domStorage);

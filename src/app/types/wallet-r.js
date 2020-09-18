@@ -50,6 +50,12 @@ class Wallet {
   _storage = null;
 
   /**
+   * @type {LWDB}
+   * @private
+   */
+  _db = null;
+
+  /**
    * @type {number}
    * @private
    */
@@ -79,17 +85,18 @@ class Wallet {
 
   /**
    * Constructs a wallet
+   * @param data {Object} Initialization obj
    * @param api {Object} Context bridge api
    * @param stor {DOMStorage}
-   * @param data {Object} Initialization obj
+   * @param db {LWDB}
    */
-  constructor(api, stor, data) {
+  constructor(data, api, stor, db) {
     if (data)
       Object.assign(this, data);
     this._api = api;
     this._storage = stor;
+    this._db = db;
     this.imagePath = Wallet.getImage(this.ticker);
-    this._setLastTransactionFetchTime(0); // TODO Remove this when listtransactions api is ready
   }
 
   /**
@@ -105,7 +112,7 @@ class Wallet {
     if (t - this._rpcLastFetchTime < expiry)
       return this._rpcEnabled;
 
-    // Fetch latest from server
+    // Fetch latest from server in background
     this._rpcFetch(t);
     return this._rpcEnabled;
   }
@@ -142,9 +149,9 @@ class Wallet {
    * Get wallet transactions for the time period.
    * @param startTime {number} Get transactions since this time
    * @param endTime {number} Get transactions to this time
-   * @return {RPCTransaction[]}
+   * @return {Promise<RPCTransaction[]>}
    */
-  getTransactions(startTime=0, endTime=0) {
+  async getTransactions(startTime=0, endTime=0) {
     return this._getTransactionsFromStorage(startTime, endTime);
   }
 
@@ -272,22 +279,20 @@ class Wallet {
    * Returns the transactions from persistent storage.
    * @param startTime {number}
    * @param endTime {number}
-   * @return {RPCTransaction[]}
+   * @return {Promise<RPCTransaction[]>}
    * @private
    */
-  _getTransactionsFromStorage(startTime=0, endTime=0) {
+  async _getTransactionsFromStorage(startTime=0, endTime=0) {
     if (startTime < 0)
       startTime = 0;
     if (endTime <= 0)
       endTime = unixTime();
     if (endTime < startTime)
       endTime = startTime;
-
-    const data = this._storage.getItem(this._getTransactionStorageKey());
-    if (!_.isArray(data))
-      return [];
-    return data.map(t => new RPCTransaction(t))
-      .filter(t => t.time >= startTime && t.time <= endTime);
+    // filter by token ticker and time range
+    return this._db.transactions.where(['ticker+time'])
+      .between([this.ticker, startTime], [this.ticker, endTime], true, true)
+      .toArray();
   }
 
   /**
@@ -295,22 +300,18 @@ class Wallet {
    * @param txs {RPCTransaction[]}
    * @private
    */
-  _addTransactionsToStorage(txs) {
-    if (!_.isArray(txs) || txs.length === 0)
+  async _addTransactionsToStorage(txs) {
+    if (!_.isArray(txs))
       return false; // do not store bad data
+    if (txs.length === 0)
+      return true; // nothing to add
 
-    // Only store unique transactions where the latest transactions
-    // replace any old ones.
-    const data = this._getTransactionsFromStorage(); // fetch all
-    const unique = new Map();
-    for (const t of data)
-      unique.set(t.key(), t);
-    for (const t of txs) // new transaction overwrites old
-      unique.set(t.key(), t);
-
-    const newData = Array.from(unique.values());
-    this._storage.setItem(this._getTransactionStorageKey(), newData);
-    return true;
+    try {
+      await this._db.transactions.bulkPut(txs);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   /**
@@ -332,8 +333,6 @@ class Wallet {
     if (endTime < lastFetchTime)
       return this._getTransactionsFromStorage(startTime, endTime);
 
-    // All transactions that we know from start time to last fetch time
-    const existingTxs = this._getTransactionsFromStorage(startTime, lastFetchTime);
     let txs = [];
     try {
       // Fetch all transactions from last fetch time minus forgiveness seconds
@@ -344,15 +343,19 @@ class Wallet {
         fetchStartTime = 0;
       const r = await this._api.wallet_getTransactions(this.ticker, fetchStartTime, endTime);
       if (r && r.length > 0)
-        txs = r.map(tx => new RPCTransaction(tx)); // put raw data into tx class
+        txs = r.map(tx => new RPCTransaction(tx, this.ticker)); // put raw data into tx class
     } catch (e) {
       logger.error(`${this.ticker}`, e);
-      return existingTxs; // return known transactions on error
+      return this._getTransactionsFromStorage(startTime, lastFetchTime); // return known transactions on error
     }
 
-    this._addTransactionsToStorage(txs);
-    this._setLastTransactionFetchTime(endTime);
-    return existingTxs.concat(txs); // return all local and network transactions
+    if (await this._addTransactionsToStorage(txs))
+      this._setLastTransactionFetchTime(endTime); // Only set on success
+
+    // Fetch all txs including newly added/updated. The reason we query the
+    // full set here again is to ensure that we pull any updated txs as
+    // well as to avoid duplicates in the event some records were updated.
+    return this._getTransactionsFromStorage(startTime, endTime);
   }
 
   /**

@@ -1,16 +1,18 @@
 /*global describe,it,before,after,beforeEach*/
 /*eslint quotes: 0, key-spacing: 0*/
 import should from 'should';
+import _ from 'lodash';
 import {combineReducers, createStore} from 'redux';
 import {Map as IMap} from 'immutable';
+import moment from 'moment';
 
 import './rtests';
 import * as appActions from '../src/app/actions/app-actions';
 import appReducer from '../src/app/reducers/app-reducer';
+import LWDB from '../src/app/modules/lwdb';
 import domStorage from '../src/app/modules/dom-storage';
 import FakeApi, {resolvePromise, txBLOCK, txBTC} from './fake-api';
 import {localStorageKeys} from '../src/app/constants';
-import moment from 'moment';
 import {multiplierForCurrency, oneDaySeconds, oneHourSeconds, oneMonthSeconds, oneWeekSeconds, unixTime} from '../src/app/util';
 import RPCTransaction from '../src/app/types/rpc-transaction';
 import TokenManifest from '../src/app/modules/token-manifest';
@@ -21,9 +23,11 @@ import XBridgeInfo from '../src/app/types/xbridgeinfo';
 describe('WalletController Test Suite', function() {
   const storage = domStorage;
   const fakeApi = window.api;
+  const db = new LWDB('test_LWDB');
 
   before(function() {
     storage.clear();
+    db.clear();
   });
 
   let tokenManifest;
@@ -70,32 +74,33 @@ describe('WalletController Test Suite', function() {
 
   beforeEach(async function() {
     storage.clear();
+    await db.clear();
     tokenManifest = new TokenManifest(tokenManifestData, [feeBLOCK, feeBTC]);
     Object.assign(fakeApi, FakeApi(fakeApi));
   });
 
   it('WalletController()', function() {
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     wc._api.should.be.eql(fakeApi);
     wc._manifest.should.be.eql(tokenManifest);
     wc._domStorage.should.be.eql(storage);
   });
   it('WalletController.getWallets()', async function() {
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     (await wc.getWallets()).should.be.an.Array();
     (await wc.getWallets()).length.should.be.equal((await fakeApi.walletController_getWallets()).length);
     (await wc.getWallets())[0].should.be.instanceof(Wallet);
   });
   it('WalletController.getWallet()', async function() {
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     should.not.exist((await wc.getWallet('missing')));
     (await wc.getWallet('BLOCK')).should.be.instanceof(Wallet);
     (await wc.getWallet('BTC')).should.be.instanceof(Wallet);
   });
   it('WalletController.getEnabledWallets()', async function() {
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     (await wc.getEnabledWallets()).should.be.an.Array();
     (await wc.getEnabledWallets()).length.should.be.equal((await fakeApi.walletController_getWallets()).length);
@@ -103,7 +108,7 @@ describe('WalletController Test Suite', function() {
     should.exist((await wc.getEnabledWallets()).find(w => w.ticker === 'BTC'));
   });
   it('WalletController.getBalances()', async function() {
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     (await wc.getBalances()).should.be.an.instanceof(Map);
     (await wc.getBalances()).size.should.be.equal(2);
@@ -111,14 +116,14 @@ describe('WalletController Test Suite', function() {
     (await wc.getBalances()).get('BTC').should.be.eql((await fakeApi.walletController_getBalances()).get('BTC'));
   });
   it('WalletController.getTransactions()', async function() {
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     await wc.updateAllBalances();
     (await wc.getTransactions()).should.be.an.instanceof(Map);
     (await wc.getTransactions()).has('BLOCK').should.be.true();
     const sortFn = (a,b) => a.txId.localeCompare(b.txId);
     const txs = (await wc.getTransactions()).get('BLOCK').sort(sortFn);
-    const fakeTxs = (await fakeApi.wallet_getTransactions('BLOCK')).map(fakeTx => new RPCTransaction(fakeTx)).sort(sortFn);
+    const fakeTxs = (await fakeApi.wallet_getTransactions('BLOCK')).map(fakeTx => new RPCTransaction(fakeTx, 'BLOCK')).sort(sortFn);
     txs.should.be.eql(fakeTxs);
   });
   it('WalletController.getBalanceOverTime() including cache test', async function() {
@@ -136,7 +141,7 @@ describe('WalletController Test Suite', function() {
       else
         return [];
     };
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     const blockWallet = await wc.getWallet('BLOCK');
     await blockWallet.updateTransactions();
@@ -168,7 +173,7 @@ describe('WalletController Test Suite', function() {
       else
         return [];
     };
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     const blockWallet = await wc.getWallet('BLOCK');
     await blockWallet.updateTransactions();
@@ -200,7 +205,7 @@ describe('WalletController Test Suite', function() {
       else
         return [];
     };
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     const blockWallet = await wc.getWallet('BLOCK');
     await blockWallet.updateTransactions();
@@ -238,7 +243,7 @@ describe('WalletController Test Suite', function() {
       else
         return [];
     };
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     const blockWallet = await wc.getWallet('BLOCK');
     await blockWallet.updateTransactions();
@@ -248,7 +253,7 @@ describe('WalletController Test Suite', function() {
     balances[balances.length-1][1].should.be.equal(getBalance(await fakeApi.wallet_getTransactions('BLOCK'), 'BLOCK', 'USD', currencyMultipliers));
   });
   it('WalletController.getActiveWallet()', async function() {
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     should.not.exist((await wc.getActiveWallet()));
     storage.setItem(localStorageKeys.ACTIVE_WALLET, 'BLOCK');
@@ -257,7 +262,7 @@ describe('WalletController Test Suite', function() {
     should.not.exist((await wc.getActiveWallet()));
   });
   it('WalletController.setActiveWallet()', async function() {
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     await wc.setActiveWallet('missing');
     should.not.exist(storage.getItem(localStorageKeys.ACTIVE_WALLET)); // missing token should not be saved to storage
@@ -267,7 +272,7 @@ describe('WalletController Test Suite', function() {
   it('WalletController.dispatchWallets()', async function() {
     const combinedReducers = combineReducers({ appState: appReducer });
     const store = createStore(combinedReducers);
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     store.getState().appState.wallets.should.be.an.Array(); // state should not be valid before dispatch
     store.getState().appState.wallets.should.be.empty();
@@ -277,7 +282,7 @@ describe('WalletController Test Suite', function() {
   it('WalletController.dispatchBalances()', async function() {
     const combinedReducers = combineReducers({ appState: appReducer });
     const store = createStore(combinedReducers);
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     store.getState().appState.balances.should.be.an.instanceof(IMap); // state should not be valid before dispatch
     store.getState().appState.balances.should.be.eql(IMap());
@@ -293,14 +298,16 @@ describe('WalletController Test Suite', function() {
   it('WalletController.dispatchTransactions() updateAllBalances()', async function() {
     const combinedReducers = combineReducers({ appState: appReducer });
     const store = createStore(combinedReducers);
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     store.getState().appState.transactions.should.be.an.instanceof(IMap); // state should not be valid before dispatch
     store.getState().appState.transactions.should.be.eql(IMap());
-    const transactions = new Map([['BLOCK', [txBLOCK]], ['BTC', [txBTC]]]);
+    const transactions = new Map([['BLOCK', [_.cloneDeep(txBLOCK)]], ['BTC', [_.cloneDeep(txBTC)]]]);
     fakeApi.wallet_getTransactions = ticker => resolvePromise(transactions.get(ticker));
     await wc.updateAllBalances();
     await wc.dispatchTransactions(appActions.setTransactions, store);
+    for (const [ticker, txs] of transactions) // add in expected tickers
+      txs.forEach(tx => tx.ticker = ticker);
     store.getState().appState.transactions.should.be.eql(IMap(transactions));
     store.getState().appState.transactions.get('BLOCK')[0].should.be.eql(transactions.get('BLOCK')[0]);
     store.getState().appState.transactions.get('BTC')[0].should.be.eql(transactions.get('BTC')[0]);
@@ -308,7 +315,7 @@ describe('WalletController Test Suite', function() {
   it('WalletController.dispatchPriceMultipliers() updatePriceMultipliers()', async function() {
     const combinedReducers = combineReducers({ appState: appReducer });
     const store = createStore(combinedReducers);
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     store.getState().appState.currencyMultipliers.should.be.an.instanceof(Object); // state should not be valid before dispatch
     store.getState().appState.currencyMultipliers.should.be.eql({});
@@ -321,7 +328,7 @@ describe('WalletController Test Suite', function() {
   });
   it('WalletController.updateBalanceInfo()', async function() {
     let balances;
-    const wc = new WalletController(fakeApi, tokenManifest, storage);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     const emptyBalance = ['0', '0'];
     fakeApi.walletController_getBalances = () => resolvePromise(new Map([["BLOCK", emptyBalance], ["BTC", emptyBalance]]));
@@ -343,5 +350,6 @@ describe('WalletController Test Suite', function() {
 
   after(function() {
     storage.clear();
+    db.clear();
   });
 });

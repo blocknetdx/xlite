@@ -87,10 +87,17 @@ class RPCTransaction {
   hex = '';
 
   /**
-   * @param data {Object}
+   * @type {string}
    */
-  constructor(data) {
+  ticker = '';
+
+  /**
+   * @param data {Object}
+   * @param ticker {string}
+   */
+  constructor(data, ticker = '') {
     Object.assign(this, data);
+    this.ticker = ticker;
   }
 
   /**
