@@ -1,7 +1,3 @@
-cache:
-  paths:
-    - node_modules/
-
 stages:
   - test
   - build
