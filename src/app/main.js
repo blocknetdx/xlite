@@ -50,6 +50,12 @@ if(isDev) {
   });
 }
 
+// TODO Remove prior to release (Beta only)
+if (!domStorage.getItem('BETA_0_8_9')) {
+  domStorage.clear();
+  domStorage.setItem('BETA_0_8_9', true);
+}
+
 const updateScrollbars = (innerWidth, innerHeight) => {
   if(innerWidth < MIN_UI_WIDTH) {
     $('html').css({

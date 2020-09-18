@@ -289,10 +289,24 @@ class Wallet {
       endTime = unixTime();
     if (endTime < startTime)
       endTime = startTime;
+
     // filter by token ticker and time range
-    return this._db.transactions.where(['ticker+time'])
+    const txs = await this._db.transactions.where(['ticker+time'])
       .between([this.ticker, startTime], [this.ticker, endTime], true, true)
       .toArray();
+
+    // Return utxos as deposit transactions if the data is bad
+    if (startTime === 0 && (!txs || txs.length === 0)) // TODO Remove this workaround once cc daemon listtransactions rpc is working properly
+      return (await this.getCachedUnspent(10000)).map(utxo => new RPCTransaction({
+        txId: utxo.txId,
+        n: utxo.vOut,
+        address: utxo.address,
+        amount: utxo.amount,
+        time: unixTime() - (utxo.confirmations * 60),
+        category: 'receive',
+      }, this.ticker));
+
+    return txs;
   }
 
   /**
@@ -310,6 +324,7 @@ class Wallet {
       await this._db.transactions.bulkPut(txs);
       return true;
     } catch (e) {
+      logger.error('failed to add transactions to storage', e);
       return false;
     }
   }
