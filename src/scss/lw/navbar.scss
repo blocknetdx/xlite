@@ -30,13 +30,16 @@ $lw-navbar-text-color: $lw-text-primary;
   }
 
   button.lw-button {
-    line-height: $lw-navbar-inner-height;
     border-radius: 4px;
     background-color: $lw-bg-2;
     margin-left: $lw-navbar-horiz-padding;
     margin-right: 0;
     width: 140px;
     font-size: 16px;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    letter-spacing: 0.16px;
     color: $lw-text-primary;
     @media (max-width: 738px) {
       min-width: 0;
