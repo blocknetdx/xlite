@@ -148,7 +148,7 @@ describe('WalletController Test Suite', function() {
     const currencyMultipliers = {'BLOCK': {'USD': 1.50}};
     const balances = await wc.getBalanceOverTime('week', 'USD', currencyMultipliers);
     const st = moment.unix(et-oneWeekSeconds).startOf('day');
-    const expecting = Math.ceil((et-st.unix())/oneHourSeconds);
+    const expecting = Math.ceil((et-st.unix())/oneHourSeconds) + 1; // +1 for starting balance
     balances.length.should.be.equal(expecting);
     balances[balances.length-1][1].should.be.equal(getBalance(await fakeApi.wallet_getTransactions('BLOCK'), 'BLOCK', 'USD', currencyMultipliers));
     // Expecting cache to be pulled when calls are one after the other

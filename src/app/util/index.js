@@ -3,6 +3,7 @@ import Localize from '../components/shared/localize';
 
 import _ from 'lodash';
 import {all, create} from 'mathjs';
+import moment from 'moment';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -53,7 +54,7 @@ export const walletSorter = balances => (a, b) =>  {
 };
 
 export const unixTime = () => {
-  return Math.floor(new Date() / 1000);
+  return moment().unix(); // e.g. 1600391629
 };
 
 export const multiplierForCurrency = (ticker, currency, currencyMultipliers) => {
