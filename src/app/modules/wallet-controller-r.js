@@ -244,7 +244,7 @@ class WalletController {
         transactions = []; // remove because all txs have been processed
 
       // Only advance the search index if a transaction falls within the time period
-      const balances = [];
+      const balances = [[startTime, runningBalance]]; // include the starting balance
       let tx_idx = 0;
       for (let i = startTime; i <= endTime; i += period) {
         for (let j = tx_idx; j < transactions.length; j++, tx_idx++) {

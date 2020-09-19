@@ -69,16 +69,34 @@ let Sidebar = ({ activeView, wallets, balances, showSettings, setActiveView, set
     setCCWalletStarted(false);
   };
 
-  const onDashboard = () => {
-    if (activeView !== activeViews.DASHBOARD) {
-      setActiveWallet('');
-      setActiveView(activeViews.DASHBOARD);
-    }
+  // reset the active wallet state
+  const onDashboard = (e) => {
+    e.preventDefault();
+    if (activeView === activeViews.DASHBOARD)
+      return;
+    setActiveWallet('');
+    setActiveView(activeViews.DASHBOARD);
   };
 
   const onGuidesClick = e => {
     e.preventDefault();
     showGuidesModal();
+  };
+
+  // reset the active wallet state
+  const onTransactions = (e) => {
+    e.preventDefault();
+    setActiveWallet('');
+    setActiveView(activeViews.TRANSACTIONS);
+  };
+
+  // reset the active wallet state
+  const onPortfolio = (e) => {
+    e.preventDefault();
+    if (activeView === activeViews.PORTFOLIO)
+      return;
+    setActiveWallet('');
+    setActiveView(activeViews.PORTFOLIO);
   };
 
   return (
@@ -94,8 +112,8 @@ let Sidebar = ({ activeView, wallets, balances, showSettings, setActiveView, set
       </div>
 
       <SidebarButton active={activeView === activeViews.DASHBOARD} onClick={onDashboard}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${publicPath}/images/icons/icon-home.png, ${publicPath}/images/icons/icon-home@2x.png 2x`} /> <Localize context={'sidebar'}>Dashboard</Localize></SidebarButton>
-      <SidebarButton active={activeView === activeViews.PORTFOLIO} onClick={() => activeView !== activeViews.PORTFOLIO ? setActiveView(activeViews.PORTFOLIO) : null}><img alt={Localize.text('Portfolio icon', 'sidebar')} srcSet={`${publicPath}/images/icons/icon-wallet.png, ${publicPath}/images/icons/icon-wallet@2x.png 2x`} /> <Localize context={'sidebar'}>Portfolio</Localize></SidebarButton>
-      <SidebarButton active={activeView === activeViews.TRANSACTIONS} onClick={() => activeView !== activeViews.TRANSACTIONS ? setActiveView(activeViews.TRANSACTIONS) : null}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${publicPath}/images/icons/icon-history.png, ${publicPath}/images/icons/icon-history@2x.png 2x`} /> <Localize context={'sidebar'}>Transactions</Localize></SidebarButton>
+      <SidebarButton active={activeView === activeViews.PORTFOLIO} onClick={onPortfolio}><img alt={Localize.text('Portfolio icon', 'sidebar')} srcSet={`${publicPath}/images/icons/icon-wallet.png, ${publicPath}/images/icons/icon-wallet@2x.png 2x`} /> <Localize context={'sidebar'}>Portfolio</Localize></SidebarButton>
+      <SidebarButton active={activeView === activeViews.TRANSACTIONS} onClick={onTransactions}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${publicPath}/images/icons/icon-history.png, ${publicPath}/images/icons/icon-history@2x.png 2x`} /> <Localize context={'sidebar'}>Transactions</Localize></SidebarButton>
       <SidebarButton onClick={() => setShowSettings(true)}><img alt={Localize.text('Settings icon', 'sidebar')} srcSet={`${publicPath}/images/icons/icon-settings.png, ${publicPath}/images/icons/icon-settings@2x.png 2x`} /> <Localize context={'sidebar'}>Settings</Localize></SidebarButton>
       <SidebarButton onClick={onLockClick}><img alt={Localize.text('Lock icon', 'sidebar')} srcSet={`${publicPath}/images/icons/icon-lock-closed.png, ${publicPath}/images/icons/icon-lock-closed@2x.png 2x`} /> <Localize context={'sidebar'}>Lock Wallet</Localize></SidebarButton>
       <SidebarDivider />
