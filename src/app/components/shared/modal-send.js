@@ -48,6 +48,7 @@ ProgressMarker.propTypes = {
 const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, balances, openExternalLinks, hideSendModal }) => {
 
   const [ progress, setProgress ] = useState(0);
+  const [ selected, setSelected ] = useState(activeWallet);
   const [ address, setAddress ] = useState('');
   const [ description, setDescription ] = useState('');
   const [ maxSelected, setMaxSelected ] = useState(false);
@@ -88,34 +89,38 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
     }
   }
 
-  // If no wallet is selected and there's only one wallet available then
-  // automatically select that wallet.
-  const selected = activeWallet === '' && availWallets.length > 0 ? availWallets[0].ticker : activeWallet;
-  const availableBalance = selected && balances.has(selected) ? balances.get(selected)[1] : 0;
-
   // Use the blank modal on missing data or other errors
   const blankModal = <div />;
+
+  // If no wallet is selected and there's only one wallet available then
+  // automatically select that wallet.
+  const selAvailWallet = selected === '' && availWallets.length > 0 ? availWallets[0].ticker : selected;
+  if (selected !== selAvailWallet) {
+    setSelected(selAvailWallet);
+    return blankModal;
+  }
 
   // No wallets or balance info available don't display anything
   if (noWallets)
     return blankModal;
 
+  const availableBalance = selected && balances.has(selected) ? balances.get(selected)[1] : 0;
+
   // Display an alert if the user is attempting to select a wallet
   // that's not available (i.e. has no coin).
-  const selWallet = availWallets.find(w => w.ticker === selected);
-  if (!alertShowing && !selWallet && selected !== '') {
+  const wallet = availWallets.find(w => w.ticker === selected);
+  if (!alertShowing && !wallet && progress === 0) {
     Alert.alert(Localize.text('Issue'), Localize.text('No {{coin}} is available.', 'sendModal', {coin: selected}))
       .then(() => hideSendModal(true));
     setAlertShowing(true);
   }
 
   // No wallets or balance info available, display alert
-  if (!alertShowing && noWallets) {
+  if (!alertShowing && noWallets && progress === 0) {
     Alert.alert(Localize.text('Issue'), Localize.text('No coin available.'));
     setAlertShowing(true);
   }
 
-  const wallet = availWallets.find(w => w.ticker === selected);
   const { ticker = '' } = wallet || {};
   const defaultMarginBottom = 20;
 
@@ -300,12 +305,13 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
     try {
       const recipient = new Recipient({ address, amount: bn.toNumber(), description });
       const res = await wallet.send([recipient]);
-      if (!res)
+      if (!res) {
+        Alert.alert(Localize.text('Issue'), Localize.text('Failed to send the wallet transaction.'));
+        setAlertShowing(true);
         throw new Error('Failed to send wallet transaction');
-
+      }
       setTXID(res);
       setProgress(3);
-
     } catch(err) {
       handleError(err);
     }
