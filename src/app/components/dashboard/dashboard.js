@@ -19,10 +19,14 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
-const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultipliers, balanceOverTime }) => {
+const Dashboard = ({ windowHeight, windowWidth, altCurrency, wallets, balances, currencyMultipliers, balanceOverTime }) => {
   const [chartData, setChartData] = useState([[0, 0]]);
   const initialChartScale = domStorage.getItem(localStorageKeys.ACTIVE_CHART_FILTER) || 'half-year';
   const [chartScale, setChartScale] = useState(initialChartScale);
+
+  const hideCharts = windowHeight < 650;
+  const hidePriceGraph = windowWidth < 1280;
+  const hideTransactions = windowWidth < 1180;
 
   useEffect(() => {
     if (multiplierForCurrency('BTC', altCurrency, currencyMultipliers) > 0)
@@ -39,7 +43,7 @@ const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultip
   };
   const containerHorizPadding = 20;
   const centerMargin = 30;
-  const chartContainerHeight = 360;
+  const chartContainerHeight = hideCharts ? 108 : 360;
   const chartHeight = 250;
   const transactionsPanelWidth = 350;
   const chartWidth = windowWidth - SIDEBAR_WIDTH - transactionsPanelWidth - centerMargin - containerHorizPadding * 2;
@@ -64,29 +68,41 @@ const Dashboard = ({ windowWidth, altCurrency, wallets, balances, currencyMultip
         <Column>
           <div className={'lw-dashboard-info'}>
             <Balance />
-            <BalanceFilters selectedFilter={balanceFilters[chartScale]} filters={Object.values(balanceFilters).map(key => key)} onFilterSelected={onBalanceFilterSelected} />
+            {!hideCharts ? <BalanceFilters selectedFilter={balanceFilters[chartScale]} filters={Object.values(balanceFilters).map(key => key)} onFilterSelected={onBalanceFilterSelected} /> : null}
           </div>
-          <Chart className={'lw-dashboard-chart'} chartData={chartData} currency={altCurrency} simple={false} simpleStrokeColor={'#ccc'}
-                 hideAxes={false} defaultWidth={chartWidth} defaultHeight={chartHeight}
-                 gradientTopColor={'#00ffff'} gradientBottomColor={'rgba(0, 71, 255, 0)'}
-                 chartGridColor={'#949494'} chartScale={chartScale} style={{ flexGrow: 1 }} />
+          {!hideCharts ?
+            <Chart className={'lw-dashboard-chart'} chartData={chartData} currency={altCurrency} simple={false} simpleStrokeColor={'#ccc'}
+              hideAxes={false} defaultWidth={chartWidth} defaultHeight={chartHeight}
+              gradientTopColor={'#00ffff'} gradientBottomColor={'rgba(0, 71, 255, 0)'}
+              chartGridColor={'#949494'} chartScale={chartScale} style={{flexGrow: 1}} />
+            :
+            null
+          }
         </Column>
-        <Column className={'d-flex flex-column justify-content-center align-items-center'} style={{paddingTop: 15, marginLeft: centerMargin, width: transactionsPanelWidth, minWidth: transactionsPanelWidth, maxWidth: transactionsPanelWidth}}>
-          <AssetPieChart className={'lw-portfolio-piechart'} defaultWidth={262} chartData={pieChartData} lineWidth={12} />
-        </Column>
+        {!hideCharts ?
+          <Column className={'d-flex flex-column justify-content-center align-items-center'} style={{paddingTop: 15, marginLeft: centerMargin, width: transactionsPanelWidth, minWidth: transactionsPanelWidth, maxWidth: transactionsPanelWidth}}>
+            <AssetPieChart className={'lw-portfolio-piechart'} defaultWidth={262} chartData={pieChartData} lineWidth={12} />
+          </Column>
+          :
+          null
+        }
       </Row>
       <Row style={{flexGrow: 1, minHeight: 0}}>
-        <AssetsOverviewPanel showAllButton={true} hidePercentBar={true} hideTicker={true} hideVolume={true} style={{ flexGrow: 1 }} />
-        <TransactionsPanel
-          showAllButton={true}
-          brief={true}
-          style={{ marginLeft: centerMargin, width: transactionsPanelWidth, minWidth: transactionsPanelWidth, maxWidth: transactionsPanelWidth }} />
+        <AssetsOverviewPanel showAllButton={true} brief={true} hidePercentBar={true} hideTicker={true} hideVolume={true} hidePriceGraph={hidePriceGraph} style={{ flexGrow: 1 }} />
+        {!hideTransactions ?
+          <TransactionsPanel
+            showAllButton={true}
+            brief={true}
+            style={{ marginLeft: centerMargin, width: transactionsPanelWidth, minWidth: transactionsPanelWidth, maxWidth: transactionsPanelWidth }} />
+            :
+          null}
       </Row>
     </div>
   );
 };
 Dashboard.propTypes = {
   wallet: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
+  windowHeight: PropTypes.number,
   windowWidth: PropTypes.number,
   altCurrency: PropTypes.string,
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),

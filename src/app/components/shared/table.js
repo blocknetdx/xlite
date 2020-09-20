@@ -18,7 +18,7 @@ TableColumn.propTypes = {
   style: PropTypes.object
 };
 
-export const TableRow = ({ idx, children = [], style = {}, sizes = [], clickable = false, onClick = () => {} }) => {
+export const TableRow = ({ idx, children = [], style = {}, sizes = [], clickable = false, small, onClick = () => {} }) => {
 
   children = Array.isArray(children) ? children : [children];
 
@@ -33,7 +33,7 @@ export const TableRow = ({ idx, children = [], style = {}, sizes = [], clickable
          }}>
       {children
         .filter(c => c !== null)
-        .map((c, i) => React.cloneElement(c, {key: `row-${idx}-col${i}`, idx: i, size: sizes[i], final: i === children.length - 1}))
+        .map((c, i) => React.cloneElement(c, {key: `row-${idx}-col${i}`, small, idx: i, size: sizes[i], final: i === children.length - 1}))
       }
     </div>
   );
@@ -44,12 +44,13 @@ TableRow.propTypes = {
   sizes: PropTypes.array,
   style: PropTypes.object,
   clickable: PropTypes.bool,
+  small: PropTypes.bool,
   onClick: PropTypes.func
 };
 
-export const TableData = ({ size = 1, children, className = '', idx, final, style }) => {
+export const TableData = ({ size = 1, children, className = '', idx, final, style, small }) => {
   return (
-    <div className={`lw-table-data-container ${className}`}
+    <div className={`lw-table-data-container ${small ? 'lw-table-data-container-small' : ''} ${className}`}
          style={{flexGrow: size, flexBasis: 1, textAlign: idx === 0 ? 'left' : final ? 'right' : 'center', ...style}}>
       {children}
     </div>
@@ -62,9 +63,10 @@ TableData.propTypes = {
   idx: PropTypes.number,
   size: PropTypes.number,
   style: PropTypes.object,
+  small: PropTypes.bool,
 };
 
-export const Table = ({ children = [] }) => {
+export const Table = ({ children = [], small = false }) => {
 
   children = Array.isArray(children) ? children : [children];
 
@@ -91,12 +93,13 @@ export const Table = ({ children = [] }) => {
       </div>
       <div className={'lw-table-body'}>
         <PerfectScrollbar>
-          {rows.map((r, i) => React.cloneElement(r, {key: `row-${i}`, idx: i, sizes}))}
+          {rows.map((r, i) => React.cloneElement(r, {key: `row-${i}`, small, idx: i, sizes}))}
         </PerfectScrollbar>
       </div>
     </div>
   );
 };
 Table.propTypes = {
-  children: PropTypes.any
+  children: PropTypes.any,
+  small: PropTypes.bool,
 };

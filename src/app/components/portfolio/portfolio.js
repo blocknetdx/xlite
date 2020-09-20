@@ -33,6 +33,13 @@ const Portfolio = ({ windowWidth, altCurrency, currencyMultipliers, balanceOverT
   const headCol3Width = 250;
   const headCol2Width = windowWidth - SIDEBAR_WIDTH - headCol1Width - headCol3Width - containerHorizPadding * 2;
 
+  const hidePercent = windowWidth < 1200;
+  const hideVolume = windowWidth < 1150;
+  const hidePriceGraph = windowWidth < 1100;
+  const hideCoinText = windowWidth < 1050;
+
+  console.log('hidePercent', hidePercent, 'hideVolume', hideVolume, 'hidePriceGraph', hidePriceGraph, 'hideCoinText', hideCoinText);
+
   return (
     <div className={'lw-portfolio-container'}>
       <Row style={{height: 100, minHeight: 100, maxHeight: 150}}>
@@ -49,7 +56,7 @@ const Portfolio = ({ windowWidth, altCurrency, currencyMultipliers, balanceOverT
           <BalanceFilters selectedFilter={balanceFilters[chartScale]} filters={Object.values(balanceFilters).map(key => key)} onFilterSelected={onBalanceFilterSelected} />
         </Column>
       </Row>
-      <AssetsOverviewPanel />
+      <AssetsOverviewPanel hidePercent={hidePercent} hideVolume={hideVolume} hidePriceGraph={hidePriceGraph} hideCoinText={hideCoinText} />
     </div>
   );
 };
