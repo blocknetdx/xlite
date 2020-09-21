@@ -6,8 +6,8 @@ const unzip = require('extract-zip');
 (async function() {
 
   const platform = process.argv[process.argv.length - 1].trim();
-  const binPath = path.join(__dirname, 'bin');
-  const binaries = await fs.readJson(path.join('.', 'bin.json'));
+  const binPath = path.resolve(__dirname, '../bin');
+  const binaries = await fs.readJson(path.resolve(__dirname, '../bin.json'));
   const dir = path.join(binPath, platform);
   const downloadPath = binaries[platform];
   await fs.emptyDir(dir);

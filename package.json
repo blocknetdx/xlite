@@ -36,9 +36,9 @@
     "pack-native": "cross-env NODE_ENV=production npm run build && node ./native-build-scripts/01-copy-files.js && cd temp && npm install --production && cd .. && electron-builder",
     "publish-native": "cross-env NODE_ENV=production npm run build && node ./native-build-scripts/01-copy-files.js && cd temp && npm install --production && cd .. && electron-builder --publish always",
     "download-binaries": "npm run download-binaries-win && npm run download-binaries-linux && npm run download-binaries-mac",
-    "download-binaries-win": "node download-binaries.js win",
-    "download-binaries-linux": "node download-binaries.js linux",
-    "download-binaries-mac": "node download-binaries.js mac",
+    "download-binaries-win": "node ./native-build-scripts/02-download-binaries.js win",
+    "download-binaries-linux": "node ./native-build-scripts/02-download-binaries.js linux",
+    "download-binaries-mac": "node ./native-build-scripts/02-download-binaries.js mac",
     "generate-docs": "jsdoc -r --destination docs ./src/app"
   },
   "repository": {
