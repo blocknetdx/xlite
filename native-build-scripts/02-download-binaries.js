@@ -38,10 +38,10 @@ const unzip = require('extract-zip');
       });
   });
 
-  console.log(`Unzipping ${zipFilePath}`);
-
-  await unzip(zipFilePath, {dir});
-
-  await fs.remove(zipFilePath);
+  if(path.extname(zipFileName) === '.zip') {
+    console.log(`Unzipping ${zipFilePath}`);
+    await unzip(zipFilePath, {dir});
+    await fs.remove(zipFilePath);
+  }
 
 })();
