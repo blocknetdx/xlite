@@ -33,7 +33,7 @@ const chartDataFromPriceData = priceData => {
   return [moment(priceData.date).unix(), priceData.close || priceData.open];
 };
 
-const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideVolume = false, altCurrency, balances, currencyMultipliers, style = {}, wallets, showAllButton = false, pricingController, setActiveView, pricingData }) => {
+const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideVolume = false, hidePercent = false, hidePriceGraph = false, hideCoinText = false, altCurrency, balances, currencyMultipliers, style = {}, wallets, showAllButton = false, pricingController, setActiveView, pricingData }) => {
   const filteredWallets = wallets
     .filter(w => w.rpcEnabled())
     .sort(walletSorter(balances));
@@ -85,9 +85,9 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
           <TableColumn size={1}><Localize context={'portfolio'}>Asset</Localize></TableColumn>
           {!hideTicker ? <TableColumn size={1}><Localize context={'portfolio'}>Ticker</Localize></TableColumn> : null}
           <TableColumn size={1}><Localize context={'portfolio'}>Price</Localize> ({altCurrency})</TableColumn>
-          <TableColumn className={'lw-card-tablecolumn-hideable'} size={1}><Localize context={'portfolio'}>Price graph (7d)</Localize></TableColumn>
+          {!hidePriceGraph ? <TableColumn className={'lw-card-tablecolumn-hideable'} size={1}><Localize context={'portfolio'}>Price graph (7d)</Localize></TableColumn> : null}
           {!hideVolume ? <TableColumn size={1}><Localize context={'portfolio'}>Volume (24hr)</Localize></TableColumn> : null}
-          <TableColumn size={1}><Localize context={'portfolio'}>Portfolio %</Localize></TableColumn>
+          {!hidePercent ? <TableColumn size={1}><Localize context={'portfolio'}>Portfolio %</Localize></TableColumn> : null}
           <TableColumn size={1}><Localize context={'portfolio'}>Amount</Localize></TableColumn>
           <TableColumn size={1}>{Localize.text('Value ({{value}})', 'portfolio', {value: altCurrencies.BTC})}</TableColumn>
           {filteredWallets
@@ -107,31 +107,38 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
               return (
                 <TableRow key={ticker}>
                   <TableData>
-                    <AssetWithImage shortenName={hideTicker} wallet={w} />
+                    <AssetWithImage shortenName={hideTicker || hideCoinText} wallet={w} />
                   </TableData>
                   {!hideTicker ? <TableData>{ticker}</TableData> : null}
                   <TableData className={'text-monospace'}>{altCurrencySymbol(altCurrency)}{Number(altMultiplier.toFixed(MAX_DECIMAL_PLACE))}</TableData>
-                  <TableData className={'lw-card-tablecolumn-hideable'}>
-                  {/*  Only render chart if data is available */}
-                  {priceChartData ? <Chart chartData={priceChartData} simple={true} simpleStrokeColor={'#ccc'}
-                         hideAxes={true} defaultWidth={108} defaultHeight={26}
-                         chartGridColor={'#949494'} chartScale={'week'} /> : null}
-                  </TableData>
+                  {!hidePriceGraph ?
+                    <TableData>
+                    {/*  Only render chart if data is available */}
+                    {priceChartData ? <Chart chartData={priceChartData} simple={true} simpleStrokeColor={'#ccc'}
+                           hideAxes={true} defaultWidth={108} defaultHeight={26}
+                           chartGridColor={'#949494'} chartScale={'week'} /> : null}
+                    </TableData>
+                    : null
+                  }
                   {!hideVolume ?
                     <TableData>{altCurrencySymbol(altCurrency) + Localize.number(volumeInAltCurrency(ticker), 0)}</TableData>
                     :
                     null
                   }
-                  <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0}}>
-                    {!hidePercentBar ?
-                      <Column justify={'center'} style={{marginTop: -8}}>
-                        <div style={{marginBottom: 3, textAlign: 'left'}}>{percent}</div>
-                        <PercentBar percent={Number(percent)} />
-                      </Column>
-                      :
-                      percent
-                    }
-                  </TableData>
+                  {!hidePercent ?
+                    <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0}}>
+                      {!hidePercentBar ?
+                        <Column justify={'center'} style={{marginTop: -8}}>
+                          <div style={{marginBottom: 3, textAlign: 'left'}}>{percent}</div>
+                          <PercentBar percent={Number(percent)} />
+                        </Column>
+                        :
+                        percent
+                      }
+                    </TableData>
+                    :
+                    null
+                  }
                   <TableData className={'text-monospace'}>{Number(totalBalance)}</TableData>
                   <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'right'}}>
                     <div>
@@ -165,6 +172,9 @@ AssetsOverviewPanel.propTypes = {
   hidePercentBar: PropTypes.bool,
   hideTicker: PropTypes.bool,
   hideVolume: PropTypes.bool,
+  hidePercent: PropTypes.bool,
+  hidePriceGraph: PropTypes.bool,
+  hideCoinText: PropTypes.bool,
   activeWallet: PropTypes.string,
   altCurrency: PropTypes.string,
   balances: PropTypes.instanceOf(IMap),

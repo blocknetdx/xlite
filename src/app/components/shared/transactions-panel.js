@@ -24,7 +24,7 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
-const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = false, brief = false, activeWallet, altCurrency, currencyMultipliers, transactions, wallets, style = {}, showAllButton = false, setActiveView }) => {
+const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = false, brief = false, activeWallet, altCurrency, currencyMultipliers, transactions, wallets, style = {}, showAllButton = false, windowWidth, setActiveView }) => {
 
   const [ selectedTx, setSelectedTx ] = useState(null);
   const [ transactionFilter, setTransactionFilter ] = useState(transactionFilters.all);
@@ -63,6 +63,8 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
       return dateB - dateA;
     });
 
+  const hideAddress = windowWidth < 1070;
+
   return (
     <Card style={style}>
       <CardHeader>
@@ -72,10 +74,10 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
         }
       </CardHeader>
       <CardBody>
-        <Table>
-          <TableColumn size={3}><Localize context={'transactions'}>Transaction</Localize></TableColumn>
+        <Table small={brief}>
+          <TableColumn size={hideAddress ? 2 : 3}><Localize context={'transactions'}>Transaction</Localize></TableColumn>
           <TableColumn size={2}><Localize context={'transactions'}>Asset</Localize></TableColumn>
-          {!brief ? <TableColumn size={7}><Localize context={'transactions'}>To address</Localize></TableColumn> : null}
+          {!brief && !hideAddress ? <TableColumn size={7}><Localize context={'transactions'}>To address</Localize></TableColumn> : null}
           {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn> : null}
           {!brief ? <TableColumn size={2}>{Localize.text('Value ({{value}})', 'transactions', {value: altCurrencies.BTC})}</TableColumn>
                   : <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn>}
@@ -128,7 +130,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                   <TableData className={'lw-transactions-asset-image'}>
                     <AssetWithImage wallet={wallet} />
                   </TableData>
-                  {!brief ? <TableData className={'text-monospace'}>{t.address}</TableData> : null}
+                  {!brief && !hideAddress ? <TableData className={'text-monospace'}>{t.address}</TableData> : null}
                   {!brief ? <TableData className={'text-monospace'}>{t.amount}</TableData> : null}
                   {!brief ?
                   <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
@@ -190,6 +192,7 @@ TransactionsPanel.propTypes = {
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   style: PropTypes.object,
   showAllButton: PropTypes.bool,
+  windowWidth: PropTypes.number,
   setActiveView: PropTypes.func
 };
 
@@ -199,7 +202,8 @@ export default connect(
     transactions: appState.transactions,
     altCurrency: appState.altCurrency,
     currencyMultipliers: appState.currencyMultipliers,
-    wallets: appState.wallets
+    wallets: appState.wallets,
+    windowWidth: appState.windowWidth,
   }),
   dispatch => ({
     setActiveView: activeView => dispatch(appActions.setActiveView(activeView))
