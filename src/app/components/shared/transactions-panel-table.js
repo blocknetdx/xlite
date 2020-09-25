@@ -7,16 +7,21 @@ import {Checkbox} from './inputs';
 import Localize from './localize';
 import AssetWithImage from './asset-with-image';
 import Wallet from '../../types/wallet-r';
+import {walletSorter} from '../../util';
+import {Map as IMap} from 'immutable';
 
 const TransactionsPanelTable = ({
     style,
     transactionFilter,
     onTransactionFilter,
     wallets,
+    balances,
+    activeWallet
   }) => {
 
   const [transactions, setTransactions] = useState([]);
   const walletLookup = new Map(wallets.map(t => [t.ticker, t]));
+  const sortedWallets = activeWallet ? [wallets.find(w => w.ticker === activeWallet)] : wallets.sort(walletSorter(balances));
 
   // ToDo: enable Select, Label, and Date columns when available
   const hiddenFeature = true;
@@ -27,13 +32,13 @@ const TransactionsPanelTable = ({
   };
 
   useEffect(() => {
-    Promise.all(wallets.map(wallet => getCachedUnspent(wallet)))
+    Promise.all(sortedWallets.map(wallet => getCachedUnspent(wallet)))
       .then(response => setTransactions(response
         .filter(([ticker, txs]) => txs.length > 0)
         .reduce((arr, [ticker, txs]) => arr.concat(txs.map(tx => [ticker, tx])), [])
       ));
-  }, [setTransactions, wallets]);
-  
+  }, [activeWallet]);
+
   const styles = {
     text: {
       textAlign: 'left',
@@ -83,7 +88,9 @@ TransactionsPanelTable.propTypes = {
   style: PropTypes.object,
   transactionFilter: PropTypes.string.isRequired,
   onTransactionFilter: PropTypes.func.isRequired,
-  wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet))
+  wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
+  balances: PropTypes.instanceOf(IMap),
+  activeWallet: PropTypes.string
 };
 
 export default TransactionsPanelTable;

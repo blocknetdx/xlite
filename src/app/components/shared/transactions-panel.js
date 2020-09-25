@@ -25,7 +25,7 @@ const math = create(all, {
 });
 const { bignumber } = math;
 
-const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = false, brief = false, activeWallet, altCurrency, currencyMultipliers, transactions, wallets, style = {}, showAllButton = false, windowWidth, setActiveView }) => {
+const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = false, brief = false, activeWallet, altCurrency, currencyMultipliers, transactions, wallets, style = {}, showAllButton = false, windowWidth, setActiveView, balances }) => {
 
   const [ selectedTx, setSelectedTx ] = useState(null);
   const [ transactionFilter, setTransactionFilter ] = useState(transactionFilters.all);
@@ -37,6 +37,8 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
         transactionFilter={transactionFilter}
         onTransactionFilter={setTransactionFilter}
         wallets={wallets}
+        balances={balances}
+        activeWallet={activeWallet}
       />
     );
   } else {
@@ -205,7 +207,8 @@ TransactionsPanel.propTypes = {
   style: PropTypes.object,
   showAllButton: PropTypes.bool,
   windowWidth: PropTypes.number,
-  setActiveView: PropTypes.func
+  setActiveView: PropTypes.func,
+  balances: PropTypes.instanceOf(IMap)
 };
 
 export default connect(
@@ -216,6 +219,7 @@ export default connect(
     currencyMultipliers: appState.currencyMultipliers,
     wallets: appState.wallets,
     windowWidth: appState.windowWidth,
+    balances: appState.balances
   }),
   dispatch => ({
     setActiveView: activeView => dispatch(appActions.setActiveView(activeView))
