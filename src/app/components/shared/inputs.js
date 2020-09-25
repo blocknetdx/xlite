@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import Localize from './localize';
+import {publicPath} from '../../util/public-path-r';
 
 const IconInput = ({ icon, placeholder = '', type = 'text', value, onChange }) => {
   return (
@@ -136,10 +137,29 @@ Textarea.propTypes = {
   onChange: PropTypes.func
 };
 
+const Checkbox = ({ onChange }) => {
+
+  const [checked, setChecked] = useState(false);
+  const checkboxImage = checked ? 'check-box-outline' : 'checkbox-blank-outline';
+  const onInputChange = () => {
+    setChecked(!checked);
+  };
+
+  return (
+    <div className={'lw-checkbox'}>
+      <img src={`${publicPath}/images/icons/${checkboxImage}.svg`} onClick={onInputChange} />
+    </div>
+  );
+};
+Checkbox.propTypes = {
+  onChange: PropTypes.func
+};
+
 export {
   IconInput,
   AddressInput,
   CurrencyInput,
   LoginInput,
-  Textarea
+  Textarea,
+  Checkbox
 };
