@@ -78,6 +78,11 @@ class CloudChains {
    * @private
    */
   _storage = null;
+  /**
+   * @type {boolean}
+   * @private
+   */
+  _newInstall = false;
 
   /**
    * Default path function for cloudchains installations.
@@ -423,21 +428,31 @@ class CloudChains {
    */
   startSPV(password = '') {
     return new Promise(resolve => {
+      this.isWalletRPCRunning().then(running => {
+        if (running)
+          resolve(true);
+    else {
+      let success = false;
       const args = password ? ['--password', password] : [];
       const cli = this._execFile(this.getCCSPVFilePath(), args, err => {
         if(err) {
           logger.error('startSPV failed', err);
           resolve(false);
+          return;
         }
+        if (!success) // only resolve if start failed
+          resolve(success);
       });
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
         if(!password && this._selectionPatt.test(str)) {
-          resolve(true);
+          success = true;
+          resolve(success);
         } else if(/master\sRPC\sserver/i.test(str)) {
           // give the master RPC server a second to start
           setTimeout(() => {
-            resolve(true);
+            success = true;
+            resolve(success);
           }, 500);
         }
       });
@@ -447,10 +462,11 @@ class CloudChains {
       });
       cli.stdout.on('close', code => {
         logger.info(`startSPV child process exited with code ${code}`);
-        resolve(false);
       });
       this._cli = cli;
-    });
+    }
+        });
+      });
   }
 
   /**
@@ -469,28 +485,36 @@ class CloudChains {
    * @returns {Promise<string>}
    */
   createSPVWallet(password) {
-    return new Promise(resolve => {
-      const mnemonicPatt = /mnemonic\s+=\s+(.+)/i;
-      const cli = this._execFile(this.getCCSPVFilePath(), ['--enablerpcandconfigure', '--createdefaultwallet', password], err => {
-        if(err) logger.error(err);
-        resolve('');
+    return new Promise((resolve, reject) => {
+      let success = '';
+      const cli = this._execFile(this.getCCSPVFilePath(), ['--createdefaultwallet', password], err => {
+        if (err) {
+          logger.error(err);
+          reject(new Error('failed to create a new wallet'));
+        } else if (!success)
+          resolve(success);
       });
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
-        // console.log(str);
-        if(mnemonicPatt.test(str)) {
-          const mnemonic = str.match(mnemonicPatt)[1].trim();
-          cli.kill();
-          resolve(mnemonic);
+        if (str.toLowerCase().includes('got relayfee for currency')) {
+          success = 'unknown';
+          resolve(success);
         }
+        // TODO Pull mnemonic from rpc when that endpoint is ready
+        // const mnemonicPatt = /mnemonic\s+=\s+(.+)/i;
+        // if(mnemonicPatt.test(str)) {
+        //   const mnemonic = str.match(mnemonicPatt)[1].trim();
+        //   cli.kill();
+        //   resolve(mnemonic);
+        // }
       });
       cli.stderr.on('data', data => {
         const str = data.toString('utf8');
         logger.error(str);
+        reject(new Error('failed to create a new wallet'));
       });
       cli.stdout.on('close', code => {
         logger.info(`child process exited with code ${code}`);
-        resolve('');
       });
     });
   }
@@ -500,18 +524,18 @@ class CloudChains {
    * @returns {Promise<boolean>}
    */
   enableAllWallets() {
+    let success = false;
     return new Promise(resolve => {
       const cli = this._execFile(this.getCCSPVFilePath(), ['--enablerpcandconfigure'], err => {
         if(err) {
           logger.error('enableAllWallets', err);
-          resolve(false);
         }
+        resolve(success);
       });
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
-        // console.log(str);
         if(this._selectionPatt.test(str)) {
-          resolve(true);
+          success = true;
           cli.kill();
         }
       });
@@ -522,7 +546,6 @@ class CloudChains {
       });
       cli.stdout.on('close', code => {
         logger.info(`enableAllWallets child process exited with code ${code}`);
-        resolve(false);
       });
     });
   }
@@ -573,6 +596,21 @@ class CloudChains {
     const currentSalt = this.getStoredSalt();
     const checkPassword = pbkdf2(password, currentSalt);
     return checkPassword === currentPassword;
+  }
+
+  /**
+   * Sets the new install state.
+   */
+  setNewInstall() {
+    this._newInstall = true;
+  }
+
+  /**
+   * Returns true if this is a new install.
+   * @return {boolean}
+   */
+  isNewInstall() {
+    return this._newInstall;
   }
 
   /**

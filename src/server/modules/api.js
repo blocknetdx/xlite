@@ -296,6 +296,9 @@ class Api {
     this._proc.handle(apiConstants.cloudChains_matchesStoredPassword, (evt, password) => {
       return this._cloudChains.matchesStoredPassword(password);
     });
+    this._proc.handle(apiConstants.cloudChains_isNewInstall, (evt, arg) => {
+      return this._cloudChains.isNewInstall();
+    });
   }
 
   /**
