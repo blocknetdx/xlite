@@ -142,6 +142,7 @@ export const transactionFilters = {
   all: 'All',
   sent: 'Sent',
   received: 'Received',
+  unspent: 'Unspent',
   // ToDo: enable transfer type when available
   //transfers: 'Transfers'
 };
