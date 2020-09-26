@@ -53,6 +53,14 @@ class CloudChains {
    */
   _execFile = childProcess.execFile;
   /**
+   * @param filePath {string}
+   * @param args {string[]}
+   * @param callback {function}
+   * @returns {ChildProcess}
+   * @private
+   */
+  _spawn = childProcess.spawn;
+  /**
    * @type {CCWalletConf}
    * @private
    */
@@ -428,41 +436,38 @@ class CloudChains {
    */
   startSPV(password = '') {
     return new Promise(resolve => {
-      this.isWalletRPCRunning().then(running => {
+      this.isWalletRPCRunning().then(running => { // success if wallet already running
         if (running)
           resolve(true);
     else {
-      let success = false;
+      if (this.spvIsRunning()) // first kill the prior process if rpc isn't working
+        this._cli.kill();
+
       const args = password ? ['--password', password] : [];
-      const cli = this._execFile(this.getCCSPVFilePath(), args, err => {
-        if(err) {
-          logger.error('startSPV failed', err);
-          resolve(false);
-          return;
-        }
-        if (!success) // only resolve if start failed
-          resolve(success);
-      });
+      const cli = this._spawn(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
         if(!password && this._selectionPatt.test(str)) {
-          success = true;
-          resolve(success);
+          resolve(false);
+          cli.kill();
         } else if(/master\sRPC\sserver/i.test(str)) {
           // give the master RPC server a second to start
           setTimeout(() => {
-            success = true;
-            resolve(success);
+            resolve(true);
           }, 500);
         }
       });
       cli.stderr.on('data', data => {
         const str = data.toString('utf8');
         logger.info(`startSPV ${str}`);
+        resolve(false);
+        cli.kill();
       });
       cli.stdout.on('close', code => {
-        logger.info(`startSPV child process exited with code ${code}`);
+        logger.info(`startSPV child process exited with code ${!code ? '0' : code}`);
       });
+
+      // Watch process
       this._cli = cli;
     }
         });
@@ -486,20 +491,17 @@ class CloudChains {
    */
   createSPVWallet(password) {
     return new Promise((resolve, reject) => {
-      let success = '';
-      const cli = this._execFile(this.getCCSPVFilePath(), ['--createdefaultwallet', password], err => {
-        if (err) {
-          logger.error(err);
-          reject(new Error('failed to create a new wallet'));
-        } else if (!success)
-          resolve(success);
-      });
+      if (!password) { // fail on bad password
+        reject(new Error('failed to create wallet with empty password'));
+        return;
+      }
+
+      const cli = this._spawn(this.getCCSPVFilePath(), ['--createdefaultwallet', password], {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
-        if (str.toLowerCase().includes('got relayfee for currency')) {
-          success = 'unknown';
-          resolve(success);
-        }
+        if (str.toLowerCase().includes('got relayfee for currency')) // indicates startup successful
+          resolve('unknown'); // TODO Resolve unknown mnemonic from rpc when that endpoint is ready
+
         // TODO Pull mnemonic from rpc when that endpoint is ready
         // const mnemonicPatt = /mnemonic\s+=\s+(.+)/i;
         // if(mnemonicPatt.test(str)) {
@@ -514,8 +516,11 @@ class CloudChains {
         reject(new Error('failed to create a new wallet'));
       });
       cli.stdout.on('close', code => {
-        logger.info(`child process exited with code ${code}`);
+        logger.info(`child process exited with code ${!code ? '0' : code}`);
       });
+
+      // Watch this process
+      this._cli = cli;
     });
   }
 
@@ -524,28 +529,23 @@ class CloudChains {
    * @returns {Promise<boolean>}
    */
   enableAllWallets() {
-    let success = false;
     return new Promise(resolve => {
-      const cli = this._execFile(this.getCCSPVFilePath(), ['--enablerpcandconfigure'], err => {
-        if(err) {
-          logger.error('enableAllWallets', err);
-        }
-        resolve(success);
-      });
+      const cli = this._spawn(this.getCCSPVFilePath(), ['--enablerpcandconfigure'], {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
-        if(this._selectionPatt.test(str)) {
-          success = true;
+        if(this._selectionPatt.test(str)) { // kill process when selection screen appears
+          resolve(true);
           cli.kill();
         }
       });
       cli.stderr.on('data', data => {
         const str = data.toString('utf8');
         logger.error('enableAllWallets', str);
+        resolve(false);
         cli.kill();
       });
       cli.stdout.on('close', code => {
-        logger.info(`enableAllWallets child process exited with code ${code}`);
+        logger.info(`enableAllWallets child process exited with code ${!code ? '0' : code}`);
       });
     });
   }
