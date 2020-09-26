@@ -213,13 +213,6 @@ app.on('ready', async () => {
 
   // Create the app window
   appWindow = openAppWindow(path.resolve(__dirname, '../static/index.html'), storage, devtools);
-  // Shutdown the cli on window close if it's running.
-  appWindow._window.once('close', () => {
-    if (cloudChains.spvIsRunning()) {
-      if (!cloudChains.stopSPV())
-        logger.error('failed to stop the wallet daemon');
-    }
-  });
   // Prevent opening any new windows at this point
   app.on('web-contents-created', (event, contents) => {
     contents.on('new-window', (event, navigationUrl) => {
@@ -231,6 +224,19 @@ app.on('ready', async () => {
     contents.on('will-attach-webview', (event, webPreferences, params) => {
       event.preventDefault();
     });
+  });
+  // Shutdown the cli on window close if it's running.
+  app.on('quit', (event) => {
+    if (!cloudChains.spvIsRunning())
+      return;
+    try {
+      if (!cloudChains.stopSPV())
+        logger.error('failed to stop the wallet daemon');
+      else
+        logger.error('wallet shutdown');
+    } catch (e) {
+      console.log('wallet shutdown with error', e);
+    }
   });
 
   if (isDev) {

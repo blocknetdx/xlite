@@ -10,7 +10,7 @@ import CCWalletConf from '../src/app/types/ccwalletconf';
 import CloudChains from '../src/server/modules/cloudchains';
 import {Crypt, pbkdf2} from '../src/app/modules/crypt';
 import {DEFAULT_MASTER_PORT, platforms, ccBinDirs, ccBinNames} from '../src/app/constants';
-import fakeExecFile from './fake-exec-file';
+import fakeExecFile, {FakeSpawn} from './fake-exec-file';
 import FakeRPCController from './fake-rpc-controller';
 import {parseAPIError} from '../src/app/util';
 import SimpleStorage from '../src/server/modules/storage';
@@ -289,40 +289,43 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.enableAllWallets()', async function() {
       const cc = new CloudChains(ccFunc, storage);
-      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
-      cc._execFile = execFile;
+      const fakeSpawn = new FakeSpawn();
+      cc._spawn = fakeSpawn.spawn;
       cc.enableAllWallets.should.be.a.Function();
 
       {
         // If there is an error opening the CLI
+        fakeSpawn.clear();
         const success = await new Promise((resolve, reject) => {
           cc.enableAllWallets()
             .then(resolve)
             .catch(reject);
-          mockErr();
+          fakeSpawn.stderr('data', 'error');
         });
         success.should.be.false();
       }
 
       {
         // If the process closes
+        fakeSpawn.clear();
         const success = await new Promise((resolve, reject) => {
           cc.enableAllWallets()
             .then(resolve)
             .catch(reject);
-          mockClose();
+          fakeSpawn.stdout('close', 0);
+          fakeSpawn.stderr('data', 'error'); // force close
         });
         success.should.be.false();
       }
 
       {
         // If the CLI successfully enables the wallets
+        fakeSpawn.clear();
         const success = await new Promise((resolve, reject) => {
           cc.enableAllWallets()
             .then(resolve)
             .catch(reject);
-          mockWrite('selection');
-          mockClose();
+          fakeSpawn.stdout('data', 'selection');
         });
         success.should.be.true();
       }
@@ -491,51 +494,72 @@ describe('CloudChains Test Suite', function() {
     it('CloudChains.startSPV()', async function() {
       const cc = new CloudChains(ccFunc, storage);
       // cc._rpc.ccHelp = async () => false; // disable rpc for these tests
-      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
-      cc._execFile = execFile;
+      const fakeSpawn = new FakeSpawn();
+      cc._spawn = fakeSpawn.spawn;
       cc.startSPV.should.be.a.Function();
       const password = 'password';
 
       {
         // If there is an error opening the CLI
+        fakeSpawn.clear();
         const success = await new Promise((resolve, reject) => {
           cc.startSPV(password)
             .then(resolve)
             .catch(reject);
-          mockErr();
+          fakeSpawn.stderr('data', 'error')
         });
         success.should.be.false();
       }
 
       {
         // If the process closes
+        fakeSpawn.clear();
         const success = await new Promise((resolve, reject) => {
           cc.startSPV()
             .then(resolve)
             .catch(reject);
-          mockClose();
+          fakeSpawn.stdout('close', 0);
+          fakeSpawn.stderr('data', 'error'); // force close
         });
         success.should.be.false();
       }
 
       {
-        // If the CLI successfully starts up without a password
+        // Startup with no password should fail
+        fakeSpawn.clear();
         const success = await new Promise((resolve, reject) => {
           cc.startSPV()
             .then(resolve)
             .catch(reject);
-          mockWrite('selection');
+          fakeSpawn.stdout('data', 'selection');
         });
-        success.should.be.true();
+        success.should.be.false();
       }
 
       {
         // If the CLI successfully starts up with a password
+        fakeSpawn.clear();
         const success = await new Promise((resolve, reject) => {
           cc.startSPV(password)
             .then(resolve)
             .catch(reject);
-          mockWrite('master rpc server');
+          fakeSpawn.stdout('data', 'master rpc server');
+        });
+        success.should.be.true();
+      }
+
+      { // Start should be ignored if rpc already running
+        fakeSpawn.clear();
+        const cc2 = new CloudChains(ccFunc, storage);
+        cc2.isWalletRPCRunning = async () => false;
+        cc2._spawn = fakeSpawn.spawn;
+        const success = await new Promise((resolve, reject) => {
+          cc2.startSPV(password).then(res => {
+            res.should.be.true();
+            cc2.isWalletRPCRunning = async () => true;
+            cc2.startSPV(password).then(resolve).catch(reject);
+          });
+          fakeSpawn.stdout('data', 'master rpc server');
         });
         success.should.be.true();
       }
@@ -554,21 +578,22 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.createSPVWallet()', async function() {
       const cc = new CloudChains(ccFunc, storage);
-      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
-      cc._execFile = execFile;
+      const fakeSpawn = new FakeSpawn();
+      cc._spawn = fakeSpawn.spawn;
       cc.createSPVWallet.should.be.a.Function();
       const password = 'password';
       const testMnemonic = 'some mnemonic here';
 
       {
         // If there is an error opening the CLI
+        fakeSpawn.clear();
         let err = null;
         try {
           await new Promise((resolve, reject) => {
             cc.createSPVWallet(password)
               .then(resolve)
               .catch(reject);
-            mockErr();
+            fakeSpawn.stderr('data', 'error');
           });
         } catch (e) {
           err = e;
@@ -578,23 +603,31 @@ describe('CloudChains Test Suite', function() {
 
       {
         // If the wallet is not successfully created
-        const res = await new Promise((resolve, reject) => {
-          cc.createSPVWallet(password)
-            .then(resolve)
-            .catch(reject);
-          mockClose();
-        });
-        res.should.equal('');
+        fakeSpawn.clear();
+        let err = null;
+        try {
+          await new Promise((resolve, reject) => {
+            cc.createSPVWallet(password)
+              .then(resolve)
+              .catch(reject);
+            fakeSpawn.stdout('close', 0);
+            fakeSpawn.stderr('data', 'error'); // force close
+          });
+        } catch (e) {
+          err = e;
+        }
+        should.exist(err);
       }
 
       {
         // If the wallet is successfully created
+        fakeSpawn.clear();
         const res = await new Promise((resolve, reject) => {
           cc.createSPVWallet(password)
             .then(resolve)
             .catch(reject);
-          mockWrite('got relayfee for currency');
-          mockClose();
+          fakeSpawn.stdout('data', 'got relayfee for currency');
+          fakeSpawn.stdout('close', 0);
         });
         res.should.equal('unknown'); // TODO Update when mnemonic rpc is available
       }
