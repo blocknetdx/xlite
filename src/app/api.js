@@ -52,6 +52,7 @@ export const apiConstants = {
   cloudChains_enableAllWallets: 'cloudChains_enableAllWallets',
   cloudChains_changePassword: 'cloudChains_changePassword',
   cloudChains_matchesStoredPassword: 'cloudChains_matchesStoredPassword',
+  cloudChains_isNewInstall: 'cloudChains_isNewInstall',
 
   confController_getManifest: 'confController_getManifest',
   confController_getManifestHash: 'confController_getManifestHash',
@@ -230,6 +231,9 @@ const cloudChains_API = {
   },
   [apiConstants.cloudChains_matchesStoredPassword]: async (password) => {
     return ipcRenderer.invoke(apiConstants.cloudChains_matchesStoredPassword, password);
+  },
+  [apiConstants.cloudChains_isNewInstall]: async () => {
+    return ipcRenderer.invoke(apiConstants.cloudChains_isNewInstall);
   },
 };
 

@@ -322,6 +322,7 @@ describe('CloudChains Test Suite', function() {
             .then(resolve)
             .catch(reject);
           mockWrite('selection');
+          mockClose();
         });
         success.should.be.true();
       }
@@ -489,6 +490,7 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.startSPV()', async function() {
       const cc = new CloudChains(ccFunc, storage);
+      // cc._rpc.ccHelp = async () => false; // disable rpc for these tests
       const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
       cc._execFile = execFile;
       cc.startSPV.should.be.a.Function();
@@ -560,13 +562,18 @@ describe('CloudChains Test Suite', function() {
 
       {
         // If there is an error opening the CLI
-        const res = await new Promise((resolve, reject) => {
-          cc.createSPVWallet(password)
-            .then(resolve)
-            .catch(reject);
-          mockErr();
-        });
-        res.should.equal('');
+        let err = null;
+        try {
+          await new Promise((resolve, reject) => {
+            cc.createSPVWallet(password)
+              .then(resolve)
+              .catch(reject);
+            mockErr();
+          });
+        } catch (e) {
+          err = e;
+        }
+        should.exist(err);
       }
 
       {
@@ -586,10 +593,10 @@ describe('CloudChains Test Suite', function() {
           cc.createSPVWallet(password)
             .then(resolve)
             .catch(reject);
-          mockWrite(`mnemonic = ${testMnemonic}`);
+          mockWrite('got relayfee for currency');
           mockClose();
         });
-        res.should.equal(testMnemonic);
+        res.should.equal('unknown'); // TODO Update when mnemonic rpc is available
       }
     });
     it('CloudChains._isCLIAvailable()', function() {

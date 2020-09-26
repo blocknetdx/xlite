@@ -101,6 +101,15 @@ const startup = async () => {
 
   if (!cloudChains.isInstalled() || !cloudChains.hasSettings()) {
     logger.info('No CloudChains installation found, installing wallet configs');
+    cloudChains.setNewInstall();
+    // clear install specific storage parameters
+    storage.setItems({
+      [storageKeys.PASSWORD]: '',
+      [storageKeys.SALT]: '',
+      [storageKeys.MNEMONIC]: '',
+      [storageKeys.BALANCES]: null,
+      [storageKeys.ALT_CURRENCY_MULTIPLIERS]: null,
+    });
 
     if (!await cloudChains.enableAllWallets()) {
       // Fatal error, warn user and exit program

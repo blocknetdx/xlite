@@ -291,6 +291,18 @@ class CloudChains {
       throw e; // bubble up
     }
   }
+
+  /**
+   * Returns true if this is a new install.
+   * @return {Promise<boolean>}
+   */
+  async isNewInstall() {
+    try {
+      return await this._api.cloudChains_isNewInstall();
+    } catch (e) {
+      return false;
+    }
+  }
 }
 
 export default CloudChains;

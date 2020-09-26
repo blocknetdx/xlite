@@ -110,7 +110,8 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   // that's not available (i.e. has no coin).
   const wallet = availWallets.find(w => w.ticker === selected);
   if (!alertShowing && !wallet && progress === 0) {
-    Alert.alert(Localize.text('Issue'), Localize.text('No {{coin}} is available.', 'sendModal', {coin: selected}))
+    const coin = selected || 'coin';
+    Alert.alert(Localize.text('Issue'), Localize.text('No {{coin}} is available.', 'sendModal', {coin}))
       .then(() => hideSendModal(true));
     setAlertShowing(true);
   }

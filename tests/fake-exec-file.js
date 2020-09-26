@@ -46,9 +46,8 @@ const fakeExecFile = () => {
       setTimeout(() => {
         if(stdoutCallbacks.close) {
           stdoutCallbacks.close();
-        } else {
-          callback();
         }
+        callback();
       }, 0);
     },
     mockExitCode(code) {

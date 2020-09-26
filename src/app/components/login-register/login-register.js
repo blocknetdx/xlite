@@ -255,7 +255,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
               style={{marginTop: 25, height: 50}}><Localize context={'login'}>Continue</Localize></Button>
           </div>
         }
-        { showLogin &&
+        { showLogin && !mnemonic &&
             <div style={styles.bodyContainer}>
               <LoginPasswordSubmitInput
                 hidden={hidden}
@@ -266,7 +266,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
                 onSubmit={onLoginSubmit} />
             </div>
         }
-        { showRegistration &&
+        { showRegistration && !mnemonic &&
             <div style={styles.bodyContainer}>
               <form onSubmit={onRegisterSubmit}>
                 <LoginInput placeholder={Localize.text('Enter password', 'login')}

@@ -217,6 +217,10 @@ function startupInit(walletController, confController, pricingController, confNe
   const cloudChains = new CloudChains(api);
   const pricingController = new Pricing(api, domStorage);
 
+  // If new install clear the storage
+  if (await cloudChains.isNewInstall())
+    domStorage.clear();
+
   // These calls to the store will trigger the UI startup process.
   // i.e. the loading screen is displayed until these calls complete
   // below.
