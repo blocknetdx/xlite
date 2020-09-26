@@ -137,7 +137,7 @@ class CloudChains {
    */
   hasSettings() {
     try {
-      return fs.pathExistsSync(this._cloudChainsSettingsDir);
+      return fs.pathExistsSync(path.join(this._cloudChainsSettingsDir, 'config-master.json'));
     } catch (err) {
       logger.error('has settings check failed', err);
       return false;
