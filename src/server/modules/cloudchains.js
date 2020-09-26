@@ -95,7 +95,7 @@ class CloudChains {
       case 'darwin':
         return path.join(electron.app.getPath('appData'), 'CloudChains');
       default: // linux distros
-        return path.join(electron.app.getPath('home'), 'CloudChains');
+        return path.join(electron.app.getPath('appData'), 'CloudChains');
     }
   }
 
