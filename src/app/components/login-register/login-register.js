@@ -202,6 +202,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
       return;
     }
 
+    setErrorMessage(''); // clear error on success
     const storedPassword = await cloudChains.getStoredPassword();
     const walletCreated = await cloudChains.isWalletCreated();
     const isRpcRunning = await cloudChains.isWalletRPCRunning();
