@@ -81,6 +81,7 @@ describe('CloudChains Test Suite', function() {
       cc.isInstalled().should.be.false();
       cc.hasSettings().should.be.false();
       fs.mkdirpSync(settingsDir); // create directories outside app
+      fs.writeFileSync(path.join(settingsDir, 'config-master.json'), '');
       cc.isInstalled().should.be.true();
       cc.hasSettings().should.be.true();
     });
@@ -493,7 +494,9 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.startSPV()', async function() {
       const cc = new CloudChains(ccFunc, storage);
-      // cc._rpc.ccHelp = async () => false; // disable rpc for these tests
+      cc._rpcWaitDelay = 50;
+      const rpcHelp = {ccHelp: async () => true};
+      cc._rpc = rpcHelp;
       const fakeSpawn = new FakeSpawn();
       cc._spawn = fakeSpawn.spawn;
       cc.startSPV.should.be.a.Function();
@@ -548,9 +551,29 @@ describe('CloudChains Test Suite', function() {
         success.should.be.true();
       }
 
+      {
+        // If the CLI successfully starts up while waiting for rpc
+        fakeSpawn.clear();
+        rpcHelp.ccHelp = async () => false;
+        const success = await new Promise((resolve, reject) => {
+          cc.startSPV(password)
+            .then(resolve)
+            .catch(reject);
+          fakeSpawn.stdout('data', 'master rpc server');
+          setTimeout(() => {
+            rpcHelp.ccHelp = async () => true;
+          }, 500);
+        });
+        success.should.be.true();
+      }
+
       { // Start should be ignored if rpc already running
         fakeSpawn.clear();
+        rpcHelp.ccHelp = async () => true;
         const cc2 = new CloudChains(ccFunc, storage);
+        cc2._rpc = rpcHelp;
+        cc2._rpcWaitDelay = 50;
+        cc2._rpcStartExpirySeconds = 1;
         cc2.isWalletRPCRunning = async () => false;
         cc2._spawn = fakeSpawn.spawn;
         const success = await new Promise((resolve, reject) => {
@@ -577,16 +600,22 @@ describe('CloudChains Test Suite', function() {
       wasKilled().should.be.true();
     });
     it('CloudChains.createSPVWallet()', async function() {
-      const cc = new CloudChains(ccFunc, storage);
       const fakeSpawn = new FakeSpawn();
-      cc._spawn = fakeSpawn.spawn;
-      cc.createSPVWallet.should.be.a.Function();
+      const makecc = () => {
+        const cc = new CloudChains(ccFunc, storage);
+        cc._rpcWaitDelay = 50;
+        cc._rpc = {ccHelp: async () => true};
+        cc._spawn = fakeSpawn.spawn;
+        cc.createSPVWallet.should.be.a.Function();
+        return cc;
+      };
       const password = 'password';
       const testMnemonic = 'some mnemonic here';
 
       {
         // If there is an error opening the CLI
         fakeSpawn.clear();
+        const cc = makecc();
         let err = null;
         try {
           await new Promise((resolve, reject) => {
@@ -604,6 +633,7 @@ describe('CloudChains Test Suite', function() {
       {
         // If the wallet is not successfully created
         fakeSpawn.clear();
+        const cc = makecc();
         let err = null;
         try {
           await new Promise((resolve, reject) => {
@@ -622,6 +652,7 @@ describe('CloudChains Test Suite', function() {
       {
         // If the wallet is successfully created
         fakeSpawn.clear();
+        const cc = makecc();
         const res = await new Promise((resolve, reject) => {
           cc.createSPVWallet(password)
             .then(resolve)
@@ -630,6 +661,25 @@ describe('CloudChains Test Suite', function() {
           fakeSpawn.stdout('close', 0);
         });
         res.should.equal('unknown'); // TODO Update when mnemonic rpc is available
+      }
+
+      { // Fail on wallet rpc expiry
+        fakeSpawn.clear();
+        const cc = makecc();
+        cc._rpc.ccHelp = async () => false;
+        cc._rpcStartExpirySeconds = 1;
+        let err = null;
+        await new Promise(resolve => {
+          cc.createSPVWallet(password)
+            .then(resolve)
+            .catch(e => {
+              err = e;
+              resolve();
+            });
+          fakeSpawn.stdout('data', 'got relayfee for currency');
+          fakeSpawn.stdout('close', 0);
+        });
+        should.exist(err);
       }
     });
     it('CloudChains._isCLIAvailable()', function() {

@@ -140,7 +140,10 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
     if (!rpcRunning) {
       const started = await cloudChains.startSPV(password);
       if(!started) {
-        setErrorMessage(Localize.text('Invalid password.', 'login'));
+        if (storedPassword)
+          setErrorMessage(Localize.text('Invalid password.', 'login'));
+        else
+          setErrorMessage(Localize.text('Failed to start CloudChains daemon.', 'login'));
         setProcessing(false);
         return;
       }
@@ -197,7 +200,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
 
     const started = await cloudChains.startSPV(password);
     if(!started) {
-      setErrorMessage(Localize.text('Oops! There was a problem unlocking the wallet.', 'login'));
+      setErrorMessage(Localize.text('Oops! There was a problem starting and unlocking the wallet.', 'login'));
       setProcessing(false);
       return;
     }

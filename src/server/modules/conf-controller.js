@@ -47,11 +47,13 @@ class ConfController {
    */
   async init(manifestFilesDir) {
     if (this.getManifest().length !== 0 && this.getXBridgeInfo().length !== 0)
-      return false; // no init required
+      return true; // no init required
 
     try {
-      if (!await fs.pathExists(manifestFilesDir))
+      if (!await fs.pathExists(manifestFilesDir)) {
+        logger.error(`configuration error: path not found: ${manifestFilesDir}`);
         return false;
+      }
     } catch (e) {
       logger.error('failed to init blockchain config files', e);
       return false; // fatal
@@ -67,8 +69,10 @@ class ConfController {
       return false; // fatal
     }
 
-    if (!manifest)
+    if (!manifest) {
+      logger.error('configuration error: bad manifest file');
       return false; // fatal, valid manifest required to proceed
+    }
 
     // Remove stale entries
     this._filterManifest(manifest);

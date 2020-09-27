@@ -104,6 +104,9 @@ const startup = async () => {
     cloudChains.setNewInstall();
     // clear install specific storage parameters
     storage.setItems({
+      [storageKeys.MANIFEST]: null,
+      [storageKeys.MANIFEST_SHA]: null,
+      [storageKeys.XBRIDGE_INFO]: null,
       [storageKeys.PASSWORD]: '',
       [storageKeys.SALT]: '',
       [storageKeys.MNEMONIC]: '',
@@ -130,7 +133,8 @@ const startup = async () => {
 
     // Init the conf controller to build the manifest
     confController = new ConfController(storage, cloudChains.getWalletConfs().map(c => c.ticker()));
-    await confController.init(xbridgeConfPath);
+    if (!await confController.init(xbridgeConfPath))
+      logger.error('configuration error on install');
 
     // Update confs with manifest data
     try {
@@ -184,7 +188,8 @@ const startup = async () => {
     });
 
   confController = new ConfController(storage, cloudChains.getWalletConfs().map(c => c.ticker()));
-  await confController.init(xbridgeConfPath);
+  if (!await confController.init(xbridgeConfPath))
+    logger.error('unknown configuration error');
   // Create the token manifest from the raw manifest data and fee information
   const tokenManifest = new TokenManifest(confController.getManifest(), confController.getXBridgeInfo());
   // Create the wallet controller

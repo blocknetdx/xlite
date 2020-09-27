@@ -207,6 +207,12 @@ function startupInit(walletController, confController, pricingController, confNe
   store.dispatch(appActions.setAppVersion((await api.general_getAppVersion())));
   store.dispatch(appActions.setCCVersion((await api.cloudChains_getCCSPVVersion())));
 
+  const cloudChains = new CloudChains(api);
+  if (await cloudChains.isNewInstall()) { // If new install clear the storage
+    domStorage.clear();
+    await db.clear();
+  }
+
   const confController = new ConfController(api);
   const confManifest = await confController.getManifest();
   const xbInfos = await confController.getXBridgeInfo();
@@ -214,12 +220,7 @@ function startupInit(walletController, confController, pricingController, confNe
   const tokenManifest = new TokenManifest(confManifest, xbInfos);
   const walletController = new WalletController(api, tokenManifest, domStorage, db);
   // Create the wallet controller
-  const cloudChains = new CloudChains(api);
   const pricingController = new Pricing(api, domStorage);
-
-  // If new install clear the storage
-  if (await cloudChains.isNewInstall())
-    domStorage.clear();
 
   // These calls to the store will trigger the UI startup process.
   // i.e. the loading screen is displayed until these calls complete

@@ -4,6 +4,7 @@ import {Crypt, generateSalt, pbkdf2} from '../../app/modules/crypt';
 import {logger} from './logger';
 import {storageKeys} from '../constants';
 import RPCController from './rpc-controller';
+import {unixTime} from '../../app/util';
 
 import _ from 'lodash';
 import electron from 'electron';
@@ -91,6 +92,16 @@ class CloudChains {
    * @private
    */
   _newInstall = false;
+  /**
+   * @type {number}
+   * @private
+   */
+  _rpcWaitDelay = 3500;
+  /**
+   * @type {number}
+   * @private
+   */
+  _rpcStartExpirySeconds = 30;
 
   /**
    * Default path function for cloudchains installations.
@@ -413,7 +424,7 @@ class CloudChains {
       return false;
     try {
       const res = await this._rpc.ccHelp();
-      return _.isString(res);
+      return !(res instanceof Error);
     } catch (e) {
       return false;
     }
@@ -437,11 +448,18 @@ class CloudChains {
   startSPV(password = '') {
     return new Promise(resolve => {
       this.isWalletRPCRunning().then(running => { // success if wallet already running
-        if (running)
+        if (running) {
+          logger.info('CloudChains wallet running');
           resolve(true);
-    else {
-      if (this.spvIsRunning()) // first kill the prior process if rpc isn't working
+          return;
+        }
+
+      if (this.spvIsRunning()) { // first kill the prior process if rpc isn't working
         this._cli.kill();
+        this._cli = null;
+      }
+
+      logger.info('starting CloudChains daemon');
 
       let started = false;
       const args = password ? ['--password', password] : [];
@@ -457,9 +475,9 @@ class CloudChains {
         } else if(/master\sRPC\sserver/i.test(str)) {
           started = true;
           // give the master RPC server a second to start
-          setTimeout(() => {
-            resolve(true);
-          }, 500);
+          const expiry = unixTime() + this._rpcStartExpirySeconds;
+          this._waitForRpc(expiry, this._rpcWaitDelay).then(available => resolve(available))
+            .catch(() => resolve(false));
         }
       });
       cli.stderr.on('data', data => {
@@ -477,9 +495,8 @@ class CloudChains {
 
       // Watch process
       this._cli = cli;
-    }
-        });
       });
+    });
   }
 
   /**
@@ -504,18 +521,35 @@ class CloudChains {
         return;
       }
 
+      if (this.spvIsRunning()) { // stop existing if running
+        this._cli.kill();
+        this._cli = null;
+      }
+
       let started = false;
       const cli = this._spawn(this.getCCSPVFilePath(), ['--createdefaultwallet', password], {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         if (started)
           return;
-        const str = data.toString('utf8');
-        if (str.toLowerCase().includes('got relayfee for currency')) { // indicates startup successful
-          started = true;
-          resolve('unknown'); // TODO Resolve unknown mnemonic from rpc when that endpoint is ready
-        }
+        started = true;
+
+        const expiry = unixTime() + this._rpcStartExpirySeconds; // Wait rpc server is ready until this time
+        this._waitForRpc(expiry, this._rpcWaitDelay)
+          .then(available => {
+            if (available)
+              resolve('unknown'); // TODO Resolve unknown mnemonic from rpc when that endpoint is ready
+            else {
+              reject(new Error('failed to start rpc server'));
+              cli.kill();
+            }
+          })
+          .catch(() => {
+            reject(new Error('failed to start rpc server'));
+            cli.kill();
+          });
 
         // TODO Pull mnemonic from rpc when that endpoint is ready
+        // const str = data.toString('utf8');
         // const mnemonicPatt = /mnemonic\s+=\s+(.+)/i;
         // if(mnemonicPatt.test(str)) {
         //   const mnemonic = str.match(mnemonicPatt)[1].trim();
@@ -663,6 +697,31 @@ class CloudChains {
     }
   }
 
+  /**
+   * Wait for rpc to become available. Returns true if rpc is available
+   * otherwise returns false on expiry.
+   * @param expiry {number} Unix time
+   * @param wait {number} Delay before retry in milliseconds
+   * @returns {Promise<boolean>}
+   * @private
+   */
+  async _waitForRpc(expiry, wait = 3500) {
+    try {
+      const res = await this._rpc.ccHelp();
+      if (res && !(res instanceof Error))
+        return true;
+    } catch (e) {
+      // non-fatal
+    }
+    if (unixTime() >= expiry)
+      return false;
+    else
+      return await new Promise(resolve => {
+        setTimeout(() => {
+          this._waitForRpc(expiry, wait).then(res => resolve(res));
+        }, wait);
+      });
+  }
 }
 
 export default CloudChains;
