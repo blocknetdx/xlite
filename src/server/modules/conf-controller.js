@@ -6,6 +6,7 @@ import XBridgeInfo from '../../app/types/xbridgeinfo';
 
 import _ from 'lodash';
 import fs from 'fs-extra';
+import isDev from 'electron-is-dev';
 import path from 'path';
 import request from 'superagent';
 
@@ -38,6 +39,18 @@ class ConfController {
   constructor(storage, wallets) {
     this._storage = storage;
     this._availableWallets = new Set(wallets);
+  }
+
+  /**
+   * Blockchain configuration files directory.
+   * @return {string}
+   */
+  static packagedManifestDir() {
+    if (isDev)
+      return path.resolve(__dirname, '../../../dist/blockchain-configuration-files');
+    else
+      return path.resolve(__dirname, '../../../dist/blockchain-configuration-files')
+        .replace('app.asar', 'app.asar.unpacked');
   }
 
   /**

@@ -88,7 +88,6 @@ let confController = null;
 let walletController = null;
 let api = null;
 const pricing = new Pricing(Pricing.defaultPricingApi); // create pricing manager
-const xbridgeConfPath = path.resolve(__dirname, '../blockchain-configuration-files');
 
 const startup = async () => {
   try {
@@ -133,7 +132,7 @@ const startup = async () => {
 
     // Init the conf controller to build the manifest
     confController = new ConfController(storage, cloudChains.getWalletConfs().map(c => c.ticker()));
-    if (!await confController.init(xbridgeConfPath))
+    if (!await confController.init(ConfController.packagedManifestDir()))
       logger.error('configuration error on install');
 
     // Update confs with manifest data
@@ -188,7 +187,7 @@ const startup = async () => {
     });
 
   confController = new ConfController(storage, cloudChains.getWalletConfs().map(c => c.ticker()));
-  if (!await confController.init(xbridgeConfPath))
+  if (!await confController.init(ConfController.packagedManifestDir()))
     logger.error('unknown configuration error');
   // Create the token manifest from the raw manifest data and fee information
   const tokenManifest = new TokenManifest(confController.getManifest(), confController.getXBridgeInfo());

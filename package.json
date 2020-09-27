@@ -116,7 +116,8 @@
     "asarUnpack": [
       "**/bin/linux/Cloudchains-SPV",
       "**/bin/mac/Cloudchains-SPV",
-      "**/bin/win/Cloudchains-SPV.exe"
+      "**/bin/win/Cloudchains-SPV.exe",
+      "**/blockchain-configuration-files/**/*"
     ],
     "electronVersion": "10.1.1",
     "appId": "co.blocknet.xlite",
