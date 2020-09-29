@@ -18,12 +18,19 @@ let Navbar = ({ windowWidth, showReceiveModal, showSendModal }) => {
 
   const showButtonText = windowWidth > 738;
 
+  const styles = {
+    button: {
+      paddingLeft: 10,
+      paddingRight: 10
+    }
+  };
+
   return (
     <div className={'lw-navbar-container'}>
       <Logo className={'lw-navbar-logo'} />
       <Spacer />
-      <Button title={Localize.text('Send', 'navbar')} onClick={showSendModal}>{showButtonText ? Localize.text('Send', 'navbar') + ' ' : null}<IconSend className={'navbar-button-svg-icon'} /></Button>
-      <Button title={Localize.text('Receive', 'navbar')} onClick={showReceiveModal}>{showButtonText ? Localize.text('Receive', 'navbar') + ' ' : null}<IconReceive className={'navbar-button-svg-icon'} /></Button>
+      <Button style={styles.button} title={Localize.text('Send', 'navbar')} onClick={showSendModal}>{showButtonText ? Localize.text('Send', 'navbar') + ' ' : null}<IconSend className={'navbar-button-svg-icon'} /></Button>
+      <Button style={styles.button} title={Localize.text('Receive', 'navbar')} onClick={showReceiveModal}>{showButtonText ? Localize.text('Receive', 'navbar') + ' ' : null}<IconReceive className={'navbar-button-svg-icon'} /></Button>
     </div>
   );
 };

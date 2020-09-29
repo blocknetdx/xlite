@@ -21,8 +21,9 @@ button {
   text-align: center;
   box-shadow: none;
   border: none;
-  padding-left: 10px;
-  padding-right: 10px;
+  box-sizing: border-box;
+  padding-left: 38px;
+  padding-right: 38px;
   min-width: $lw-button-min-width;
   height: $lw-button-height;
   font-size: $lw-button-font-size;
