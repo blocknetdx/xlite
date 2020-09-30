@@ -1,11 +1,12 @@
 @import './variables';
 @import './fonts';
 
-$lw-button-background-color: $lw-bg-1;
-$lw-button-background-hover-color: lighten($lw-button-background-color, 15%);
+$lw-button-background-color: $lw-bg-2;
+$lw-button-background-hover-color: $lw-bg-1;
 $lw-button-text-color: $lw-text-primary;
 $lw-button-transparent-text-color: #444444;
 $lw-button-min-width: 150px;
+$lw-button-padding-x: 38px;
 $lw-button-height: 40px;
 $lw-button-font-size: 16px;
 

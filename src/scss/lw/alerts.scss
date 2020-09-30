@@ -1,65 +1,53 @@
 @import "./variables";
 @import "./buttons";
 
-$lw-alert-header-text: #2f3943;
-$lw-alert-text-color: $lw-secondary-6;
-$lw-alert-button-background-color: $lw-button-background-color;
-$lw-alert-button-hover_background-color: darken($lw-alert-button-background-color, 10%);
-
-.swal-overlay.swal-overlay--show-modal:focus {
-  outline-width: 0;
-}
-
-.swal-modal {
-  border-radius: 4px;
-}
-
-.swal-title {
-  color: $lw-alert-header-text;
-  font-size: 25px;
-}
-
-.swal-text {
-  color: $lw-alert-text-color;
-  font-size: 16px;
-}
-
-.swal-button {
-  border-width: 2px;
-  border-style: solid;
-  border-color: $lw-alert-button-background-color;
-  background-color: $lw-alert-button-background-color;
-  color: $lw-button-text-color;
+@mixin lw-alert-button($alert-button-color, $alert-button-border-color, $alert-button-hover-color, $alert-button-hover-border-color, $alert-button-text-color) {
+  background-color: $alert-button-color;
+  color: $alert-button-text-color;
   min-width: $lw-button-min-width;
-  height: $lw-button-height;
-  line-height: $lw-button-height - 4;
-  padding-top: 0;
-  padding-bottom: 0;
-  font-size: $lw-button-font-size;
+  padding-left: $lw-button-padding-x;
+  padding-right: $lw-button-padding-x;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  box-sizing: border-box;
+  font-size: 16px;
+  border-radius: 4px;
+  height: 40px;
+  border-style: solid;
+  border-width: 2px;
+  border-color: $alert-button-border-color;
 
-  &:not([disabled]):hover, &:active {
+  &:not([disabled]):hover, &:not([disabled]):active {
+    background-color: $alert-button-hover-color;
+    background-image: none;
     border-width: 2px;
-    border-color: $lw-alert-button-hover_background-color;
-    background-color: $lw-alert-button-hover_background-color;
-  }
-
-  &--cancel {
-    border-width: 2px;
-    border-style: solid;
-    border-color: $lw-secondary-3;
-    background-color: #fff;
-    color: $lw-secondary-6;
-
-    &:not([disabled]):hover, &:active {
-      border-width: 2px;
-      border-color: $lw-secondary-3;
-      background-color: $lw-secondary-1;
-    }
-
+    border-color: $alert-button-hover-border-color;
   }
 
   &:active {
     transform: scale(0.98);
+  }
+
+}
+
+.lw-alert-header {
+  .lw-alert-title {
+    color: #2f3943;
+  }
+}
+
+.lw-alert-content {
+  color: $lw-secondary-6;
+}
+
+.lw-alert-buttons-container {
+
+  .lw-alert-button-confirm {
+    @include lw-alert-button($lw-button-background-color, $lw-button-background-color, $lw-button-background-hover-color, $lw-button-background-hover-color, $lw-button-text-color);
+  }
+
+  .lw-alert-button-cancel {
+    @include lw-alert-button(#fff, $lw-secondary-3, $lw-secondary-1, $lw-secondary-3, $lw-secondary-6);
   }
 
 }
