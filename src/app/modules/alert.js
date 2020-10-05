@@ -35,7 +35,17 @@ class Alert {
   static _constructSwalConfiguration(icon, title, text, content, confirmButtonText, cancelButtonText = '') {
     const options = {
       title,
-      text
+      text,
+      animation: false,
+      customClass: {
+        header: 'lw-alert-header',
+        title: 'lw-alert-title',
+        content: 'lw-alert-content',
+        actions: 'lw-alert-buttons-container',
+        confirmButton: 'lw-alert-button-confirm',
+        cancelButton: 'lw-alert-button-cancel',
+        footer: 'lw-alert-footer'
+      }
     };
     if(icon)
       options.icon = icon;
@@ -44,6 +54,7 @@ class Alert {
     if (confirmButtonText)
       options.confirmButtonText = confirmButtonText;
     if (cancelButtonText)
+      options.showCancelButton = true;
       options.cancelButtonText = cancelButtonText;
     return options;
   }
