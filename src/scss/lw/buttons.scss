@@ -63,6 +63,7 @@ button {
   }
   &:hover {
     background-color: darken($lw-button-background-color, 10%);
+    background-color: $lw-button-background-hover-color;
   }
   //&.light-hover {
   //  &:hover {
