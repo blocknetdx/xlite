@@ -34,14 +34,16 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
       Promise.all(availWallets.map(wallet => wallet.getAddresses()))
         .then(response => setAddresses(response.reduce((arr, address) => arr.concat(address), [])));
     }
-  }, [showReceiveAllAddresses]);
+  }, []);
 
   useEffect(() => {
     if(wallet) {
       wallet.getAddresses()
         .then(arr => {
-          if (arr && arr.length > 0) // make sure arr is valid
+          if (arr && arr.length > 0) { // make sure arr is valid
             setAddress(arr[arr.length - 1]);
+            setAddresses(arr);
+          }
           else
             setAddress('');
         })
