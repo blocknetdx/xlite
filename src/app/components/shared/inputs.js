@@ -155,11 +155,24 @@ Checkbox.propTypes = {
   onChange: PropTypes.func
 };
 
+const RadioInput = ({ onChange }) => {
+  return (
+    <label className={'lw-radio'}>
+      <input type="radio" name="radio" onChange={onChange} />
+      <span className={'lw-radio-checkmark'} />
+    </label>
+  );
+};
+RadioInput.propTypes = {
+  onChange: PropTypes.func
+};
+
 export {
   IconInput,
   AddressInput,
   CurrencyInput,
   LoginInput,
   Textarea,
-  Checkbox
+  Checkbox,
+  RadioInput
 };

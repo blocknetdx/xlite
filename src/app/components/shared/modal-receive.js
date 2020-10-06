@@ -8,6 +8,7 @@ import * as appActions from '../../actions/app-actions';
 import {availableWallets, handleError} from '../../util';
 import { Button } from './buttons';
 import SelectWalletDropdown from './select-wallet-dropdown';
+import ReceiveAllAddresses from './modal-receive-all-addresses';
 import { AddressInput } from './inputs';
 
 const {api} = window;
@@ -16,7 +17,10 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
 
   const [ selected, setSelected ] = useState('');
   const [ address, setAddress ] = useState('');
+  const [ addresses, setAddresses ] = useState([]);
   const [ addressDataUrl, setAddressDataUrl ] = useState('');
+  const [ showAddressCopiedConfirmation, setShowAddressCopiedConfirmation] = useState(false);
+  const [ showReceiveAllAddresses, setShowReceiveAllAddresses ] = useState(false);
 
   const availWallets = availableWallets(wallets);
   const wallet = availWallets ? availWallets.find(w => w.ticker === selected) : null;
@@ -24,6 +28,13 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
   useEffect(() => {
     setSelected(activeWallet);
   }, [activeWallet]);
+
+  useEffect(() => {
+    if (availWallets && availWallets.length > 0) {
+      Promise.all(availWallets.map(wallet => wallet.getAddresses()))
+        .then(response => setAddresses(response.reduce((arr, address) => arr.concat(address), [])));
+    }
+  }, [showReceiveAllAddresses]);
 
   useEffect(() => {
     if(wallet) {
@@ -62,7 +73,12 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
     }
   };
 
+  const onSelectReceivingAddress = () => {
+    setShowReceiveAllAddresses(!showReceiveAllAddresses);
+  };
+
   const onCopyAddress = () => {
+    setShowAddressCopiedConfirmation(true);
     try {
       api.general_setClipboard(address.trim());
     } catch(err) {
@@ -70,13 +86,35 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
     }
   };
 
+  const copyAddressConfirmation = () => {
+    if (showAddressCopiedConfirmation) {
+      setTimeout(() => setShowAddressCopiedConfirmation(false), 5000);
+    }
+    return (
+      <div className={`lw-modal-field-label right-end notification ${showAddressCopiedConfirmation ? 'show' : ''}`}>
+        <Localize context={'receive-modal'}>Address copied to clipboard</Localize>
+      </div>
+    );
+  };
+
+  const onApplySelectedAddress = address => {
+    setAddress(address);
+    onSelectReceivingAddress();
+  };
+
+  if (showReceiveAllAddresses)
+    return <ReceiveAllAddresses addresses={addresses} onApply={onApplySelectedAddress} onBack={onSelectReceivingAddress} onClose={hideReceiveModal} />;
+
   return (
     <Modal onClose={hideReceiveModal}>
       <ModalHeader><Localize context={'receive-modal'}>Receive</Localize></ModalHeader>
       <ModalBody>
         <div className={'lw-modal-field-label'}><Localize context={'receive-modal'}>Select currency to receive</Localize>:</div>
         <SelectWalletDropdown wallets={availWallets} style={{marginBottom: 30}} selected={selected} onSelect={ticker => setSelected(ticker) || setAddress('')} />
-        <div className={'lw-modal-field-label'}><Localize context={'receive-modal'}>Your address</Localize>:</div>
+        <div className={'lw-modal-field-label-container'}>
+          <div className={'lw-modal-field-label'}><Localize context={'receive-modal'}>Your address</Localize>:</div>
+          {copyAddressConfirmation()}
+        </div>
         <AddressInput
           value={address}
           readOnly={true}
@@ -84,7 +122,10 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
           buttonIcon={<i className={'fas fa-copy'} />}
           onButtonClick={onCopyAddress}
           onChange={setAddress} />
-        <div><a href={'#'} onClick={onGenerateNewAddress} className={'lw-color-secondary-6'}><Localize context={'receive-modal'}>Generate new address</Localize></a></div>
+        <div className={'lw-modal-field-label-container'}>
+          <a href={'#'} onClick={onGenerateNewAddress} className={'lw-color-secondary-6'}><Localize context={'receive-modal'}>Generate new address</Localize></a>
+          <a href={'#'} onClick={onSelectReceivingAddress} className={'lw-modal-field-label right-end'}><Localize context={'receive-modal'}>Select receiving address</Localize></a>
+        </div>
         <div className={'lw-modal-receive-qr-code-container'}>
           {addressDataUrl ? <img src={addressDataUrl} alt={Localize.text('Address qr code', 'receive-modal')} style={{}} /> : null}
         </div>

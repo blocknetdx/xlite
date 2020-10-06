@@ -265,6 +265,53 @@ div.lw-percent-bar {
 
 }
 
+.lw-radio {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  input:checked ~ .lw-radio-checkmark:after {
+    display: block;
+  }
+}
+
+.lw-radio-checkmark {
+  position: absolute;
+  top: -5px;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: transparent;
+  border: 2px solid $lw-secondary-6;
+  border-radius: 50%;
+}
+
+.lw-radio-checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.lw-radio .lw-radio-checkmark:after {
+  top: 3px;
+  left: 3px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid $lw-secondary-6;
+  border-radius: 50%;
+  background: $lw-secondary-6;
+}
+
 // In case we want to manually do scrollbars rather than use perfect scrollbar
 //$lw-scrollbar-color: #d4d4d4;
 //::-webkit-scrollbar {

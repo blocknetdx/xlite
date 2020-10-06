@@ -66,7 +66,7 @@ TableData.propTypes = {
   small: PropTypes.bool,
 };
 
-export const Table = ({ children = [], small = false }) => {
+export const Table = ({ children = [], small = false, className = '' }) => {
 
   children = Array.isArray(children) ? children : [children];
 
@@ -87,7 +87,7 @@ export const Table = ({ children = [], small = false }) => {
   const sizes = columns.map(c => c.props.size);
 
   return (
-    <div className={'lw-table-container'}>
+    <div className={`lw-table-container ${className}`}>
       <div className={'lw-table-header'}>
         {columns.map((c, i) => React.cloneElement(c, {key: `col-${i}`, idx: i, final: i === columns.length - 1}))}
       </div>
@@ -102,4 +102,15 @@ export const Table = ({ children = [], small = false }) => {
 Table.propTypes = {
   children: PropTypes.any,
   small: PropTypes.bool,
+};
+
+export const SelectRadioTable = ({ children }) => {
+  return (
+    <Table className={'lw-radio-table'}>
+      {children}
+    </Table>
+  );
+};
+SelectRadioTable.propTypes = {
+  children: PropTypes.any
 };
