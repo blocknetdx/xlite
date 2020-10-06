@@ -10,7 +10,7 @@ import {RadioInput} from './inputs';
 const ReceiveAllAddresses = ({ addresses = [], onBack, onClose, onApply }) => {
   const [selectedAddress, setSelectedAddress] = useState(undefined);
   return (
-    <Modal onClose={onClose}>
+    <Modal disableCloseOnOutsideClick={true} onClose={onClose}>
       <ModalBody>
         <div className={'lw-modal-addresses-back'} onClick={onBack}>
           <img alt={Localize.text('Dashboard icon', 'all-addresses')} srcSet={`${publicPath}/images/icons/icon-back.png, ${publicPath}/images/icons/icon-back@2x.png 2x`} />

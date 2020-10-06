@@ -106,7 +106,7 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
     return <ReceiveAllAddresses addresses={addresses} onApply={onApplySelectedAddress} onBack={onSelectReceivingAddress} onClose={hideReceiveModal} />;
 
   return (
-    <Modal onClose={hideReceiveModal}>
+    <Modal onClose={hideReceiveModal} disableCloseOnOutsideClick={true}>
       <ModalHeader><Localize context={'receive-modal'}>Receive</Localize></ModalHeader>
       <ModalBody>
         <div className={'lw-modal-field-label'}><Localize context={'receive-modal'}>Select currency to receive</Localize>:</div>
