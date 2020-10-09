@@ -97,3 +97,43 @@ $lw-row-padding-vert: 12px;
   }
 
 }
+
+.lw-radio-table {
+  margin: 0 -20px 28px -20px;
+
+  .lw-table-header {
+    height: 48px;
+    background-color: $lw-secondary-1;
+    border: none;
+
+    .lw-table-column-heading {
+      font-family: IBMPlexSans;
+      font-size: 13px;
+      font-weight: normal;
+      font-stretch: normal;
+      font-style: normal;
+      line-height: 1;
+      letter-spacing: normal;
+      color: $lw-secondary-8;
+      text-align: left !important;
+    }
+  }
+
+  .lw-table-body {
+    height: 400px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: $lw-secondary-8;
+  }
+
+  .lw-table-row {
+    border-bottom-color: $lw-secondary-1 !important;
+
+    .lw-table-data-container {
+      display: flex;
+      align-items: center;
+      color: $lw-secondary-8;
+      text-align: left !important;
+    }
+  }
+}

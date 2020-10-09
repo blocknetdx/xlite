@@ -94,6 +94,11 @@
 
   }
 
+  .lw-modal-field-label-container {
+    display: flex;
+    flex-direction: row;
+  }
+
   .lw-modal-field-label {
     font-family: IBMPlexSans;
     font-weight: normal;
@@ -101,6 +106,23 @@
     font-stretch: normal;
     font-size: 13px;
     color: $lw-secondary-6;
+
+    &.right-end {
+      margin-left: auto;
+    }
+
+    &.notification {
+      color: $lw-positive-2;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity $lw-animation-duration ease-in-out, visibility $lw-animation-duration ease-in-out;
+    }
+
+    &.show {
+      visibility: visible;
+      opacity: 1;
+      transition: opacity $lw-animation-duration ease-in-out, visibility $lw-animation-duration ease-in-out;
+    }
   }
 
   .lw-modal-placeholder-label {
