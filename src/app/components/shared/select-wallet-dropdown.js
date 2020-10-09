@@ -12,7 +12,7 @@ const SelectWalletDropdown = ({ selected = '', style = {}, wallets, onSelect }) 
     <div className={'dropdown'} style={style}>
       <a href={'#'} ref={node => node ? $(node).dropdown() : null} className={'lw-coin-select'} data-toggle={'dropdown'}>
         {wallet && <img alt={Localize.text('Coin icon', 'receive-modal')} srcSet={wallet.imagePath} />}
-        <div><Localize context={'receive-modal'}>{wallet && `${wallet.name} (${wallet.ticker})`}</Localize></div>
+        <div>{wallet && `${wallet.name} (${wallet.ticker})`}</div>
         <i className={'fas fa-caret-down'} />
       </a>
       <div className={'dropdown-menu'}>
@@ -26,7 +26,7 @@ const SelectWalletDropdown = ({ selected = '', style = {}, wallets, onSelect }) 
             return (
               <button key={w.ticker} className="dropdown-item lw-coin-select-item" type="button" onClick={onClick}>
                 <img alt={Localize.text('Coin icon', 'receive-modal')} srcSet={w.imagePath} />
-                <div><Localize context={'receive-modal'}>{`${w.name} (${w.ticker})`}</Localize></div>
+                <div>{`${w.name} (${w.ticker})`}</div>
               </button>
             );
           })
