@@ -1,3 +1,4 @@
+import { setShowWindowsLibraryDownloadModal } from './actions/app-actions';
 
 window.$ = require('jquery');
 require('popper.js');
@@ -6,7 +7,7 @@ require('bootstrap');
 import './util/public-path-r'; // must be first
 import './modules/window-zoom-handlers';
 import * as appActions from './actions/app-actions';
-import {activeViews, MIN_UI_HEIGHT, MIN_UI_WIDTH} from './constants';
+import { activeViews, MIN_UI_HEIGHT, MIN_UI_WIDTH, platforms, UNKNOWN_CC_VERSION } from './constants';
 import Alert from './modules/alert';
 import App from './components/app';
 import appReducer from './reducers/app-reducer';
@@ -205,12 +206,16 @@ function startupInit(walletController, confController, pricingController, confNe
   updateScrollbars(window.innerWidth, window.innerHeight);
 
   store.dispatch(appActions.setAppVersion((await api.general_getAppVersion())));
-  store.dispatch(appActions.setCCVersion((await api.cloudChains_getCCSPVVersion())));
+
+  const ccVersion = await api.cloudChains_getCCSPVVersion();
+  store.dispatch(appActions.setCCVersion(ccVersion));
 
   const cloudChains = new CloudChains(api);
   if (await cloudChains.isNewInstall()) { // If new install clear the storage
     domStorage.clear();
     await db.clear();
+    if(api.general_getPlatform() === platforms.win && ccVersion === UNKNOWN_CC_VERSION)
+      store.dispatch(setShowWindowsLibraryDownloadModal(true));
   }
 
   const confController = new ConfController(api);

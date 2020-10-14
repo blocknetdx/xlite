@@ -1,4 +1,4 @@
-import {ccBinDirs, ccBinNames, DEFAULT_MASTER_PORT} from '../../app/constants';
+import { ccBinDirs, ccBinNames, DEFAULT_MASTER_PORT, UNKNOWN_CC_VERSION } from '../../app/constants';
 import CCWalletConf from '../../app/types/ccwalletconf';
 import {Crypt, generateSalt, pbkdf2} from '../../app/modules/crypt';
 import {logger} from './logger';
@@ -401,7 +401,7 @@ class CloudChains {
       const cli = this._execFile(this.getCCSPVFilePath(), ['--version'], err => {
         if (err) {
           logger.error(err);
-          resolve('unknown');
+          resolve(UNKNOWN_CC_VERSION);
         } else
           resolve(version);
       });

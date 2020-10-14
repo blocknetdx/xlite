@@ -266,3 +266,13 @@ export const setShowGuidesModal = show => ({
   }
 });
 
+/**
+ * @param show {boolean}
+ * @returns {{payload: {show: boolean}, type: string}}
+ */
+export const setShowWindowsLibraryDownloadModal = show => ({
+  type: actions.SET_SHOW_WINDOWS_LIBRARY_DOWNLOAD_MODAL,
+  payload: {
+    show
+  }
+});
