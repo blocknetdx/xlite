@@ -16,10 +16,10 @@ const WindowsDownloadLibraryModal = ({ hideModal }) => {
     }
   };
 
-  const downloadLink = 'https://www.microsoft.com/en-us/download/details.aspx?id=5555';
+  const downloadLink = 'https://www.microsoft.com/en-us/download/details.aspx?id=14632';
 
   return (
-    <Modal onClose={hideModal}>
+    <Modal disableCloseOnOutsideClick={true} onClose={hideModal}>
       <ModalHeader><Localize context={'windowsLibraryDownloadModal'}>Windows</Localize></ModalHeader>
       <ModalBody>
         <p style={styles.paragraph}>{Localize.text('In order to use XLite on windows please download the Microsoft Visual C++ 2010 Redistributable Package:', 'windowsLibraryDownloadModal')}</p>
