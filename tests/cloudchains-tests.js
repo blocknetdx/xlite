@@ -601,11 +601,13 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.createSPVWallet()', async function() {
       const fakeSpawn = new FakeSpawn();
+      const {execFile, mockWrite, mockClose} = fakeExecFile();
       const makecc = () => {
         const cc = new CloudChains(ccFunc, storage);
         cc._rpcWaitDelay = 50;
         cc._rpc = {ccHelp: async () => true};
         cc._spawn = fakeSpawn.spawn;
+        cc._execFile = execFile;
         cc.createSPVWallet.should.be.a.Function();
         return cc;
       };
@@ -658,9 +660,13 @@ describe('CloudChains Test Suite', function() {
             .then(resolve)
             .catch(reject);
           fakeSpawn.stdout('data', 'got relayfee for currency');
-          fakeSpawn.stdout('close', 0);
+          setTimeout(() => {
+            mockWrite(testMnemonic);
+            mockClose();
+            fakeSpawn.stdout('close', 0);
+          }, 250);
         });
-        res.should.equal('unknown'); // TODO Update when mnemonic rpc is available
+        res.should.equal(testMnemonic);
       }
 
       { // Fail on wallet rpc expiry

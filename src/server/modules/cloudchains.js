@@ -415,6 +415,27 @@ class CloudChains {
   }
 
   /**
+   * Gets the wallet mnemonic.
+   * @param password {string}
+   * @returns {Promise<string>}
+   */
+  getCCMnemonic(password) {
+    let mnemonic = '';
+    return new Promise((resolve, reject) => {
+      const cli = this._execFile(this.getCCSPVFilePath(), ['--getmnemonic', password], err => {
+        if (err || !mnemonic) {
+          logger.error(err);
+          reject(new Error('failed to get the mnemonic'));
+        } else
+          resolve(mnemonic);
+      });
+      cli.stdout.on('data', data => {
+        mnemonic = data.toString('utf8');
+      });
+    });
+  }
+
+  /**
    * Returns true if the wallet rpc is accepting connections. Calls the rpc
    * "help" method.
    * @return {boolean}
@@ -526,6 +547,19 @@ class CloudChains {
         this._cli = null;
       }
 
+      const resolveMnemonic = () => {
+        this.getCCMnemonic(password)
+          .then(resolve)
+          .catch(reject);
+      };
+
+      const createHandler = err => {
+        if (err)
+          reject(err);
+        else
+          resolveMnemonic();
+      };
+
       let started = false;
       const cli = this._spawn(this.getCCSPVFilePath(), ['--createdefaultwallet', password], {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
@@ -537,25 +571,16 @@ class CloudChains {
         this._waitForRpc(expiry, this._rpcWaitDelay)
           .then(available => {
             if (available)
-              resolve('unknown'); // TODO Resolve unknown mnemonic from rpc when that endpoint is ready
+              createHandler();
             else {
-              reject(new Error('failed to start rpc server'));
+              createHandler(new Error('failed to start rpc server'));
               cli.kill();
             }
           })
           .catch(() => {
-            reject(new Error('failed to start rpc server'));
+            createHandler(new Error('failed to start rpc server'));
             cli.kill();
           });
-
-        // TODO Pull mnemonic from rpc when that endpoint is ready
-        // const str = data.toString('utf8');
-        // const mnemonicPatt = /mnemonic\s+=\s+(.+)/i;
-        // if(mnemonicPatt.test(str)) {
-        //   const mnemonic = str.match(mnemonicPatt)[1].trim();
-        //   cli.kill();
-        //   resolve(mnemonic);
-        // }
       });
       cli.stderr.on('data', data => {
         const str = data.toString('utf8');
@@ -563,7 +588,7 @@ class CloudChains {
         if (started)
           return;
         started = true;
-        reject(new Error('failed to create a new wallet'));
+        createHandler(new Error('failed to create a new wallet'));
         cli.kill();
       });
       cli.stdout.on('close', code => {
