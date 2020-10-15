@@ -27,6 +27,7 @@ const getInitialState = () => ({
   showBackupModal: false,
   showAboutModal: false,
   showGuidesModal: false,
+  showWindowsLibraryDownloadModal: false,
   xVaultVersion: '',
   ccVersion: '',
   openExternalLinks: false
@@ -154,6 +155,11 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         pricingController: payload.pricingController
+      };
+    case actions.SET_SHOW_WINDOWS_LIBRARY_DOWNLOAD_MODAL:
+      return {
+        ...state,
+        showWindowsLibraryDownloadModal: payload.show
       };
     default:
       return state;

@@ -18,8 +18,9 @@ import SecurityModal from './shared/modal-security';
 import PreferencesModal from './shared/modal-preferences';
 import BackupModal from './shared/modal-backup';
 import GuidesModal from './shared/modal-guides';
+import WindowsDownloadLibraryModal from './shared/modal-windows-library-download';
 
-let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendModal, showPreferencesModal, showSecurityModal, showBackupModal, showAboutModal, showGuidesModal, walletController }) => {
+let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendModal, showPreferencesModal, showSecurityModal, showBackupModal, showAboutModal, showGuidesModal, showWindowsLibraryDownloadModal, walletController }) => {
 
   const styles = {
     container: {
@@ -93,6 +94,7 @@ let App = ({ activeView, windowWidth, windowHeight, showReceiveModal, showSendMo
       {showBackupModal ? <BackupModal /> : null}
       {showAboutModal ? <AboutModal /> : null}
       {showGuidesModal ? <GuidesModal /> : null}
+      {showWindowsLibraryDownloadModal ? <WindowsDownloadLibraryModal /> : null}
     </div>
   );
 };
@@ -107,6 +109,7 @@ App.propTypes = {
   showBackupModal: PropTypes.bool,
   showAboutModal: PropTypes.bool,
   showGuidesModal: PropTypes.bool,
+  showWindowsLibraryDownloadModal: PropTypes.bool,
   walletController: PropTypes.instanceOf(WalletController),
 };
 App = connect(
@@ -121,6 +124,7 @@ App = connect(
     showBackupModal: appState.showBackupModal,
     showAboutModal: appState.showAboutModal,
     showGuidesModal: appState.showGuidesModal,
+    showWindowsLibraryDownloadModal: appState.showWindowsLibraryDownloadModal,
     walletController: appState.walletController,
   })
 )(App);
