@@ -240,21 +240,26 @@ export default class AssetPieChart extends React.Component {
       amountLabel = currency + ' ' + amount;
     }
 
+    const fontSizeOffset = .4;
+    const centerLabelHeight = this._pix(24);
+    const centerLabelOffsetY = _.floor(centerLabelHeight * fontSizeOffset);
+    const labelMargin = this._pix(17);
+
     // Percent label
-    const fontOffsetX = this._pix(2);
     ctx.save();
     ctx.font = 'normal normal normal ' + this._pix(14) + 'px IBMPlexSans';
-    ctx.fillText(percentLabel, origin.x + fontOffsetX, origin.y - this._pix(30));
+    ctx.fillText(percentLabel, origin.x, origin.y - centerLabelOffsetY - labelMargin);
     ctx.restore();
     // Portfolio label
     ctx.save();
-    ctx.font = 'normal normal 600 ' + this._pix(24) + 'px IBMPlexSans';
-    ctx.fillText(centerLabel, origin.x + fontOffsetX, origin.y);
+    ctx.font = 'normal normal 600 ' + centerLabelHeight + 'px IBMPlexSans';
+    ctx.fillText(centerLabel, origin.x, origin.y + centerLabelOffsetY);
     ctx.restore();
     // Currency label
+    const amountLabelHeight = this._pix(14);
     ctx.save();
-    ctx.font = 'normal normal normal ' + this._pix(14) + 'px IBMPlexSans';
-    ctx.fillText(amountLabel, origin.x + fontOffsetX, origin.y + this._pix(25));
+    ctx.font = 'normal normal normal ' + amountLabelHeight + 'px IBMPlexSans';
+    ctx.fillText(amountLabel, origin.x, origin.y + centerLabelOffsetY + labelMargin + _.floor(amountLabelHeight * (2 * fontSizeOffset)));
     ctx.restore();
 
     // Retina/HDPI screen support
