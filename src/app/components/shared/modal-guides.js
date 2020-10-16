@@ -11,8 +11,6 @@ const GuidesModal = ({ hideGuidesModal }) => {
   const styles = {
     paragraph: {
       textAlign: 'center',
-      paddingLeft: 20,
-      paddingRight: 20
     }
   };
 

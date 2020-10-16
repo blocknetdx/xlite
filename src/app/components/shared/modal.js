@@ -48,7 +48,7 @@ export const Modal = ({ children, showBackButton = false, disableCloseOnOutsideC
           <a className={'lw-back-btn'} href={'#'} onClick={e => {
             e.preventDefault();
             onBack();
-          }}><i className={'fas fa-long-arrow-alt-left'} /> <Localize context={'universal'}>Back</Localize></a>
+          }}><i className={'fas fa-long-arrow-alt-left'} /> <Localize context={'universal'}>back</Localize></a>
           :
           null
         }
