@@ -40,7 +40,6 @@ export const apiConstants = {
   cloudChains_saveWalletCredentials: 'cloudChains_saveWalletCredentials',
   cloudChains_getStoredPassword: 'cloudChains_getStoredPassword',
   cloudChains_getStoredSalt: 'cloudChains_getStoredSalt',
-  cloudChains_getStoredMnemonic: 'cloudChains_getStoredMnemonic',
   cloudChains_getDecryptedMnemonic: 'cloudChains_getDecryptedMnemonic',
   cloudChains_loadConfs: 'cloudChains_loadConfs',
   cloudChains_getCCSPVVersion: 'cloudChains_getCCSPVVersion',
@@ -195,9 +194,6 @@ const cloudChains_API = {
   },
   [apiConstants.cloudChains_getStoredSalt]: async () => {
     return ipcRenderer.invoke(apiConstants.cloudChains_getStoredSalt);
-  },
-  [apiConstants.cloudChains_getStoredMnemonic]: async () => {
-    return ipcRenderer.invoke(apiConstants.cloudChains_getStoredMnemonic);
   },
   [apiConstants.cloudChains_getDecryptedMnemonic]: async (password) => {
     return ipcRenderer.invoke(apiConstants.cloudChains_getDecryptedMnemonic, password);

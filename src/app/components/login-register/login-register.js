@@ -182,7 +182,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
       return;
     }
 
-    if (!await cloudChains.saveWalletCredentials(password, null, m)) {
+    if (!await cloudChains.saveWalletCredentials(password, null)) {
       logger.error('failed to save the wallet credentials');
       setErrorMessage(Localize.text('Oops! There was a problem saving the wallet credentials.', 'login'));
       setProcessing(false);

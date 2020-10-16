@@ -251,17 +251,14 @@ class Api {
     this._proc.handle(apiConstants.cloudChains_isWalletCreated, (evt, arg) => {
       return this._cloudChains.isWalletCreated();
     });
-    this._proc.handle(apiConstants.cloudChains_saveWalletCredentials, (evt, password, salt, mnemonic) => {
-      return this._cloudChains.saveWalletCredentials(password, salt, mnemonic);
+    this._proc.handle(apiConstants.cloudChains_saveWalletCredentials, (evt, password, salt) => {
+      return this._cloudChains.saveWalletCredentials(password, salt);
     });
     this._proc.handle(apiConstants.cloudChains_getStoredPassword, (evt, arg) => {
       return this._cloudChains.getStoredPassword();
     });
     this._proc.handle(apiConstants.cloudChains_getStoredSalt, (evt, arg) => {
       return this._cloudChains.getStoredSalt();
-    });
-    this._proc.handle(apiConstants.cloudChains_getStoredMnemonic, (evt, arg) => {
-      return this._cloudChains.getStoredMnemonic();
     });
     this._proc.handle(apiConstants.cloudChains_getDecryptedMnemonic, (evt, password) => {
       return this._cloudChains.getDecryptedMnemonic(password);

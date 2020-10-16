@@ -63,8 +63,7 @@ const cloudChains = new CloudChains(CloudChains.defaultPathFunc, storage);
 // Set env password
 const { CC_WALLET_PASS = '' } = process.env;
 if (CC_WALLET_PASS !== '') {
-  const mnemonic = cloudChains.getDecryptedMnemonic(CC_WALLET_PASS);
-  if (!cloudChains.saveWalletCredentials(CC_WALLET_PASS, null, mnemonic || 'unknown'))
+  if (!cloudChains.saveWalletCredentials(CC_WALLET_PASS, null))
     logger.error('failed to save CC_WALLET_PASS wallet credentials');
 }
 
@@ -108,7 +107,6 @@ const startup = async () => {
       [storageKeys.XBRIDGE_INFO]: null,
       [storageKeys.PASSWORD]: '',
       [storageKeys.SALT]: '',
-      [storageKeys.MNEMONIC]: '',
       [storageKeys.BALANCES]: null,
       [storageKeys.ALT_CURRENCY_MULTIPLIERS]: null,
     });
