@@ -57,10 +57,6 @@ const SecurityModal = ({ cloudChains, hideSecurityModal }) => {
   };
 
   const styles = {
-    body: {
-      paddingLeft: 20,
-      paddingRight: 20
-    },
     buttonContainer: {
       display: 'flex',
       flexDirection: 'row',
@@ -76,7 +72,7 @@ const SecurityModal = ({ cloudChains, hideSecurityModal }) => {
   return (
     <Modal disableCloseOnOutsideClick={true} onClose={hideSecurityModal}>
       <ModalHeader><Localize context={'security-modal'}>Security</Localize></ModalHeader>
-      <ModalBody style={styles.body}>
+      <ModalBody>
         <form onSubmit={onSubmit}>
           <p><Localize context={'security-modal'}>Below, you can update your password. Your new password must include an uppercase character, a lowercase character, a number, a special character, and be at least eight characters long.</Localize></p>
           <label style={styles.label} className={'lw-color-secondary-6'}><Localize context={'security-modal'}>Please specify your current password</Localize>:</label>

@@ -11,8 +11,6 @@ const PreferencesModal = ({ altCurrency, hidePreferencesModal, setAltCurrency })
 
   const styles = {
     body: {
-      paddingLeft: 20,
-      paddingRight: 20,
       paddingBottom: 40
     },
     heading: {

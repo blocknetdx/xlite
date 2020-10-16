@@ -56,10 +56,6 @@ const BackupModal = ({ hideBackupModal, cloudChains }) => {
   };
 
   const styles = {
-    body: {
-      paddingLeft: 20,
-      paddingRight: 20
-    },
     spacer: {
       height: 200
     },
@@ -77,7 +73,7 @@ const BackupModal = ({ hideBackupModal, cloudChains }) => {
   return (
     <Modal onClose={onCloseModal}>
       <ModalHeader><Localize context={'backup-modal'}>Backup</Localize></ModalHeader>
-      <ModalBody style={styles.body}>
+      <ModalBody>
         <p><Localize context={'backup-modal'}>The following downloaded file can be used to recover your funds. Make sure to download and store it in a safe and secure place.</Localize></p>
         <p><strong><Localize context={'backup-modal'}>Do not share this file with anyone as it provides access to your wallet and therefore your funds.</Localize></strong></p>
         <label style={styles.label} className={'lw-color-secondary-6'}><Localize context={'backup-modal'}>Please specify your password</Localize>:</label>
