@@ -33,7 +33,7 @@ const chartDataFromPriceData = priceData => {
   return [moment(priceData.date).unix(), priceData.close || priceData.open];
 };
 
-const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideVolume = false, hidePercent = false, hidePriceGraph = false, hideCoinText = false, altCurrency, balances, currencyMultipliers, style = {}, wallets, showAllButton = false, pricingController, setActiveView, pricingData }) => {
+const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideVolume = false, hidePercent = false, hidePriceGraph = false, hideCoinText = false, altCurrency, balances, currencyMultipliers, style = {}, wallets, showAllButton = false, pricingController, setActiveView, pricingData, setActiveWallet }) => {
   const filteredWallets = wallets
     .filter(w => w.rpcEnabled())
     .sort(walletSorter(balances));
@@ -104,8 +104,13 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                                                   : (0).toFixed(2);
               const priceChartData = pricingChartData.get(ticker) || null;
 
+              const onRowClick = () => {
+                setActiveWallet(ticker);
+                setActiveView(activeViews.COIN_TRANSACTIONS);
+              };
+
               return (
-                <TableRow key={ticker}>
+                <TableRow key={ticker} clickable={true} onClick={onRowClick}>
                   <TableData>
                     <AssetWithImage shortenName={hideTicker || hideCoinText} wallet={w} />
                   </TableData>
@@ -183,7 +188,8 @@ AssetsOverviewPanel.propTypes = {
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   showAllButton: PropTypes.bool,
   pricingController: PropTypes.instanceOf(Pricing),
-  setActiveView: PropTypes.func
+  setActiveView: PropTypes.func,
+  setActiveWallet: PropTypes.func,
 };
 
 export default connect(
@@ -197,6 +203,7 @@ export default connect(
     wallets: appState.wallets
   }),
   dispatch => ({
-    setActiveView: activeView => dispatch(appActions.setActiveView(activeView))
+    setActiveView: activeView => dispatch(appActions.setActiveView(activeView)),
+    setActiveWallet: ticker => dispatch(appActions.setActiveWallet(ticker)),
   })
 )(AssetsOverviewPanel);
