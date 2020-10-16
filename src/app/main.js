@@ -53,9 +53,10 @@ if(isDev) {
 }
 
 // TODO Remove prior to release (Beta only)
-if (!domStorage.getItem('BETA_0_8_9')) {
+if (!domStorage.getItem('BETA_0_9_0')) {
+  (async () => await db.clear())();
   domStorage.clear();
-  domStorage.setItem('BETA_0_8_9', true);
+  domStorage.setItem('BETA_0_9_0', true);
 }
 
 const updateScrollbars = (innerWidth, innerHeight) => {

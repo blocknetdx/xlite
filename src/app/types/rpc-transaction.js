@@ -22,6 +22,11 @@ class RPCTransaction {
   amount = 0;
 
   /**
+   * @type {number}
+   */
+  fee = 0;
+
+  /**
    * @type {string}
    */
   blockHash = '';

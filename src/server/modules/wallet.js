@@ -169,11 +169,7 @@ class Wallet {
       endTime = unixTime();
 
     try {
-      // Filter receive transactions to ensure ismine
-      // TODO Workaround for bug where CloudChains listTransactions returns not own txs
-      const addrs = new Set(await this.getAddresses());
-      const txs = await this.rpc.listTransactions(startTime, endTime);
-      return txs.filter(tx => tx.isReceive() ? addrs.has(tx.address) : true);
+      return await this.rpc.listTransactions(startTime, endTime);
     } catch (e) {
       logger.error(`${this.ticker}`, e);
       throw e;
