@@ -213,27 +213,15 @@ class CloudChains {
    * Save the cloudchains wallet credentials.
    * @param password {string}
    * @param salt {string|null}
-   * @param mnemonic {string}
    */
-  saveWalletCredentials(password, salt, mnemonic) {
+  saveWalletCredentials(password, salt) {
     if (!salt)
       salt = generateSalt(32);
 
     const hashedPassword = pbkdf2(password, salt);
-    let encryptedMnemonic;
-
-    try {
-      const crypt = new Crypt(password, salt);
-      encryptedMnemonic = crypt.encrypt(mnemonic);
-    } catch(err) {
-      logger.error('failed to encrypt the mnemonic');
-      return false;
-    }
-
     this._storage.setItems({
       [storageKeys.PASSWORD]: hashedPassword,
       [storageKeys.SALT]: salt,
-      [storageKeys.MNEMONIC]: encryptedMnemonic,
     });
 
     return true;
@@ -263,29 +251,17 @@ class CloudChains {
 
   /**
    * Return the last known cloudchains wallet mnemonic. This is encrypted.
-   * @return {string|null}
-   */
-  getStoredMnemonic() {
-    const m = this._storage.getItem(storageKeys.MNEMONIC);
-    if (!m || !_.isString(m))
-      return null;
-    return m;
-  }
-
-  /**
-   * Return the last known cloudchains wallet mnemonic. This is encrypted.
    * @param currentPassword {string} Used to decrypt the mnemonic
    * @return {string|null} Returns null if the decryption failed or the mnemonic doesn't exist
    */
-  getDecryptedMnemonic(currentPassword) {
-    const m = this._storage.getItem(storageKeys.MNEMONIC);
-    if (!m || !_.isString(m))
-      return null;
-
+  async getDecryptedMnemonic(currentPassword) {
     try {
-      const crypt = new Crypt(currentPassword, this.getStoredSalt());
-      return crypt.decrypt(m);
+      const mnemonic = await this.getCCMnemonic(currentPassword);
+      if (!mnemonic)
+        return null;
+      return mnemonic;
     } catch (e) {
+      logger.error('failed to get mnemonic', e);
       return null;
     }
   }
@@ -415,6 +391,27 @@ class CloudChains {
   }
 
   /**
+   * Gets the wallet mnemonic.
+   * @param password {string}
+   * @returns {Promise<string>}
+   */
+  getCCMnemonic(password) {
+    let mnemonic = '';
+    return new Promise((resolve, reject) => {
+      const cli = this._execFile(this.getCCSPVFilePath(), ['--getmnemonic', password], err => {
+        if (err || !mnemonic) {
+          logger.error(err);
+          reject(new Error('failed to get the mnemonic'));
+        } else
+          resolve(mnemonic);
+      });
+      cli.stdout.on('data', data => {
+        mnemonic = data.toString('utf8');
+      });
+    });
+  }
+
+  /**
    * Returns true if the wallet rpc is accepting connections. Calls the rpc
    * "help" method.
    * @return {boolean}
@@ -526,6 +523,19 @@ class CloudChains {
         this._cli = null;
       }
 
+      const resolveMnemonic = () => {
+        this.getCCMnemonic(password)
+          .then(resolve)
+          .catch(reject);
+      };
+
+      const createHandler = err => {
+        if (err)
+          reject(err);
+        else
+          resolveMnemonic();
+      };
+
       let started = false;
       const cli = this._spawn(this.getCCSPVFilePath(), ['--createdefaultwallet', password], {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
@@ -537,25 +547,16 @@ class CloudChains {
         this._waitForRpc(expiry, this._rpcWaitDelay)
           .then(available => {
             if (available)
-              resolve('unknown'); // TODO Resolve unknown mnemonic from rpc when that endpoint is ready
+              createHandler();
             else {
-              reject(new Error('failed to start rpc server'));
+              createHandler(new Error('failed to start rpc server'));
               cli.kill();
             }
           })
           .catch(() => {
-            reject(new Error('failed to start rpc server'));
+            createHandler(new Error('failed to start rpc server'));
             cli.kill();
           });
-
-        // TODO Pull mnemonic from rpc when that endpoint is ready
-        // const str = data.toString('utf8');
-        // const mnemonicPatt = /mnemonic\s+=\s+(.+)/i;
-        // if(mnemonicPatt.test(str)) {
-        //   const mnemonic = str.match(mnemonicPatt)[1].trim();
-        //   cli.kill();
-        //   resolve(mnemonic);
-        // }
       });
       cli.stderr.on('data', data => {
         const str = data.toString('utf8');
@@ -563,7 +564,7 @@ class CloudChains {
         if (started)
           return;
         started = true;
-        reject(new Error('failed to create a new wallet'));
+        createHandler(new Error('failed to create a new wallet'));
         cli.kill();
       });
       cli.stdout.on('close', code => {
@@ -618,7 +619,6 @@ class CloudChains {
   changePassword(oldPassword, newPassword) {
     const currentPassword = this.getStoredPassword();
     const currentSalt = this.getStoredSalt();
-    const storedMnemonic = this.getStoredMnemonic();
 
     const checkOldPassword = pbkdf2(oldPassword, currentSalt);
     if (currentPassword !== checkOldPassword) {
@@ -626,21 +626,7 @@ class CloudChains {
       throw new Error('The old password is incorrect.');
     }
 
-    let decryptedMnemonic = null;
-    try {
-      const crypt = new Crypt(oldPassword, currentSalt);
-      decryptedMnemonic = crypt.decrypt(storedMnemonic);
-    } catch(err) {
-      logger.error('failed to decrypt the existing mnemonic', err);
-      throw new Error('Failed to decrypt the existing mnemonic.');
-    }
-
-    if (decryptedMnemonic === null) {
-      logger.error('failed to decrypt the existing mnemonic');
-      throw new Error('Failed to decrypt the existing mnemonic (2).');
-    }
-
-    return this.saveWalletCredentials(newPassword, null, decryptedMnemonic);
+    return this.saveWalletCredentials(newPassword, null);
   }
 
   /**

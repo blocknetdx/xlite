@@ -150,21 +150,18 @@ describe('CloudChains Test Suite', function() {
       const cc = new CloudChains(ccFunc, storage);
       storage.setItem(storageKeys.PASSWORD, 'one_two_three');
       storage.setItem(storageKeys.SALT, 'one_two_three');
-      storage.setItem(storageKeys.MNEMONIC, 'one_two_three');
       cc.isWalletCreated().should.be.true();
     });
     it('CloudChains.isWalletCreated() should fail on missing password', function() {
       const cc = new CloudChains(ccFunc, storage);
       storage.setItem(storageKeys.PASSWORD, null);
       storage.setItem(storageKeys.SALT, 'one_two_three');
-      storage.setItem(storageKeys.MNEMONIC, 'one_two_three');
       cc.isWalletCreated().should.be.false();
     });
     it('CloudChains.isWalletCreated() should fail on missing password salt', function() {
       const cc = new CloudChains(ccFunc, storage);
       storage.setItem(storageKeys.PASSWORD, 'one_two_three');
       storage.setItem(storageKeys.SALT, null);
-      storage.setItem(storageKeys.MNEMONIC, 'one_two_three');
       cc.isWalletCreated().should.be.false();
     });
     it('CloudChains.isWalletCreated() should fail on empty values', function() {
@@ -179,19 +176,15 @@ describe('CloudChains Test Suite', function() {
     it('CloudChains.saveWalletCredentials()', function() {
       const password = 'a';
       const salt = 'b';
-      const mnemonic = 'c';
       const cc = new CloudChains(ccFunc, storage);
-      cc.saveWalletCredentials(password, salt, mnemonic).should.be.equal(true);
+      cc.saveWalletCredentials(password, salt).should.be.equal(true);
       const spw = pbkdf2(password, salt);
-      const crypt = new Crypt(password, salt);
-      const smnemonic = crypt.decrypt(cc.getStoredMnemonic());
       cc.getStoredPassword().should.be.equal(spw);
       cc.getStoredSalt().should.be.equal(salt);
-      mnemonic.should.be.equal(smnemonic);
     });
     it('CloudChains.saveWalletCredentials() null salt should work', function() {
       const cc = new CloudChains(ccFunc, storage);
-      cc.saveWalletCredentials('a', null, 'c').should.be.equal(true);
+      cc.saveWalletCredentials('a', null).should.be.equal(true);
       should.exist(cc.getStoredSalt());
     });
     it('CloudChains.getStoredPassword()', function() {
@@ -204,18 +197,61 @@ describe('CloudChains Test Suite', function() {
       storage.setItem(storageKeys.SALT, 'one_two_three');
       cc.getStoredSalt().should.be.equal('one_two_three');
     });
-    it('CloudChains.getStoredMnemonic()', function() {
+    it('CloudChains.getCCMnemonic() CloudChains.getDecryptedMnemonic()', async function() {
       const cc = new CloudChains(ccFunc, storage);
-      storage.setItem(storageKeys.MNEMONIC, 'one_two_three');
-      cc.getStoredMnemonic().should.be.equal('one_two_three');
-    });
-    it('CloudChains.getDecryptedMnemonic()', function() {
-      const password = 'a';
-      const salt = 'b';
-      const mnemonic = 'c';
-      const cc = new CloudChains(ccFunc, storage);
-      cc.saveWalletCredentials(password, salt, mnemonic);
-      cc.getDecryptedMnemonic(password).should.be.equal(mnemonic);
+      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
+      cc._execFile = execFile;
+      const password = 'my password';
+      const mnemonic = 'my mnemonic';
+      // Good cases should succeed
+      const checkMnemonic = await new Promise((resolve, reject) => {
+        cc.getCCMnemonic(password)
+          .then(resolve)
+          .catch(reject);
+        mockWrite(mnemonic);
+        mockClose();
+      });
+      checkMnemonic.should.equal(mnemonic);
+      const checkMnemonic2 = await new Promise((resolve, reject) => {
+        cc.getDecryptedMnemonic(password)
+          .then(resolve)
+          .catch(reject);
+        mockWrite(mnemonic);
+        mockClose();
+      });
+      checkMnemonic2.should.equal(mnemonic);
+      // Error on cli
+      const checkMnemonicBad = await new Promise(resolve => {
+        cc.getCCMnemonic(password)
+          .then(resolve)
+          .catch(resolve);
+        mockErr();
+      });
+      checkMnemonicBad.should.be.instanceof(Error);
+      const checkMnemonicBad2 = await new Promise(resolve => {
+        cc.getDecryptedMnemonic(password)
+          .then(resolve)
+          .catch(resolve);
+        mockErr();
+      });
+      should.not.exist(checkMnemonicBad2); // expecting null
+      // Empty mnemonic
+      const checkEmptyMnemonicBad = await new Promise(resolve => {
+        cc.getCCMnemonic(password)
+          .then(resolve)
+          .catch(resolve);
+        mockWrite('');
+        mockClose();
+      });
+      checkEmptyMnemonicBad.should.be.instanceof(Error);
+      const checkEmptyMnemonicBad2 = await new Promise(resolve => {
+        cc.getDecryptedMnemonic(password)
+          .then(resolve)
+          .catch(resolve);
+        mockWrite('');
+        mockClose();
+      });
+      should.not.exist(checkEmptyMnemonicBad2); // expecting null
     });
     it('CloudChains.loadConfs()', function() {
       const cc = new CloudChains(ccFunc, storage);
@@ -335,44 +371,31 @@ describe('CloudChains Test Suite', function() {
     it('CloudChains.changePassword()', async function() {
       const password = 'a';
       const salt = 'b';
-      const mnemonic = 'c';
       const cc = new CloudChains(ccFunc, storage);
-      cc.saveWalletCredentials(password, salt, mnemonic).should.be.equal(true);
+      cc.saveWalletCredentials(password, salt).should.be.equal(true);
       // change password
       const newPassword = 'z';
       cc.changePassword(password, newPassword).should.be.equal(true);
       const newSalt = cc.getStoredSalt();
       const spw = pbkdf2(newPassword, newSalt);
-      const crypt = new Crypt(newPassword, newSalt);
-      const smnemonic = crypt.decrypt(cc.getStoredMnemonic());
       cc.getStoredPassword().should.be.equal(spw);
-      mnemonic.should.be.equal(smnemonic);
-      cc.getDecryptedMnemonic(newPassword).should.be.equal(mnemonic);
     });
     it('CloudChains.changePassword() should fail on mismatching old and new passwords', async function() {
       const password = 'a';
       const salt = 'b';
-      const mnemonic = 'c';
       const cc = new CloudChains(ccFunc, storage);
-      cc.saveWalletCredentials(password, salt, mnemonic).should.be.equal(true);
+      cc.saveWalletCredentials(password, salt).should.be.equal(true);
       // change password
       const newPassword = 'z';
       should.throws(() => { cc.changePassword('z', newPassword); }, Error);
       const spw = pbkdf2(password, salt);
-      const crypt = new Crypt(password, salt);
-      const smnemonic = crypt.decrypt(cc.getStoredMnemonic());
       cc.getStoredPassword().should.be.equal(spw); // should match old
-      mnemonic.should.be.equal(smnemonic); // should match old
-      cc.getDecryptedMnemonic(password).should.be.equal(mnemonic); // should match old
     });
     it('CloudChains.changePassword() should fail on bad stored mnemonic', async function() {
       const password = 'a';
       const salt = 'b';
-      const mnemonic = 'c';
       const cc = new CloudChains(ccFunc, storage);
-      cc.saveWalletCredentials(password, salt, mnemonic).should.be.equal(true);
-      // Set bad mnemonic in storage
-      storage.setItem(storageKeys.MNEMONIC, null);
+      cc.saveWalletCredentials(password, salt).should.be.equal(true);
       // change password
       const newPassword = 'z';
       should.throws(() => { cc.changePassword('z', newPassword); }, Error);
@@ -601,11 +624,13 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.createSPVWallet()', async function() {
       const fakeSpawn = new FakeSpawn();
+      const {execFile, mockWrite, mockClose} = fakeExecFile();
       const makecc = () => {
         const cc = new CloudChains(ccFunc, storage);
         cc._rpcWaitDelay = 50;
         cc._rpc = {ccHelp: async () => true};
         cc._spawn = fakeSpawn.spawn;
+        cc._execFile = execFile;
         cc.createSPVWallet.should.be.a.Function();
         return cc;
       };
@@ -658,9 +683,13 @@ describe('CloudChains Test Suite', function() {
             .then(resolve)
             .catch(reject);
           fakeSpawn.stdout('data', 'got relayfee for currency');
-          fakeSpawn.stdout('close', 0);
+          setTimeout(() => {
+            mockWrite(testMnemonic);
+            mockClose();
+            fakeSpawn.stdout('close', 0);
+          }, 250);
         });
-        res.should.equal('unknown'); // TODO Update when mnemonic rpc is available
+        res.should.equal(testMnemonic);
       }
 
       { // Fail on wallet rpc expiry

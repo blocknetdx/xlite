@@ -98,11 +98,10 @@ class CloudChains {
    * Save the cloudchains wallet credentials.
    * @param password {string}
    * @param salt {string|null} If null the salt is created
-   * @param mnemonic {string}
    */
-  async saveWalletCredentials(password, salt, mnemonic) {
+  async saveWalletCredentials(password, salt) {
     try {
-      return await this._api.cloudChains_saveWalletCredentials(password, salt, mnemonic);
+      return await this._api.cloudChains_saveWalletCredentials(password, salt);
     } catch (err) {
       return false;
     }
@@ -127,18 +126,6 @@ class CloudChains {
   async getStoredSalt() {
     try {
       return await this._api.cloudChains_getStoredSalt();
-    } catch (err) {
-      return null;
-    }
-  }
-
-  /**
-   * Return the last known cloudchains wallet mnemonic. This is encrypted.
-   * @return {string|null}
-   */
-  async getStoredMnemonic() {
-    try {
-      return await this._api.cloudChains_getStoredMnemonic();
     } catch (err) {
       return null;
     }
