@@ -8,7 +8,7 @@ import Localize from './localize';
 import * as appActions from '../../actions/app-actions';
 import { Button } from './buttons';
 import { LoginInput } from './inputs';
-import { passwordValidator } from '../../util';
+import { checkPassword } from '../../util';
 
 const SecurityModal = ({ cloudChains, hideSecurityModal }) => {
 
@@ -19,14 +19,10 @@ const SecurityModal = ({ cloudChains, hideSecurityModal }) => {
   const [ passwordRepeat, setPasswordRepeat ] = useState('');
   const [ processing, setProcessing ] = useState(false);
 
-  const passwordLengthGood = passwordValidator.checkLength(password);
-  const passwordContainsLowercase = passwordValidator.checkLowercase(password);
-  const passwordContainsUppercase = passwordValidator.checkUppercase(password);
-  const passwordContainsNumber = passwordValidator.checkNumber(password);
-  const passwordContainsSpecial = passwordValidator.checkSpecial(password);
   const passwordsMatch = password && password === passwordRepeat;
+  const [ totalScore ] = checkPassword(password);
 
-  const passwordsGood = oldPassword !== '' && passwordLengthGood && passwordContainsLowercase && passwordContainsUppercase && passwordContainsNumber && passwordContainsSpecial && passwordsMatch;
+  const passwordsGood = oldPassword !== '' && totalScore >= 9 && passwordsMatch;
 
   const onSubmit = async e => {
     e.preventDefault();

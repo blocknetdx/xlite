@@ -11,7 +11,7 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import { LoginInput } from '../shared/inputs';
-import { passwordValidator } from '../../util';
+import { checkPassword } from '../../util';
 
 const {api} = window;
 const {isDev} = api;
@@ -91,12 +91,16 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
   const [ cloudChainsIsWalletRPCRunning, setCloudChainsIsWalletRPCRunning ] = useState(false);
   const [ cloudChainsStoredPassword, setCloudChainsStoredPassword ] = useState(false);
 
-  const passwordLengthGood = passwordValidator.checkLength(password);
-  const passwordContainsLowercase = passwordValidator.checkLowercase(password);
-  const passwordContainsUppercase = passwordValidator.checkUppercase(password);
-  const passwordContainsNumber = passwordValidator.checkNumber(password);
-  const passwordContainsSpecial = passwordValidator.checkSpecial(password);
   const passwordsMatch = password && password === passwordRepeat;
+  const [
+    totalScore,
+    passwordLengthGood,
+    passwordContainsLowercase,
+    passwordContainsUppercase,
+    passwordContainsNumber,
+    passwordContainsSpecial,
+  ] = checkPassword(password);
+  const goodPassword = totalScore >= 9 && passwordsMatch;
 
   // The component requires additional data before rendering
   useEffect(() => {
@@ -301,7 +305,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
                 <Button
                   type={'submit'}
                   className={'w-100'}
-                  disabled={processing || !passwordContainsLowercase || !passwordContainsUppercase || !passwordContainsNumber || !passwordContainsSpecial || !passwordLengthGood || !passwordsMatch}
+                  disabled={!goodPassword}
                   style={{height: 50}}>{processing ? <Spinner /> : <Localize context={'login'}>Create Wallet</Localize>}</Button>
 
               </form>
