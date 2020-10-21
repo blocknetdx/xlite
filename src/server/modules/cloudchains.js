@@ -83,6 +83,16 @@ class CloudChains {
    */
   _selectionPatt = /selection/i;
   /**
+   * @type {RegExp}
+   * @private
+   */
+  _loginPatt = /\[login]/i;
+  /**
+   * @type {RegExp}
+   * @private
+   */
+  _unableToInitializePatt = /unable\sto\sinitialize/i;
+  /**
    * @type {SimpleStorage}
    * @private
    */
@@ -465,7 +475,10 @@ class CloudChains {
         if (started)
           return;
         const str = data.toString('utf8');
-        if(!password && this._selectionPatt.test(str)) {
+        if(
+          (this._loginPatt.test(str) && this._unableToInitializePatt.test(str))
+          || (!password && this._selectionPatt.test(str))
+        ) {
           started = true;
           resolve(false);
           cli.kill();
