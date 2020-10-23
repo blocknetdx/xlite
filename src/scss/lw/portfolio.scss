@@ -6,10 +6,14 @@
   right: 0;
   top: 0;
   bottom: 0;
-  padding-left: 25px;
+  padding-left: 20px;
   padding-right: 20px;
   padding-bottom: 10px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+
+  .lw-card-container {
+    margin-top: 25px;
+  }
 }

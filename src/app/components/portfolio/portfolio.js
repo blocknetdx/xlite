@@ -38,11 +38,9 @@ const Portfolio = ({ windowWidth, altCurrency, currencyMultipliers, balanceOverT
   const hidePriceGraph = windowWidth < 1100;
   const hideCoinText = windowWidth < 1050;
 
-  console.log('hidePercent', hidePercent, 'hideVolume', hideVolume, 'hidePriceGraph', hidePriceGraph, 'hideCoinText', hideCoinText);
-
   return (
     <div className={'lw-portfolio-container'}>
-      <Row style={{height: 100, minHeight: 100, maxHeight: 150}}>
+      <Row style={{height: 115, minHeight: 115, maxHeight: 150}}>
         <Column>
           <Balance />
         </Column>
