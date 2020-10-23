@@ -160,7 +160,7 @@ class Wallet {
    * @param fromZero {boolean} force a start time of zero
    * @return {Promise<boolean>} true if update occurred, otherwise false
    */
-  async updateTransactions(fromZero) {
+  async updateTransactions(fromZero=false) {
     if (!this._needsTransactionUpdate())
       return false; // rate limit this request
     if(fromZero)
