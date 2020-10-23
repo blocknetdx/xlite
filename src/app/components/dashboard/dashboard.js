@@ -67,7 +67,7 @@ const Dashboard = ({ windowHeight, windowWidth, altCurrency, wallets, balances, 
       <Row style={{height: chartContainerHeight, minHeight: chartContainerHeight, maxHeight: chartContainerHeight}}>
         <Column>
           <div className={'lw-dashboard-info'}>
-            <Balance />
+            <Balance style={{minHeight: 'inherit'}} />
             {!hideCharts ? <BalanceFilters selectedFilter={balanceFilters[chartScale]} filters={Object.values(balanceFilters).map(key => key)} onFilterSelected={onBalanceFilterSelected} /> : null}
           </div>
           {!hideCharts ?

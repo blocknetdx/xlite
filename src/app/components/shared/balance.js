@@ -21,7 +21,7 @@ const { bignumber } = math;
 
 const {api} = window;
 
-let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, balances, currencyMultipliers, pricing }) => {
+let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, balances, currencyMultipliers, style = {}, pricing }) => {
 
   if(showCoinDetails) { // coin details
   const wallet = activeWallet ? wallets.find(w => w.ticker === activeWallet) : null;
@@ -39,7 +39,7 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
   // ToDo add change over time data
 
     return (
-      <div className={'lw-balance-outer-container d-flex flex-column justify-content-center'}>
+      <div className={'lw-balance-outer-container d-flex flex-column justify-content-center'} style={style}>
         <div className={'d-flex flex-row justify-content-start'}>
           <img alt={Localize.text('{{coin}} image', 'balance', {coin: wallet.ticker})} srcSet={wallet.imagePath} style={{width: 32, height: 32}} />
           <h3 style={{fontSize: 24, lineHeight: '32px', marginLeft: 10}}>{wallet.name}</h3>
@@ -78,7 +78,7 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
       ? math.multiply(oneSat, negativeValue).toFixed(MAX_DECIMAL_PLACE)
       : btcPriceChange.toFixed(MAX_DECIMAL_PLACE);
     return (
-      <div className={'lw-balance-outer-container'}>
+      <div className={'lw-balance-outer-container'} style={style}>
         <div className={'lw-balance-note'}><Localize context={'balance'}>Total wallet balance</Localize></div>
         <div className={'lw-balance-container'}>
           <h2>{BTC + ' ' + totalBalance}</h2> <h4>{altCurrency} {totalAltCurrency}</h4>
@@ -100,6 +100,7 @@ Balance.propTypes = {
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   balances: PropTypes.instanceOf(IMap),
   currencyMultipliers: PropTypes.object,
+  style: PropTypes.object,
   pricing: PropTypes.instanceOf(Pricing)
 };
 
