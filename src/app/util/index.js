@@ -104,6 +104,42 @@ export const passwordValidator = {
   checkSpecial: password => /[^\s\w\d]/.test(password)
 };
 
+export const checkPassword = password => {
+  let totalScore = 0;
+  let goodLength = false, hasLower = false, hasUpper = false, hasNumber = false, hasSpecial = false;
+  if(password.length >= 10) {
+    totalScore += 2;
+    goodLength = true;
+  } else if(password.length > 7) {
+    totalScore += 1;
+    goodLength = true;
+  }
+  if(/[0-9]/.test(password)) {
+    totalScore += 2;
+    hasNumber = true;
+  }
+  if(/[a-z]/.test(password)) {
+    totalScore += 2;
+    hasLower = true;
+  }
+  if(/[A-Z]/.test(password)) {
+    totalScore += 2;
+    hasUpper = true;
+  }
+  if(/[~!@#$%^&*()_-]/.test(password)) {
+    totalScore += 2;
+    hasSpecial = true;
+  }
+  return [
+    totalScore,
+    goodLength,
+    hasLower,
+    hasUpper,
+    hasNumber,
+    hasSpecial,
+  ];
+};
+
 /**
  * Return only enabled wallets.
  * @param wallets {Wallet[]}

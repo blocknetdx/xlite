@@ -169,7 +169,10 @@ class Wallet {
       endTime = unixTime();
 
     try {
-      return await this.rpc.listTransactions(startTime, endTime);
+      // Filter receive transactions to ensure ismine
+      const addrs = new Set(await this.getAddresses());
+      const txs = await this.rpc.listTransactions(startTime, endTime);
+      return txs.filter(tx => tx.isReceive() ? addrs.has(tx.address) : true);
     } catch (e) {
       logger.error(`${this.ticker}`, e);
       throw e;
