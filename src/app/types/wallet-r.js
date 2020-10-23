@@ -157,11 +157,14 @@ class Wallet {
 
   /**
    * Fetches the latest transactions from the server.
+   * @param fromZero {boolean} force a start time of zero
    * @return {Promise<boolean>} true if update occurred, otherwise false
    */
-  async updateTransactions() {
+  async updateTransactions(fromZero=false) {
     if (!this._needsTransactionUpdate())
       return false; // rate limit this request
+    if(fromZero)
+      await this._setLastTransactionFetchTime(0);
     await this._fetchTransactions();
     return true;
   }

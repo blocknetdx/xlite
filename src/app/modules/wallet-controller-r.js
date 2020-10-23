@@ -385,16 +385,17 @@ class WalletController {
 
   /**
    * Fetch the latest balance and transaction info across all wallets.
+   * @param fromZero {boolean} force a start time of zero
    * @return {Promise<void>}
    */
-  async updateAllBalances() {
+  async updateAllBalances(fromZero) {
     try {
       await this._api.walletController_updateAllBalances();
       // Trigger fetch on the latest transactions
       const wallets = await this.getEnabledWallets();
       const updateRequests = [];
       for (const wallet of wallets)
-        updateRequests.push(wallet.updateTransactions());
+        updateRequests.push(wallet.updateTransactions(fromZero));
       await Promise.all(updateRequests);
     } catch (err) {
       logger.error(err);

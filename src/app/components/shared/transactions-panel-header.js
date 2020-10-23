@@ -21,7 +21,7 @@ let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletCont
   const [selectedTicker, setSelectedTicker] = useState(null);
 
   const onRefreshButton = () => {
-    walletController.updateAllBalances()
+    walletController.updateAllBalances(true)
       .then(() => {
         walletController.dispatchBalances(appActions.setBalances, store);
         walletController.dispatchTransactions(appActions.setTransactions, store);
