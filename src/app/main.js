@@ -41,8 +41,8 @@ const combinedReducers = combineReducers({
 
 const store = createStore(combinedReducers);
 if(isDev) {
-  (async () => await db.clear())(); // <- clear all indexeddb data
-  domStorage.clear(); // <- clear all stored data
+  // (async () => await db.clear())(); // <- clear all indexeddb data
+  // domStorage.clear(); // <- clear all stored data
   // domStorage.removeItem('TX_LAST_FETCH_TIME_BLOCK'); // <- clear BLOCK transaction fetch time
   // domStorage.removeItem('TX_LAST_FETCH_TIME_LTC'); // <- clear LTC transaction fetch time
   console.log('state', store.getState());
