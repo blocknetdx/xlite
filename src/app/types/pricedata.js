@@ -68,6 +68,17 @@ class PriceData {
   price() {
     return this.close || this.open;
   }
+
+  /**
+   * Returns if the record is relative price data or historical price data
+   * @returns {boolean}
+   */
+  isHistoricalData() {
+    const date = moment(this.date).toDate();
+    // historical data is from UTC time 00:00:00 for each day
+    return [date.getUTCHours(), date.getUTCMinutes(), date.getUTCMilliseconds()].every(num => num === 0);
+  }
+
 }
 
 export default PriceData;

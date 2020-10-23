@@ -18,57 +18,71 @@ export default class Pricing {
 
   /**
    * Fetch pricing data from the api endpoint.
-   * Sample data:
-   * { "price_currency": "USD",
-   *   "token": "BTC",
-   *   "price_volume": [
-   *     {
-   *       "date": "2020-08-11T00:00:00.000Z",
-   *       "price_close": 11388.53,
-   *       "price_high": 11943.0,
-   *       "price_low": 11120.0,
-   *       "price_open": 11899.87,
-   *       "volume": 20706.60991744
-   *     },
-   *     {
-   *       "date": "2020-08-12T00:00:00.000Z",
-   *       "price_close": 11566.45,
-   *       "price_high": 11625.0,
-   *       "price_low": 11148.54,
-   *       "price_open": 11388.88,
-   *       "volume": 12809.98917913
-   *     }
-   *   ]}
    * @param ticker {string} Token ticker (e.g. BLOCK, BTC, LTC)
    * @param currency {string} USD, BTC
    * @return {Promise<PriceData[]|null>}
    */
   static async defaultPricingApi(ticker, currency) {
-    const res = await request.post('https://pricing.core.cloudchainsinc.com/')
-      .send({ symbol: ticker + '/' + currency })
-      .set('content-type', 'application/json')
-      .set('accept', 'application/json');
+    const res = await Promise.all([
+      request // endpoint docs https://min-api.cryptocompare.com/documentation?key=Historical&cat=dataHistoday
+        .get(`https://min-api.cryptocompare.com/data/v2/histoday?fsym=${ticker}&tsym=${currency}&limit=8`)
+        .set('accept', 'application/json'),
+      request // endpoint docs https://min-api.cryptocompare.com/documentation?key=Price&cat=multipleSymbolsFullPriceEndpoint
+        .get(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${ticker}&tsyms=${currency}`)
+        .set('accept', 'application/json')
+    ]);
 
-    const reqField = 'price_volume';
-    if (res && _.has(res.body, reqField) && _.isArray(res.body[reqField])) {
-      const m = new Map();
-      for (const day of res.body[reqField]) {
-        const pd = new PriceData({
-          date: day['date'],
-          open: day['price_open'],
-          close: day['price_close'],
-          high: day['price_high'],
-          low: day['price_low'],
-          volume: day['volume'],
+    let pricingArr = [];
+    { // data from the last twenty-four hours
+      const { statusCode, body = {} } = res[1];
+      const { Response = '', Message = '', RAW = {} } = body;
+      if(statusCode !== 200) {
+        logger.error(`cryptocompare fetch current pricing data call for ${ticker}/${currency} failed with statusCode ${statusCode}`);
+      } else if(Response === 'Error') {
+        logger.error(`cryptocompare fetch current pricing data for ${ticker}/${currency} failed with error message '${Message}'`);
+      } else if(_.has(RAW, ticker) && _.has(RAW[ticker], currency)) {
+        const day = RAW[ticker][currency];
+        pricingArr = pricingArr.concat([new PriceData({
+          date: new Date(day['LASTUPDATE'] * 1000).toISOString(),
+          open: day['OPEN24HOUR'],
+          close: day['PRICE'],
+          high: day['HIGH24HOUR'],
+          low: day['LOW24HOUR'],
+          volume: day['VOLUME24HOUR'],
           ticker: ticker,
           currency: currency,
-        });
-        m.set(pd.date, pd);
+        })]);
       }
-      return Array.from(m.values());
     }
 
-    return null;
+    { // historical data for the last week
+      const { statusCode, body = {} } = res[0];
+      const { Response = '', Message = '', Data = {} } = body;
+      const reqField = 'Data';
+      if(statusCode !== 200) {
+        logger.error(`cryptocompare fetch historical pricing data call for ${ticker}/${currency} failed with statusCode ${statusCode}`);
+      } else if(Response === 'Error') {
+        logger.error(`cryptocompare fetch historical pricing data for ${ticker}/${currency} failed with error message '${Message}'`);
+      } else if(_.has(Data, reqField) && _.isArray(Data[reqField])) {
+        const m = new Map();
+        for (const day of Data[reqField]) {
+          const pd = new PriceData({
+            date: new Date(day.time * 1000).toISOString(),
+            open: day['open'],
+            close: day['close'],
+            high: day['high'],
+            low: day['low'],
+            volume: day['volumefrom'],
+            ticker: ticker,
+            currency: currency,
+          });
+          m.set(pd.date, pd);
+        }
+        pricingArr = pricingArr.concat(Array.from(m.values()));
+      }
+    }
+
+    return pricingArr.length > 0 ? pricingArr : null;
   }
 
   /**

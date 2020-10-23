@@ -52,12 +52,13 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
 
   const pricingChartData = new Map();
   if (pricingData) {
-    for (const [key, value] of pricingData.entries()) {
-      if (!value || value.length === 0)
-        continue; // skip if no data
-      const sortedData = value.map(pd => chartDataFromPriceData(pd))
-                           .sort((a,b) => b[0] - a[0]); // sort by unix time descending (recent time first)
-      pricingChartData.set(key, sortedData.slice(0, 7)); // 1 week of data
+    for (const [key, value = []] of pricingData.entries()) {
+      const sortedData = value
+        .filter(pd => pd.isHistoricalData())
+        .map(pd => chartDataFromPriceData(pd))
+        .sort((a,b) => b[0] - a[0]); // sort by unix time descending (recent time first)
+      if (sortedData.length > 0) // Only add it if there is data
+        pricingChartData.set(key, sortedData.slice(0, 7)); // 1 week of data
     }
   }
 
