@@ -16,6 +16,7 @@ import { all, create } from 'mathjs';
 import Chart from './chart';
 import moment from 'moment';
 import Pricing from '../../modules/pricing-r';
+import _ from 'lodash';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -52,7 +53,9 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
 
   const pricingChartData = new Map();
   if (pricingData) {
-    for (const [key, value = []] of pricingData.entries()) {
+    for (const [key, value] of pricingData.entries()) {
+      if (_.isNil(value))
+        continue;
       const sortedData = value
         .filter(pd => pd.isHistoricalData())
         .map(pd => chartDataFromPriceData(pd))
