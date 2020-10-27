@@ -1,5 +1,5 @@
 {
-  "linux": "https://cloudchainsinc.com/downloads/cc-release-0.3.48-linux.zip",
-  "mac": "https://cloudchainsinc.com/downloads/cc-release-0.3.48-osx.zip",
-  "win": "https://cloudchainsinc.com/downloads/cc-release-0.3.48-windows.zip"
+  "linux": "https://cloudchainsinc.com/downloads/cc-release-0.3.50-linux.zip",
+  "mac": "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.3.50-osx.zip",
+  "win": "https://cloudchainsinc.com/downloads/cc-release-0.3.50-windows.zip"
 }
