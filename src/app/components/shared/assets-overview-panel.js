@@ -16,6 +16,7 @@ import { all, create } from 'mathjs';
 import Chart from './chart';
 import moment from 'moment';
 import Pricing from '../../modules/pricing-r';
+import _ from 'lodash';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -53,11 +54,14 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
   const pricingChartData = new Map();
   if (pricingData) {
     for (const [key, value] of pricingData.entries()) {
-      if (!value || value.length === 0)
-        continue; // skip if no data
-      const sortedData = value.map(pd => chartDataFromPriceData(pd))
-                           .sort((a,b) => b[0] - a[0]); // sort by unix time descending (recent time first)
-      pricingChartData.set(key, sortedData.slice(0, 7)); // 1 week of data
+      if (_.isNil(value))
+        continue;
+      const sortedData = value
+        .filter(pd => pd.isHistoricalData())
+        .map(pd => chartDataFromPriceData(pd))
+        .sort((a,b) => b[0] - a[0]); // sort by unix time descending (recent time first)
+      if (sortedData.length > 0) // Only add it if there is data
+        pricingChartData.set(key, sortedData.slice(0, 7)); // 1 week of data
     }
   }
 

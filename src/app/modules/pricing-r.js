@@ -68,21 +68,21 @@ export default class Pricing {
   }
 
   /**
-   * Return the percent change from the last 2 days.
+   * Return the percent change from the last 24 hours
    * @param ticker {string} Token ticker (e.g. BLOCK, BTC, LTC)
    * @param currency {string} USD, BTC, GBP, EUR
    * @return {number}
    */
   getPriceChange(ticker, currency) {
     const latestData = this._pricingData(ticker, currency);
-    if (!latestData || latestData.length < 2)
+    if (!latestData || latestData.length < 1)
       return 0;
-    // sort descending and compare first two entries (last 2 days)
+    // sort descending
     const sorted = latestData.map(pd => new PriceData(pd))
       .sort((a,b) => b.unix() - a.unix());
-    const day1 = sorted[0];
-    const day2 = sorted[1];
-    return (day1.price() - day2.price()) / day2.price();
+    // the first item in latestData is data from the last 24 hours relative to now
+    const day = sorted[0];
+    return (day.close - day.open) / day.open;
   }
 
   /**

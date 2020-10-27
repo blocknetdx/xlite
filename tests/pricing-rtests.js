@@ -67,7 +67,7 @@ describe('Pricing Renderer Test Suite', function() {
     const pricing = new Pricing(fakeApi, storage);
     await pricing.updatePricing([ticker], [currency], 0);
     const fakePrices = (await fakeApi.pricing_getPrice(ticker, currency)).sort((a,b) => b.unix() - a.unix()); // descending, recent date first
-    const expectedPriceChange = (fakePrices[0].price() - fakePrices[1].price()) / fakePrices[1].price();
+    const expectedPriceChange = (fakePrices[0].close - fakePrices[0].open) / fakePrices[0].open;
     pricing.getPriceChange(ticker, currency).toFixed(2).should.be.equal(expectedPriceChange.toFixed(2));
   });
   it('Pricing.getPriceChange() with bad data should be 0', async function() {
