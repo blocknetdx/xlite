@@ -66,6 +66,7 @@ export const apiConstants = {
   walletController_updatePriceMultipliers: 'walletController_updatePriceMultipliers',
   walletController_updateBalanceInfo: 'walletController_updateBalanceInfo',
   walletController_updateAllBalances: 'walletController_updateAllBalances',
+  walletController_walletRpcReady: 'walletController_walletRpcReady',
 
   wallet_rpcEnabled: 'wallet_rpcEnabled',
   wallet_getBalance: 'wallet_getBalance',
@@ -271,6 +272,9 @@ const walletController_API = {
   },
   [apiConstants.walletController_updateAllBalances]: async () => {
     return ipcRenderer.invoke(apiConstants.walletController_updateAllBalances);
+  },
+  [apiConstants.walletController_walletRpcReady]: async (ticker) => {
+    return ipcRenderer.invoke(apiConstants.walletController_walletRpcReady, ticker);
   },
 };
 

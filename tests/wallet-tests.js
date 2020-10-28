@@ -77,6 +77,27 @@ describe('Wallet Test Suite', function() {
     wallet2.rpcEnabled().should.be.false();
     wallet2.rpc.should.be.eql(new RPCController(0, '', ''));
   });
+  it('Wallet.rpcReady()', async function() {
+    const wallet = new Wallet(token, conf, appStorage);
+    wallet.initRpcIfEnabled();
+    wallet.rpcEnabled().should.be.true();
+    wallet.rpc.getInfo = () => new Promise(resolve => resolve());
+    await wallet.rpcReady().should.finally.be.true();
+  });
+  it('Wallet.rpcReady() fails on bad rpc', async function() {
+    const wallet = new Wallet(token, conf, appStorage);
+    wallet.initRpcIfEnabled();
+    wallet._conf.rpcEnabled = false;
+    wallet.rpcEnabled().should.be.false();
+    await wallet.rpcReady().should.finally.be.false();
+  });
+  it('Wallet.rpcReady() fails on bad getinfo rpc', async function() {
+    const wallet = new Wallet(token, conf, appStorage);
+    wallet.initRpcIfEnabled();
+    wallet.rpcEnabled().should.be.true();
+    wallet.rpc.getInfo = () => new Promise((resolve, reject) => reject(new Error('fail')));
+    await wallet.rpcReady().should.finally.be.false();
+  });
   it('Wallet.blockchain()', function() {
     const wallet = new Wallet(token, conf, appStorage);
     wallet.blockchain().should.be.equal(token.blockchain);

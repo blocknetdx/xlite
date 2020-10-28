@@ -355,6 +355,12 @@ class Api {
     this._proc.handle(apiConstants.walletController_updateAllBalances, (evt, arg) => {
       return this._walletController.updateAllBalances();
     });
+    this._proc.handle(apiConstants.walletController_walletRpcReady, (evt, ticker) => {
+      const wallet = this._walletController.getWallet(ticker);
+      if (!wallet)
+        return false;
+      return wallet.rpcReady();
+    });
   }
 
   /**

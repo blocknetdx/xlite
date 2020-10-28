@@ -388,7 +388,7 @@ class WalletController {
    * @param fromZero {boolean} force a start time of zero
    * @return {Promise<void>}
    */
-  async updateAllBalances(fromZero) {
+  async updateAllBalances(fromZero=false) {
     try {
       await this._api.walletController_updateAllBalances();
       // Trigger fetch on the latest transactions
@@ -429,6 +429,74 @@ class WalletController {
       await handler();
       this.pollPriceMultipliers(interval, handler);
     }).bind(this), interval);
+  }
+
+  /**
+   * Returns true when the rpc is ready. Returns on timeout if timeout happens first.
+   * If timeout occurs this returns false.
+   * @param timeout Milliseconds
+   * @param additionalWait Milliseconds
+   * @return {Promise<boolean>}
+   */
+  async waitForRpc(timeout, additionalWait=2000) {
+    // This code concurrently checks the walletRpcReady status of each enabled
+    // wallet. Additionally, it incorporates a timeout across all wallet rpc
+    // checks.
+    const promises = [];
+    const timeouts = []; // tracker handlers for clean up
+    for (const wallet of (await this.getEnabledWallets())) {
+      const ticker = wallet.ticker;
+      promises.push(new Promise((resolve, reject) => {
+        let timeoutOccurred = false; // use state to prevent race condition
+        let done = false; // use state to prevent race condition
+        const handler = () => {
+          if (done)
+            return;
+          timeoutOccurred = true;
+          reject(new Error(`wait for rpc timeout ${ticker}`));
+        };
+        timeouts.push(handler);
+        setTimeout(handler, timeout);
+        this._api.walletController_walletRpcReady(ticker).then(ready => {
+          if (timeoutOccurred)
+            return;
+          done = true;
+          if (ready)
+            setTimeout(() => resolve(ticker), additionalWait); // additional spin up time
+          else
+            reject(new Error(`wait for rpc timeout ${ticker}`));
+        }).catch(e => {
+          if (timeoutOccurred)
+            return;
+          done = true;
+          reject(e);
+        });
+      }));
+    }
+    try {
+      let count = promises.length;
+      let failed = false;
+      const countHandler = (resolve) => {
+        count--;
+        if (count <= 0)
+          resolve();
+      };
+      await new Promise(resolve => {
+        for (const promise of promises)
+          promise.then(ticker => {
+            countHandler(resolve);
+          }).catch(e => {
+            console.log(e);
+            failed = true;
+            countHandler(resolve);
+          });
+      });
+      return !failed;
+    } catch (e) {
+      for (const handler of timeouts)
+        clearTimeout(handler);
+      return false;
+    }
   }
 }
 
