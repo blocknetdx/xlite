@@ -622,7 +622,8 @@ describe('CloudChains Test Suite', function() {
       cc.stopSPV();
       wasKilled().should.be.true();
     });
-    it('CloudChains.createSPVWallet()', async function() {
+
+    const runCreateWalletTests = async function(password, createFromMnemonic) {
       const fakeSpawn = new FakeSpawn();
       const {execFile, mockWrite, mockClose} = fakeExecFile();
       const makecc = () => {
@@ -634,8 +635,7 @@ describe('CloudChains Test Suite', function() {
         cc.createSPVWallet.should.be.a.Function();
         return cc;
       };
-      const password = 'password';
-      const testMnemonic = 'some mnemonic here';
+      const testMnemonic = createFromMnemonic || 'some mnemonic here';
 
       {
         // If there is an error opening the CLI
@@ -644,7 +644,7 @@ describe('CloudChains Test Suite', function() {
         let err = null;
         try {
           await new Promise((resolve, reject) => {
-            cc.createSPVWallet(password)
+            cc.createSPVWallet(password, createFromMnemonic)
               .then(resolve)
               .catch(reject);
             fakeSpawn.stderr('data', 'error');
@@ -662,7 +662,7 @@ describe('CloudChains Test Suite', function() {
         let err = null;
         try {
           await new Promise((resolve, reject) => {
-            cc.createSPVWallet(password)
+            cc.createSPVWallet(password, createFromMnemonic)
               .then(resolve)
               .catch(reject);
             fakeSpawn.stdout('close', 0);
@@ -679,7 +679,7 @@ describe('CloudChains Test Suite', function() {
         fakeSpawn.clear();
         const cc = makecc();
         const res = await new Promise((resolve, reject) => {
-          cc.createSPVWallet(password)
+          cc.createSPVWallet(password, createFromMnemonic)
             .then(resolve)
             .catch(reject);
           fakeSpawn.stdout('data', 'got relayfee for currency');
@@ -699,7 +699,7 @@ describe('CloudChains Test Suite', function() {
         cc._rpcStartExpirySeconds = 1;
         let err = null;
         await new Promise(resolve => {
-          cc.createSPVWallet(password)
+          cc.createSPVWallet(password, createFromMnemonic)
             .then(resolve)
             .catch(e => {
               err = e;
@@ -710,6 +710,16 @@ describe('CloudChains Test Suite', function() {
         });
         should.exist(err);
       }
+    };
+
+    it('CloudChains.createSPVWallet()', async function() {
+      this.timeout(5000);
+      const password = 'password';
+      // Test using password only
+      await runCreateWalletTests(password);
+      // Test using password and mnemonic
+      const mnemonic = 'one two three four five six seven eight nine ten eleven twelve';
+      await runCreateWalletTests(password, mnemonic);
     });
     it('CloudChains._isCLIAvailable()', function() {
       const cc = new CloudChains(ccFunc, storage);

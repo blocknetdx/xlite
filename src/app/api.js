@@ -217,8 +217,8 @@ const cloudChains_API = {
   [apiConstants.cloudChains_stopSPV]: async () => {
     return ipcRenderer.invoke(apiConstants.cloudChains_stopSPV);
   },
-  [apiConstants.cloudChains_createSPVWallet]: async (password) => {
-    return ipcRenderer.invoke(apiConstants.cloudChains_createSPVWallet, password);
+  [apiConstants.cloudChains_createSPVWallet]: async (password, mnemonic) => {
+    return ipcRenderer.invoke(apiConstants.cloudChains_createSPVWallet, password, mnemonic);
   },
   [apiConstants.cloudChains_enableAllWallets]: async () => {
     return ipcRenderer.invoke(apiConstants.cloudChains_enableAllWallets);
