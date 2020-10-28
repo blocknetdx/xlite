@@ -151,6 +151,9 @@ function startupInit(walletController, confController, pricingController, confNe
       return;
     }
 
+    // Wait for rpc to become available
+    await walletController.waitForRpc(6500);
+
     // Notify UI of existing cached info
     walletController.dispatchBalances(appActions.setBalances, store);
     walletController.dispatchTransactions(appActions.setTransactions, store);

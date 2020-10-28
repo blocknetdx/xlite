@@ -312,6 +312,19 @@ describe('WalletController Test Suite', function() {
     store.getState().appState.transactions.get('BLOCK')[0].should.be.eql(transactions.get('BLOCK')[0]);
     store.getState().appState.transactions.get('BTC')[0].should.be.eql(transactions.get('BTC')[0]);
   });
+  it('WalletController.waitForRpc()', async function() {
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
+    await wc.loadWallets();
+    await wc.waitForRpc(500, 250).should.finally.be.true();
+  });
+  it('WalletController.waitForRpc() should fail on bad wallet rpc', async function() {
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
+    await wc.loadWallets();
+    fakeApi.walletController_walletRpcReady = async (ticker) => {
+      return ticker !== 'BLOCK';
+    };
+    await wc.waitForRpc(500, 250).should.finally.be.false();
+  });
   it('WalletController.dispatchPriceMultipliers() updatePriceMultipliers()', async function() {
     const combinedReducers = combineReducers({ appState: appReducer });
     const store = createStore(combinedReducers);

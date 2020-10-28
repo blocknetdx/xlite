@@ -105,6 +105,21 @@ class Wallet {
   }
 
   /**
+   * Returns true if the rpc is ready to receive connections.
+   * @return {Promise<boolean>}
+   */
+  async rpcReady() {
+    if (!this.rpcEnabled())
+      return false;
+    try {
+      await this.rpc.getInfo();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
    * Return the blockchain name for the wallet.
    * @return {string}
    */

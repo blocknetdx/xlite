@@ -80,6 +80,7 @@ const FakeApi = (fakeApi) => {
     walletController_updatePriceMultipliers: () => resolvePromise(true),
     walletController_updateBalanceInfo: (ticker) => resolvePromise(true),
     walletController_updateAllBalances: () => resolvePromise(true),
+    walletController_walletRpcReady: () => resolvePromise(true),
     wallet_getTransactions: (ticker, startTime=0, endTime=0) => {
       if (endTime === 0)
         endTime = unixTime();

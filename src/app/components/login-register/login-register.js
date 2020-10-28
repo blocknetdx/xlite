@@ -171,7 +171,12 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
     setCloudChainsIsWalletRPCRunning(isRpcRunning);
 
     startupInit();
-    setCCWalletStarted(true);
+    await new Promise(resolve => { // provide some delay before showing dashboard (rpc initialization)
+      setTimeout(() => {
+        setCCWalletStarted(true);
+        resolve();
+      }, 2000);
+    });
   };
 
   const onRegisterSubmit = async function(e) {
