@@ -281,8 +281,8 @@ class Api {
     this._proc.handle(apiConstants.cloudChains_stopSPV, (evt, arg) => {
       return this._cloudChains.stopSPV();
     });
-    this._proc.handle(apiConstants.cloudChains_createSPVWallet, (evt, password) => {
-      return this._cloudChains.createSPVWallet(password);
+    this._proc.handle(apiConstants.cloudChains_createSPVWallet, (evt, password, mnemonic) => {
+      return this._cloudChains.createSPVWallet(password, mnemonic);
     });
     this._proc.handle(apiConstants.cloudChains_enableAllWallets, (evt, arg) => {
       return this._cloudChains.enableAllWallets();

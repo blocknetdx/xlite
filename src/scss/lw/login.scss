@@ -166,3 +166,15 @@ $lw-login-logo-total-width: 230px;
     cursor: pointer;
   }
 }
+
+.lw-login-create-from-mnemonic-button-container {
+  margin-bottom: 5px;
+  .lw-login-create-from-mnemonic-button {
+    color: $lw-secondary-6;
+    font-size: 13px;
+    cursor: pointer;
+    &:hover {
+      color: lighten($lw-secondary-6, 15%);
+    }
+  }
+}

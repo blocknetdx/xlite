@@ -224,11 +224,12 @@ class CloudChains {
   /**
    * Creates a new CloudChains wallet
    * @param password {string}
+   * @param mnemonic {string}
    * @returns {string}
    */
-  async createSPVWallet(password) {
+  async createSPVWallet(password, mnemonic = '') {
     try {
-      return await this._api.cloudChains_createSPVWallet(password);
+      return await this._api.cloudChains_createSPVWallet(password, mnemonic);
     } catch (e) {
       return '';
     }

@@ -522,9 +522,10 @@ class CloudChains {
   /**
    * Creates a new CloudChains wallet
    * @param password {string}
+   * @param mnemonic {string}
    * @returns {Promise<string>}
    */
-  createSPVWallet(password) {
+  createSPVWallet(password, mnemonic = '') {
     return new Promise((resolve, reject) => {
       if (!password) { // fail on bad password
         reject(new Error('failed to create wallet with empty password'));
@@ -550,7 +551,13 @@ class CloudChains {
       };
 
       let started = false;
-      const cli = this._spawn(this.getCCSPVFilePath(), ['--createdefaultwallet', password], {detached: false, windowsHide: true});
+      let args;
+      if(mnemonic) { // Create a wallet from a previous mnemonic
+        args = ['--createwalletmnemonic', password, mnemonic];
+      } else { // Create a new wallet
+        args = ['--createdefaultwallet', password];
+      }
+      const cli = this._spawn(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         if (started)
           return;
