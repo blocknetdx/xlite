@@ -1,3 +1,6 @@
+// Copyright (c) 2020 The Blocknet developers
+// Distributed under the MIT software license, see the accompanying
+// file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 import { actions, altCurrencies, MIN_UI_HEIGHT, MIN_UI_WIDTH } from '../constants';
 import { Map } from 'immutable';
 import TokenManifest from '../modules/token-manifest';

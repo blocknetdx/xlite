@@ -1,3 +1,6 @@
+// Copyright (c) 2020 The Blocknet developers
+// Distributed under the MIT software license, see the accompanying
+// file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 import fs from 'fs-extra';
 import cloneDeep from 'lodash/cloneDeep';
 import omit from 'lodash/omit';

@@ -1,3 +1,6 @@
+// Copyright (c) 2020 The Blocknet developers
+// Distributed under the MIT software license, see the accompanying
+// file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 import {all, create} from 'mathjs';
 import AssetPieChart, {AssetPieChartData, chartColorForTicker} from '../shared/asset-piechart';
 import React, {useEffect, useState} from 'react';

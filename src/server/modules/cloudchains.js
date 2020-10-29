@@ -1,3 +1,6 @@
+// Copyright (c) 2020 The Blocknet developers
+// Distributed under the MIT software license, see the accompanying
+// file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 import { ccBinDirs, ccBinNames, DEFAULT_MASTER_PORT, UNKNOWN_CC_VERSION } from '../../app/constants';
 import CCWalletConf from '../../app/types/ccwalletconf';
 import {Crypt, generateSalt, pbkdf2} from '../../app/modules/crypt';

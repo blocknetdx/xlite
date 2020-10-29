@@ -1,3 +1,6 @@
+// Copyright (c) 2020 The Blocknet developers
+// Distributed under the MIT software license, see the accompanying
+// file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {Card, CardBody, CardFooter, CardHeader} from './card';
