@@ -71,7 +71,7 @@ button {
   //    background-color: lighten($lw-button-background-color, 20%);
   //  }
   //}
-  &:active {
+  &:not([disabled]):active {
     transform: scale(0.98);
   }
 

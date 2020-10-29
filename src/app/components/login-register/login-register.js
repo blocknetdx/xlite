@@ -57,7 +57,7 @@ const LoginPasswordSubmitInput = ({ hidden, setHidden, password, readOnly = fals
            title={hidden ? Localize.text('Show password', 'login') : Localize.text('Hide password', 'login')} />
       </button>
       <div className={'lw-login-input-divider'} />
-      <button type={'submit'} disabled={readOnly} title={Localize.text('Submit', 'universal')}>
+      <button type={'submit'} disabled={readOnly} title={readOnly ? Localize.text('Loading', 'universal') : Localize.text('Submit', 'universal')}>
         {readOnly ?
           <Spinner />
           :
@@ -348,7 +348,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
                 <Button
                   type={'submit'}
                   className={'w-100'}
-                  disabled={!goodPassword}
+                  disabled={!goodPassword || processing}
                   style={{height: 50}}>{processing ? <Spinner /> : <Localize context={'login'}>Create Wallet</Localize>}</Button>
 
               </form>
