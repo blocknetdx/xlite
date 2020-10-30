@@ -42,6 +42,8 @@ export default class Localize extends React.Component {
     collator = new Intl.Collator(selectedLocale);
   };
 
+  static initialized = () => selectedLocaleData ? true : false;
+
   static locale = () => selectedLocale;
 
   static compare = (a, b) => collator.compare(a, b);
