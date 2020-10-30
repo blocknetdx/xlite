@@ -12,7 +12,7 @@ import * as appActions from '../../actions/app-actions';
 import { activeViews, MAX_DECIMAL_PLACE, altCurrencySymbol, altCurrencies } from '../../constants';
 import { Column } from './flex';
 import PercentBar from './percent-bar';
-import { multiplierForCurrency, walletSorter } from '../../util';
+import { multiplierForCurrency, removeTrailingZeroes, walletSorter } from '../../util';
 import {Map as IMap} from 'immutable';
 import Wallet from '../../types/wallet-r';
 import { all, create } from 'mathjs';
@@ -151,10 +151,10 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                     :
                     null
                   }
-                  <TableData className={'text-monospace'}>{Number(totalBalance)}</TableData>
+                  <TableData className={'text-monospace'}>{removeTrailingZeroes(totalBalance))}</TableData>
                   <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'right'}}>
                     <div>
-                      {Number(math.multiply(bignumber(Number(totalBalance)), btcMultiplier).toFixed(MAX_DECIMAL_PLACE))}
+                      {removeTrailingZeroes(math.multiply(bignumber(Number(totalBalance)), btcMultiplier).toFixed(MAX_DECIMAL_PLACE))}
                     </div>
                     <div className={'lw-card-tablerow-bottom-label'}>
                       {`${altCurrencySymbol(altCurrency)}${altBalances[ticker].toFixed(2)}`}
