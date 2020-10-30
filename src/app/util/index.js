@@ -172,3 +172,16 @@ export const selectAllInElement = (target, toggle = false) => {
   selection.removeAllRanges();
   selection.addRange(range);
 };
+
+/**
+ * @param numStr {string}
+ * @returns {string}
+ */
+export const removeTrailingZeroes = numStr => {
+  const trailingZeroPatt = /^(\d+[.,]\d*?)0+$/;
+  if(trailingZeroPatt.test(numStr)) {
+    const trimmed = numStr.match(trailingZeroPatt)[1];
+    return /[.,]$/.test(trimmed) ? trimmed + '0' : trimmed;
+  }
+  return numStr;
+};
