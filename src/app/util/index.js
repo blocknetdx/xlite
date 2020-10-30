@@ -44,16 +44,16 @@ export const parseAPIError = err => {
  */
 export const walletSorter = balances => (a, b) =>  {
   const { ticker: tickerA, name: nameA } = a;
-  const [ totalA ] = balances.has(tickerA) ? balances.get(tickerA) : ['0'];
+  const totalA = balances.has(tickerA) ? Number(balances.get(tickerA)[0]) : 0;
   const { ticker: tickerB, name: nameB } = b;
-  const [ totalB ] = balances.has(tickerB) ? balances.get(tickerB) : ['0'];
-  if (tickerA === 'BLOCK') // always on top
+  const totalB = balances.has(tickerB) ? Number(balances.get(tickerB)[0]) : 0;
+  if(totalA > 0 && totalB <= 0) {
     return -1;
-  // sort descending by balance amount
-  if (Number(totalA) === Number(totalB))
-    return Localize.compare(nameA, nameB);
-  else
-    return Number(totalB) - Number(totalA);
+  } else if(totalB > 0 && totalA <= 0) {
+    return 1;
+  } else {
+    return  Localize.compare(nameA, nameB);
+  }
 };
 
 export const unixTime = () => {
