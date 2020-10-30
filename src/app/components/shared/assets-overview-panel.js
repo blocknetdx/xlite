@@ -151,7 +151,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                     :
                     null
                   }
-                  <TableData className={'text-monospace'}>{removeTrailingZeroes(totalBalance))}</TableData>
+                  <TableData className={'text-monospace'}>{removeTrailingZeroes(totalBalance)}</TableData>
                   <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'right'}}>
                     <div>
                       {removeTrailingZeroes(math.multiply(bignumber(Number(totalBalance)), btcMultiplier).toFixed(MAX_DECIMAL_PLACE))}
