@@ -276,6 +276,9 @@ const walletController_API = {
   [apiConstants.walletController_updateAllBalances]: async () => {
     return ipcRenderer.invoke(apiConstants.walletController_updateAllBalances);
   },
+  [apiConstants.walletController_updateBalanceInfo]: async (ticker) => {
+    return ipcRenderer.invoke(apiConstants.walletController_updateBalanceInfo, ticker);
+  },
   [apiConstants.walletController_walletRpcReady]: async (ticker) => {
     return ipcRenderer.invoke(apiConstants.walletController_walletRpcReady, ticker);
   },

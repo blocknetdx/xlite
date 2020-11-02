@@ -1,7 +1,7 @@
 // Copyright (c) 2020 The Blocknet developers
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
-import React, {useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect, useStore } from 'react-redux';
 import * as appActions from '../../actions/app-actions';
@@ -16,19 +16,25 @@ import {walletSorter} from '../../util';
 import {Map as IMap} from 'immutable';
 import Localize from './localize';
 
-let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletController, wallets, balances, setActiveView, setActiveWallet, activeView }) => {
+let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletController, wallets, balances, setActiveView, setActiveWallet, activeView, activeWallet }) => {
 
   const store = useStore();
   const [transactionFilter] = useState(selectedFilter || transactionFilters.all);
   const [filterMenuActive, setFilterMenuActive] = useState(false);
   const [selectedTicker, setSelectedTicker] = useState(null);
 
-  const onRefreshButton = () => {
-    walletController.updateAllBalances(true)
-      .then(() => {
-        walletController.dispatchBalances(appActions.setBalances, store);
-        walletController.dispatchTransactions(appActions.setTransactions, store);
-      });
+  useEffect(() => {
+    setSelectedTicker(activeWallet);
+  }, [activeWallet]);
+
+  const onRefreshButton = async function() {
+    if(isCoinTransactions && wallet) {
+      await walletController.updateBalanceInfo(selectedTicker, true);
+    } else {
+      await walletController.updateAllBalances(true);
+    }
+    walletController.dispatchBalances(appActions.setBalances, store);
+    walletController.dispatchTransactions(appActions.setTransactions, store);
   };
 
   const onFilterButton = () => {
@@ -44,7 +50,7 @@ let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletCont
 
   const isCoinTransactions = activeView === activeViews.COIN_TRANSACTIONS;
   const wallet = selectedTicker ? wallets.find(w => w.ticker === selectedTicker) : null;
-  const headerTitle = isCoinTransactions && wallet ? `Latest ${wallet.name} Transactions` : 'Latest Transactions';
+  const headerTitle = isCoinTransactions && wallet ? Localize.text('Latest {{name}} Transactions', 'transactions-panel-header', {name: wallet.name}) : Localize.text('Latest Transactions', 'transactions-panel-header');
 
   return (
     <div className={'lw-transactions-panel-header'}>
@@ -81,7 +87,8 @@ TransactionsPanelHeader.propTypes = {
   balances: PropTypes.instanceOf(IMap),
   setActiveView: PropTypes.func,
   setActiveWallet: PropTypes.func,
-  activeView: PropTypes.string
+  activeView: PropTypes.string,
+  activeWallet: PropTypes.string,
 };
 
 TransactionsPanelHeader = connect(
@@ -90,6 +97,7 @@ TransactionsPanelHeader = connect(
     balances: appState.balances,
     wallets: appState.wallets,
     walletController: appState.walletController,
+    activeWallet: appState.activeWallet,
   }),
   dispatch => ({
     setActiveView: activeView => dispatch(appActions.setActiveView(activeView)),
