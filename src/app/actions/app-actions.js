@@ -279,3 +279,14 @@ export const setShowWindowsLibraryDownloadModal = show => ({
     show
   }
 });
+
+/**
+ * @param loadingTransactions {boolean}
+ * @returns {{payload: {loadingTransactions: boolean}, type: string}}
+ */
+export const setLoadingTransactions = loadingTransactions => ({
+  type: actions.SET_LOADING_TRANSACTIONS,
+  payload: {
+    loadingTransactions
+  }
+});

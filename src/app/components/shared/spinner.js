@@ -6,14 +6,15 @@ import PropTypes from 'prop-types';
 import Localize from './localize';
 import { publicPath } from '../../util/public-path-r';
 
-const Spinner = ({ className = '', style = {} }) => {
+const Spinner = ({ className = '', doNotSpin = false, style = {} }) => {
   return (
-    <img alt={Localize.initialized() ? Localize.text('Loading spinner', 'transactions') : 'Loading spinner'} className={`lw-login-loading-spinner ${className}`} style={style}
+    <img alt={Localize.initialized() ? Localize.text('Loading spinner', 'transactions') : 'Loading spinner'} className={`lw-login-loading-spinner ${doNotSpin ? 'no-spin' : ''} ${className}`} style={style}
          srcSet={`${publicPath}/images/icons/icon-loading-grey.png, ${publicPath}/images/icons/icon-loading-grey@2x.png 2x`} />
   );
 };
 Spinner.propTypes = {
   className: PropTypes.string,
+  doNotSpin: PropTypes.bool,
   style: PropTypes.object
 };
 

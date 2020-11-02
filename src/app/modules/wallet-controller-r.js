@@ -11,7 +11,8 @@ import {
   halfYearSeconds,
   oneYearSeconds,
   multiplierForCurrency,
-  unixTime} from '../util';
+  unixTime, timeout
+} from '../util';
 import Wallet from '../types/wallet-r';
 
 import _ from 'lodash';
@@ -76,17 +77,26 @@ class WalletController {
   _pollMultipliersInterval = null;
 
   /**
+   * @type {function}
+   * @param loadingTransactions {boolean}
+   * @private
+   */
+  _dispatchLoadingTransactions = () => {};
+
+  /**
    * Constructor
    * @param api {Object} Context bridge api
    * @param manifest {TokenManifest}
    * @param domStorage {DOMStorage}
    * @param db {LWDB}
    */
-  constructor(api, manifest, domStorage, db) {
+  constructor(api, manifest, domStorage, db, dispatchLoadingTransactions) {
     this._api = api;
     this._manifest = manifest;
     this._domStorage = domStorage;
     this._db = db;
+    if(dispatchLoadingTransactions)
+      this._dispatchLoadingTransactions = dispatchLoadingTransactions;
   }
 
   /**
@@ -372,28 +382,36 @@ class WalletController {
    * with the specified ticker.
    * @param ticker {string}
    * @param fromZero {boolean} force a start time of zero
+   * @param uiTimeout {number} timeout in ms to allow the ui a minimum time for displaying the loading spinner
    * @return {Promise<void>}
    */
-  async updateBalanceInfo(ticker, fromZero = false) {
+  async updateBalanceInfo(ticker, fromZero = false, uiTimeout = 0) {
     try {
+      this._dispatchLoadingTransactions(true);
       await this._api.walletController_updateBalanceInfo(ticker);
       // Trigger fetch on the latest transactions
       const wallet = await this.getWallet(ticker);
       if (wallet)
         await wallet.updateTransactions(fromZero);
+      if(uiTimeout > 0)
+        await timeout(uiTimeout);
+      this._dispatchLoadingTransactions(false);
     } catch (err) {
       logger.error(err);
       // TODO fail silently?
+      this._dispatchLoadingTransactions(false);
     }
   }
 
   /**
    * Fetch the latest balance and transaction info across all wallets.
    * @param fromZero {boolean} force a start time of zero
+   * @param uiTimeout {number} timeout in ms to allow the ui a minimum time for displaying loading spinner
    * @return {Promise<void>}
    */
-  async updateAllBalances(fromZero=false) {
+  async updateAllBalances(fromZero=false, uiTimeout) {
     try {
+      this._dispatchLoadingTransactions(true);
       await this._api.walletController_updateAllBalances();
       // Trigger fetch on the latest transactions
       const wallets = await this.getEnabledWallets();
@@ -401,9 +419,13 @@ class WalletController {
       for (const wallet of wallets)
         updateRequests.push(wallet.updateTransactions(fromZero));
       await Promise.all(updateRequests);
+      if(uiTimeout)
+        await timeout(uiTimeout);
+      this._dispatchLoadingTransactions(false);
     } catch (err) {
       logger.error(err);
       // TODO fail silently?
+      this._dispatchLoadingTransactions(false);
     }
   }
 
