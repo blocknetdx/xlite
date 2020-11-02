@@ -123,7 +123,7 @@ let Sidebar = ({ activeView, wallets, balances, showSettings, setActiveView, set
       <SidebarFilterableList
         placeholder={Localize.text('Search assets', 'sidebar')}
         items={[...wallets]
-          .sort(walletSorter(balances))
+          .sort((a, b) => Localize.compare(a.name, b.name))
           .map(w => ({id: w.ticker, text: w.name, image: w.imagePath}))
         }
         onClick={ticker => {
