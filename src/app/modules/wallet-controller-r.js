@@ -414,7 +414,7 @@ class WalletController {
    * @param uiTimeout {number} timeout in ms to allow the ui a minimum time for displaying loading spinner
    * @return {Promise<void>}
    */
-  async updateAllBalances(fromZero=false, uiTimeout) {
+  async updateAllBalances(fromZero=false, uiTimeout=0) {
     try {
       if (this._dispatchLoadingTransactions)
       this._dispatchLoadingTransactions(true);
@@ -425,7 +425,7 @@ class WalletController {
       for (const wallet of wallets)
         updateRequests.push(wallet.updateTransactions(fromZero));
       await Promise.all(updateRequests);
-      if(uiTimeout)
+      if(uiTimeout > 0)
         await timeout(uiTimeout);
       if (this._dispatchLoadingTransactions)
       this._dispatchLoadingTransactions(false);
