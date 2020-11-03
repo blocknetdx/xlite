@@ -81,7 +81,8 @@ class WalletController {
    * @param loadingTransactions {boolean}
    * @private
    */
-  _dispatchLoadingTransactions = () => {};
+    // eslint-disable-next-line no-unused-vars
+  _dispatchLoadingTransactions = loadingTransactions => {};
 
   /**
    * Constructor
@@ -89,8 +90,9 @@ class WalletController {
    * @param manifest {TokenManifest}
    * @param domStorage {DOMStorage}
    * @param db {LWDB}
+   * @param dispatchLoadingTransactions {function(boolean)}
    */
-  constructor(api, manifest, domStorage, db, dispatchLoadingTransactions) {
+  constructor(api, manifest, domStorage, db, dispatchLoadingTransactions = null) {
     this._api = api;
     this._manifest = manifest;
     this._domStorage = domStorage;
@@ -387,6 +389,7 @@ class WalletController {
    */
   async updateBalanceInfo(ticker, fromZero = false, uiTimeout = 0) {
     try {
+      if (this._dispatchLoadingTransactions)
       this._dispatchLoadingTransactions(true);
       await this._api.walletController_updateBalanceInfo(ticker);
       // Trigger fetch on the latest transactions
@@ -395,10 +398,12 @@ class WalletController {
         await wallet.updateTransactions(fromZero);
       if(uiTimeout > 0)
         await timeout(uiTimeout);
+      if (this._dispatchLoadingTransactions)
       this._dispatchLoadingTransactions(false);
     } catch (err) {
       logger.error(err);
       // TODO fail silently?
+      if (this._dispatchLoadingTransactions)
       this._dispatchLoadingTransactions(false);
     }
   }
@@ -411,6 +416,7 @@ class WalletController {
    */
   async updateAllBalances(fromZero=false, uiTimeout) {
     try {
+      if (this._dispatchLoadingTransactions)
       this._dispatchLoadingTransactions(true);
       await this._api.walletController_updateAllBalances();
       // Trigger fetch on the latest transactions
@@ -421,10 +427,12 @@ class WalletController {
       await Promise.all(updateRequests);
       if(uiTimeout)
         await timeout(uiTimeout);
+      if (this._dispatchLoadingTransactions)
       this._dispatchLoadingTransactions(false);
     } catch (err) {
       logger.error(err);
       // TODO fail silently?
+      if (this._dispatchLoadingTransactions)
       this._dispatchLoadingTransactions(false);
     }
   }
