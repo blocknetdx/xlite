@@ -371,15 +371,16 @@ class WalletController {
    * Fetch and update the latest balance and transaction info for the wallet
    * with the specified ticker.
    * @param ticker {string}
+   * @param fromZero {boolean} force a start time of zero
    * @return {Promise<void>}
    */
-  async updateBalanceInfo(ticker) {
+  async updateBalanceInfo(ticker, fromZero = false) {
     try {
       await this._api.walletController_updateBalanceInfo(ticker);
       // Trigger fetch on the latest transactions
-      const wallet = this.getWallet(ticker);
+      const wallet = await this.getWallet(ticker);
       if (wallet)
-        await wallet.updateTransactions();
+        await wallet.updateTransactions(fromZero);
     } catch (err) {
       logger.error(err);
       // TODO fail silently?
