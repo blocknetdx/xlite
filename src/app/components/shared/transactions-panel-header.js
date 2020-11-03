@@ -65,16 +65,16 @@ let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletCont
           filters={Object.values(transactionFilters).map(key => key)}
           onFilterSelected={onTransactionFilter}
         />
-        <SquareButton title={Localize.text('Filter', 'transactions-panel-header')} image={`${publicPath}/images/icons/icon-filter.svg`} active={filterMenuActive} onClick={onFilterButton} />
+        {/*<SquareButton title={Localize.text('Filter', 'transactions-panel-header')} image={`${publicPath}/images/icons/icon-filter.svg`} active={filterMenuActive} onClick={onFilterButton} />*/}
       </div>
-      <FilterMenu
-        items={[...wallets]
-        .sort(walletSorter(balances))
-        .map(w => ({id: w.ticker, text: w.name, image: w.imagePath}))
-        }
-        active={filterMenuActive}
-        onClick={onFilterMenuClick}
-      />
+      {/*<FilterMenu*/}
+      {/*  items={[...wallets]*/}
+      {/*  .sort(walletSorter(balances))*/}
+      {/*  .map(w => ({id: w.ticker, text: w.name, image: w.imagePath}))*/}
+      {/*  }*/}
+      {/*  active={filterMenuActive}*/}
+      {/*  onClick={onFilterMenuClick}*/}
+      {/*/>*/}
     </div>
   );
 };
