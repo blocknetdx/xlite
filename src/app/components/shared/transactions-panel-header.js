@@ -15,8 +15,9 @@ import { publicPath } from '../../util/public-path-r';
 import {walletSorter} from '../../util';
 import {Map as IMap} from 'immutable';
 import Localize from './localize';
+import Spinner from './spinner';
 
-let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletController, wallets, balances, setActiveView, setActiveWallet, activeView, activeWallet }) => {
+let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletController, wallets, balances, setActiveView, setActiveWallet, activeView, activeWallet, loadingTransactions }) => {
 
   const store = useStore();
   const [transactionFilter] = useState(selectedFilter || transactionFilters.all);
@@ -27,14 +28,19 @@ let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletCont
     setSelectedTicker(activeWallet);
   }, [activeWallet]);
 
-  const onRefreshButton = async function() {
+  const onRefreshButton = e => {
+    e.preventDefault();
+    const then = () => {
+      walletController.dispatchBalances(appActions.setBalances, store);
+      walletController.dispatchTransactions(appActions.setTransactions, store);
+    };
     if(isCoinTransactions && wallet) {
-      await walletController.updateBalanceInfo(selectedTicker, true);
+      walletController.updateBalanceInfo(selectedTicker, true, 1000)
+        .then(then);
     } else {
-      await walletController.updateAllBalances(true);
+      walletController.updateAllBalances(true, 1000)
+        .then(then);
     }
-    walletController.dispatchBalances(appActions.setBalances, store);
-    walletController.dispatchTransactions(appActions.setTransactions, store);
   };
 
   const onFilterButton = () => {
@@ -56,7 +62,11 @@ let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletCont
     <div className={'lw-transactions-panel-header'}>
       <div className={'lw-transactions-panel-header-title'}>
         <h1>{headerTitle}</h1>
-        <i className={'fas fa-undo fa-flip-horizontal'} onClick={onRefreshButton} />
+        {loadingTransactions ?
+          <span className={'lw-transactions-panel-refresh-button'}><Spinner doNotSpin={false} /> <span className={'lw-transactions-panel-refresh-button-label'}>{Localize.text('Loading transactions...', 'lw-transactions-panel-refresh-button')}</span></span>
+          :
+          <a href={'#'} onClick={onRefreshButton} className={'lw-transactions-panel-refresh-button'}><Spinner doNotSpin={true} /></a>
+        }
       </div>
       <div className={'lw-transactions-panel-header-filters'}>
         <div className={'lw-transactions-panel-text'}>Show:</div>
@@ -89,6 +99,7 @@ TransactionsPanelHeader.propTypes = {
   setActiveWallet: PropTypes.func,
   activeView: PropTypes.string,
   activeWallet: PropTypes.string,
+  loadingTransactions: PropTypes.bool,
 };
 
 TransactionsPanelHeader = connect(
@@ -98,6 +109,7 @@ TransactionsPanelHeader = connect(
     wallets: appState.wallets,
     walletController: appState.walletController,
     activeWallet: appState.activeWallet,
+    loadingTransactions: appState.loadingTransactions,
   }),
   dispatch => ({
     setActiveView: activeView => dispatch(appActions.setActiveView(activeView)),

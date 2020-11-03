@@ -225,12 +225,16 @@ function startupInit(walletController, confController, pricingController, confNe
       store.dispatch(setShowWindowsLibraryDownloadModal(true));
   }
 
+  const dispatchLoadingTransactions = loadingTransactions => {
+    store.dispatch(appActions.setLoadingTransactions(loadingTransactions));
+  };
+
   const confController = new ConfController(api);
   const confManifest = await confController.getManifest();
   const xbInfos = await confController.getXBridgeInfo();
   // Create the token manifest from the raw manifest data and fee information
   const tokenManifest = new TokenManifest(confManifest, xbInfos);
-  const walletController = new WalletController(api, tokenManifest, domStorage, db);
+  const walletController = new WalletController(api, tokenManifest, domStorage, db, dispatchLoadingTransactions);
   // Create the wallet controller
   const pricingController = new Pricing(api, domStorage);
 

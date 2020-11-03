@@ -33,7 +33,8 @@ const getInitialState = () => ({
   showWindowsLibraryDownloadModal: false,
   xVaultVersion: '',
   ccVersion: '',
-  openExternalLinks: false
+  openExternalLinks: false,
+  loadingTransactions: true,
 });
 
 export default (state = getInitialState(), { type, payload }) => {
@@ -163,6 +164,11 @@ export default (state = getInitialState(), { type, payload }) => {
       return {
         ...state,
         showWindowsLibraryDownloadModal: payload.show
+      };
+    case actions.SET_LOADING_TRANSACTIONS:
+      return {
+        ...state,
+        loadingTransactions: payload.loadingTransactions
       };
     default:
       return state;
