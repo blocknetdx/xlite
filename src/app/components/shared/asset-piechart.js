@@ -99,6 +99,8 @@ export default class AssetPieChart extends React.Component {
   renderCanvas() {
     const { chartData, defaultWidth, lineWidth } = this.props;
     const canvas = this.canvas.current;
+    if (!canvas)
+      return; // only continue drawing when valid
     const ctx = canvas.getContext('2d');
     const w = defaultWidth * window.devicePixelRatio;
     const h = w;

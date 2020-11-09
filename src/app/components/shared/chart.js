@@ -61,6 +61,8 @@ export default class Chart extends React.Component {
     const { chartData, currency, simple, simpleStrokeColor, hideAxes, defaultWidth, defaultHeight,
       gradientTopColor, gradientBottomColor, chartGridColor, chartScale } = this.props;
     const canvas = this.canvas.current;
+    if (!canvas)
+      return; // only continue drawing when valid
     const ctx = canvas.getContext('2d');
     const w = defaultWidth * window.devicePixelRatio;
     const h = defaultHeight * window.devicePixelRatio;
