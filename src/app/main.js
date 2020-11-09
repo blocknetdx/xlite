@@ -51,7 +51,7 @@ if(isDev) {
   console.log('state', store.getState());
   store.subscribe(() => {
     const state = store.getState();
-    console.log('state', state);
+    console.log(new Date().toLocaleString() + ' state', state);
   });
 }
 
