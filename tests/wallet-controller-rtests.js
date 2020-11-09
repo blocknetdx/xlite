@@ -12,7 +12,7 @@ import appReducer from '../src/app/reducers/app-reducer';
 import LWDB from '../src/app/modules/lwdb';
 import domStorage from '../src/app/modules/dom-storage';
 import FakeApi, {resolvePromise, txBLOCK, txBTC} from './fake-api';
-import {localStorageKeys} from '../src/app/constants';
+import {actions, localStorageKeys} from '../src/app/constants';
 import {multiplierForCurrency, oneDaySeconds, oneHourSeconds, oneMonthSeconds, oneWeekSeconds, unixTime} from '../src/app/util';
 import RPCTransaction from '../src/app/types/rpc-transaction';
 import TokenManifest from '../src/app/modules/token-manifest';
@@ -312,18 +312,47 @@ describe('WalletController Test Suite', function() {
     store.getState().appState.transactions.get('BLOCK')[0].should.be.eql(transactions.get('BLOCK')[0]);
     store.getState().appState.transactions.get('BTC')[0].should.be.eql(transactions.get('BTC')[0]);
   });
-  it('WalletController.waitForRpc()', async function() {
+  it('WalletController.dispatchTransactionsStream()', async function() {
+    const combinedReducers = combineReducers({ appState: appReducer });
+    const store = createStore(combinedReducers);
     const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
-    await wc.waitForRpc(500, 250).should.finally.be.true();
+    const transactions = new Map([['BLOCK', [_.cloneDeep(txBLOCK)]], ['BTC', [_.cloneDeep(txBTC)]]]);
+    fakeApi.wallet_getTransactions = ticker => resolvePromise(transactions.get(ticker));
+    await wc.updateAllBalances();
+    let state = false;
+    // ensure that transactions are streamed into the state data
+    const setTransactions = data => {
+      if (!state) {
+        data.size.should.be.equal(1);
+        state = true;
+      } else
+        data.size.should.be.equal(2);
+      return {
+        type: actions.SET_TRANSACTIONS,
+        payload: {
+          data
+        }
+      };
+    };
+    await wc.dispatchTransactionsStream(setTransactions, store);
   });
-  it('WalletController.waitForRpc() should fail on bad wallet rpc', async function() {
+  it('WalletController.waitForRpcAndFetch()', async function() {
+    const combinedReducers = combineReducers({ appState: appReducer });
+    const store = createStore(combinedReducers);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
+    await wc.loadWallets();
+    await wc.waitForRpcAndFetch(500, store).should.finally.be.true();
+  });
+  it('WalletController.waitForRpcAndFetch() should fail on bad wallet rpc', async function() {
+    const combinedReducers = combineReducers({ appState: appReducer });
+    const store = createStore(combinedReducers);
     const wc = new WalletController(fakeApi, tokenManifest, storage, db);
     await wc.loadWallets();
     fakeApi.walletController_walletRpcReady = async (ticker) => {
       return ticker !== 'BLOCK';
     };
-    await wc.waitForRpc(500, 250).should.finally.be.false();
+    await wc.waitForRpcAndFetch(500, store).should.finally.be.false();
   });
   it('WalletController.dispatchPriceMultipliers() updatePriceMultipliers()', async function() {
     const combinedReducers = combineReducers({ appState: appReducer });
