@@ -18,6 +18,7 @@ import Wallet from '../types/wallet-r';
 import _ from 'lodash';
 import {Map as IMap} from 'immutable';
 import moment from 'moment';
+import * as appActions from '../actions/app-actions';
 
 /**
  * Wallet controller renderer counterpart.
@@ -358,6 +359,29 @@ class WalletController {
   }
 
   /**
+   * Notify the store of the latest transactions.
+   * @param action
+   * @param store
+   */
+  async dispatchTransactionsStream(action, store) {
+    const data = new Map();
+    const wallets = await this.getEnabledWallets();
+    const promises = [];
+    for (const wallet of wallets) {
+      promises.push(new Promise(resolve => {
+        wallet.getTransactions(0, 0)
+          .then(transactions => {
+            data.set(wallet.ticker, transactions);
+            store.dispatch(action(IMap(data)));
+            resolve();
+          })
+          .catch(() => resolve());
+      }));
+    }
+    return Promise.all(promises);
+  }
+
+  /**
    * Notify the store of price multiplier updates.
    * @param action
    * @param store
@@ -365,6 +389,37 @@ class WalletController {
   async dispatchPriceMultipliers(action, store) {
     const multipliers = await this._api.walletController_getCurrencyMultipliers();
     store.dispatch(action(multipliers));
+  }
+
+  /**
+   * Notify the store of updated prices.
+   * @param pricingController {Pricing}
+   * @param action
+   * @param store
+   * @param expiry {Number}
+   */
+  async dispatchPrices(pricingController, action, store, expiry = 600) {
+    const prices = await this.updatePrices(pricingController, expiry);
+    store.dispatch(action(prices));
+  }
+
+  /**
+   * Return pricing data from cache.
+   * @param pricingController {Pricing}
+   * @param expiry {Number}
+   * @return {Promise<Map<{string}, {PriceData[]}>>}
+   */
+  async updatePrices(pricingController, expiry = 600) {
+    let prices = new IMap();
+    try {
+      // Always pull from cache (do not trigger network requests here)
+      const tickers = (await this.getWallets()).map(w => w.ticker);
+      const priceData = await pricingController.updatePricing(tickers, ['USD'], expiry);
+      prices = new IMap(priceData);
+    } catch (e) {
+      logger.error('failed initial pricing update', e.message);
+    }
+    return prices;
   }
 
   /**
@@ -466,13 +521,14 @@ class WalletController {
   }
 
   /**
-   * Returns true when the rpc is ready. Returns on timeout if timeout happens first.
-   * If timeout occurs this returns false.
-   * @param timeout Milliseconds
-   * @param additionalWait Milliseconds
+   * Waits for wallet rpc ready states and fetches initial data on valid
+   * rpc connections. Any wallets that are not ready in timeOut time will
+   * not attempt to fetch initial data.
+   * @param timeOut {Number} Milliseconds
+   * @param store {Object}
    * @return {Promise<boolean>}
    */
-  async waitForRpc(timeout, additionalWait=2000) {
+  async waitForRpcAndFetch(timeOut, store) {
     // This code concurrently checks the walletRpcReady status of each enabled
     // wallet. Additionally, it incorporates a timeout across all wallet rpc
     // checks.
@@ -481,8 +537,8 @@ class WalletController {
     for (const wallet of (await this.getEnabledWallets())) {
       const ticker = wallet.ticker;
       promises.push(new Promise((resolve, reject) => {
-        let timeoutOccurred = false; // use state to prevent race condition
-        let done = false; // use state to prevent race condition
+        let timeoutOccurred = false; // state to prevent race condition
+        let done = false; // state to prevent race condition
         const handler = () => {
           if (done)
             return;
@@ -490,13 +546,13 @@ class WalletController {
           reject(new Error(`wait for rpc timeout ${ticker}`));
         };
         timeouts.push(handler);
-        setTimeout(handler, timeout);
-        this._api.walletController_walletRpcReady(ticker).then(ready => {
+        setTimeout(handler, timeOut);
+        this._api.walletController_walletRpcReady(ticker, timeOut).then(ready => {
           if (timeoutOccurred)
             return;
           done = true;
           if (ready)
-            setTimeout(() => resolve(ticker), additionalWait); // additional spin up time
+            resolve(ticker);
           else
             reject(new Error(`wait for rpc timeout ${ticker}`));
         }).catch(e => {
@@ -519,6 +575,9 @@ class WalletController {
         for (const promise of promises)
           promise.then(ticker => {
             countHandler(resolve);
+            // Notify UI of existing cached info
+            this.dispatchBalances(appActions.setBalances, store);
+            this.dispatchTransactionsStream(appActions.setTransactions, store);
           }).catch(e => {
             console.log(e);
             failed = true;

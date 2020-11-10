@@ -178,7 +178,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
 
     await Promise.race([
       startupInit(),
-      timeout(4000),
+      timeout(2000),
     ]);
     setCCWalletStarted(true);
   };
@@ -228,8 +228,8 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
     const isRpcRunning = await cloudChains.isWalletRPCRunning();
 
     await Promise.race([
-      startupInit(),
-      timeout(4000),
+      startupInit(true), // slow load
+      timeout(12000),
     ]);
 
     setCloudChainsStoredPassword(!!storedPassword && storedPassword !== '');

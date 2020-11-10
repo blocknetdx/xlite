@@ -6,7 +6,7 @@ import Recipient from '../../app/types/recipient';
 import RPCController from './rpc-controller';
 import Token from '../../app/types/token';
 import TransactionBuilder from '../../app/modules/transactionbuilder';
-import {unixTime} from '../../app/util';
+import {unixTime, timeout} from '../../app/util';
 
 import _ from 'lodash';
 import {all, create} from 'mathjs';
@@ -108,17 +108,42 @@ class Wallet {
   }
 
   /**
-   * Returns true if the rpc is ready to receive connections.
+   * Returns true if the rpc is ready to receive connections. If timeOut > 0 this
+   * repeated checks the rpc info for ready state up until the timeOut. Each rpc
+   * retry is allotted defaultRpcTimeout milliseconds.
+   * @param timeOut {Number} Amount of time in milliseconds to wait for rpc ready state.
+   * @param rpcTimeOut {Number} Timeout for rpc network call.
    * @return {Promise<boolean>}
    */
-  async rpcReady() {
+  async rpcReady(timeOut = 0, rpcTimeOut = 2500) {
     if (!this.rpcEnabled())
       return false;
-    try {
-      await this.rpc.getInfo();
-      return true;
-    } catch (e) {
-      return false;
+
+    const rpcCheck = () => new Promise(resolve => {
+      this.rpc.getInfo({timeout: rpcTimeOut}).then(d => {
+        resolve(d.rpcready);
+      }).catch(e => {
+        resolve(false);
+      });
+    });
+    if (timeOut <= 0)
+      return rpcCheck();
+    else {
+      const startTime = Date.now();
+      const checkRecur = async () => {
+        // Check for rpc ready state until timeOut occurs
+        const loopTime = Date.now();
+        if (loopTime - startTime >= timeOut)
+          return false; // timeout occurred
+        const ready = await rpcCheck();
+        if (ready) {
+          return true;
+        }
+        // continue waiting...
+        await timeout(1000);
+        return checkRecur(timeOut - (Date.now() - startTime));
+      };
+      return checkRecur(timeOut);
     }
   }
 

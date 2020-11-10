@@ -26,6 +26,8 @@ export default class Pricing {
    * @return {Promise<PriceData[]|null>}
    */
   static async defaultPricingApi(ticker, currency) {
+    return []; // TODO Pulling this much data is hitting api limits, consider moving to backend
+
     const res = await Promise.all([
       request // endpoint docs https://min-api.cryptocompare.com/documentation?key=Historical&cat=dataHistoday
         .get(`https://min-api.cryptocompare.com/data/v2/histoday?fsym=${ticker}&tsym=${currency}&limit=8`)

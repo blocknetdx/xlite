@@ -81,8 +81,29 @@ describe('Wallet Test Suite', function() {
     const wallet = new Wallet(token, conf, appStorage);
     wallet.initRpcIfEnabled();
     wallet.rpcEnabled().should.be.true();
-    wallet.rpc.getInfo = () => new Promise(resolve => resolve());
+    wallet.rpc.getInfo = () => new Promise(resolve => resolve({rpcready: true}));
     await wallet.rpcReady().should.finally.be.true();
+  });
+  it('Wallet.rpcReady() with timeouts', async function() {
+    this.timeout(2500);
+    const wallet = new Wallet(token, conf, appStorage);
+    wallet.initRpcIfEnabled();
+    wallet.rpcEnabled().should.be.true();
+    wallet.rpc.getInfo = () => new Promise(resolve => resolve({rpcready: false}));
+    await wallet.rpcReady(500, 250).should.finally.be.false();
+    setTimeout(() => {
+      wallet.rpc.getInfo = () => new Promise(resolve => resolve({rpcready: true}));
+    }, 750);
+    await wallet.rpcReady(1750, 250).should.finally.be.true();
+  });
+  it('Wallet.rpcReady() with timeouts should fail on timeout', async function() {
+    const wallet = new Wallet(token, conf, appStorage);
+    wallet.initRpcIfEnabled();
+    wallet.rpcEnabled().should.be.true();
+    wallet.rpc.getInfo = () => new Promise(resolve => resolve({rpcready: false}));
+    const startTime = Date.now();
+    await wallet.rpcReady(750, 250).should.finally.be.false();
+    (Date.now() - startTime).should.be.greaterThanOrEqual(750);
   });
   it('Wallet.rpcReady() fails on bad rpc', async function() {
     const wallet = new Wallet(token, conf, appStorage);

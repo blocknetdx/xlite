@@ -64,6 +64,11 @@ class RPCInfo {
   timeOffset = 0;
 
   /**
+   * @type {boolean}
+   */
+  rpcready = false;
+
+  /**
    * @param data {Object}
    */
   constructor(data) {

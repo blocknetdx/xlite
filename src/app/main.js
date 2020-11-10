@@ -51,7 +51,7 @@ if(isDev) {
   console.log('state', store.getState());
   store.subscribe(() => {
     const state = store.getState();
-    console.log('state', state);
+    console.log(new Date().toLocaleString() + ' state', state);
   });
 }
 
@@ -117,34 +117,15 @@ window.addEventListener('resize', e => {
 store.dispatch(appActions.setActiveView(activeViews.LOADING));
 
 /**
- * Return pricing data from cache.
- * @param pricing {Pricing}
- * @param walletController {WalletController}
- * @return {Promise<Map<{string}, {PriceData[]}>>}
- */
-const updatePrices = async (pricing, walletController) => {
-  let prices = new IMap();
-  try {
-    // Always pull from cache (do not trigger network requests here)
-    const tickers = (await walletController.getWallets()).map(w => w.ticker);
-    const priceData = await pricing.updatePricing(tickers, ['USD']);
-    prices = new IMap(priceData);
-  } catch (e) {
-    logger.error('failed initial pricing update', e.message);
-  }
-  return prices;
-};
-
-/**
  * Startup initialization should happen on login.
  * @param walletController {WalletController}
  * @param confController {ConfController}
  * @param pricingController {Pricing}
  * @param confNeedsManifestUpdate {boolean}
- * @return {function}
+ * @return {function(boolean)}
  */
 function startupInit(walletController, confController, pricingController, confNeedsManifestUpdate) {
-  return async () => {
+  return async (slowLoad = false) => {
     try {
       await walletController.loadWallets();
     } catch (err) {
@@ -154,14 +135,24 @@ function startupInit(walletController, confController, pricingController, confNe
       return;
     }
 
-    // Wait for rpc to become available
-    await walletController.waitForRpc(6500);
-
-    // Notify UI of existing cached info
-    walletController.dispatchBalances(appActions.setBalances, store);
-    walletController.dispatchTransactions(appActions.setTransactions, store);
-    walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
+    // Let listeners know about initial data
     walletController.dispatchWallets(appActions.setWallets, store);
+    walletController.dispatchBalances(appActions.setBalances, store);
+    walletController.dispatchTransactionsStream(appActions.setTransactions, store);
+    walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
+    // Use MAX_SAFE_INTEGER to ensure latest prices are pulled from cache
+    walletController.dispatchPrices(pricingController, appActions.setPricing, store, Number.MAX_SAFE_INTEGER);
+
+    // Update pricing info
+    walletController.updatePrices(pricingController)
+      .then(prices => store.dispatch(appActions.setPricing(prices)));
+
+    // Update currency information
+    walletController.updatePriceMultipliers()
+      .then(() => walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store));
+
+    // Wait for rpc to become available and then fetch
+    await walletController.waitForRpcAndFetch(slowLoad ? 12500 : 10000, store);
 
     // Update latest balance info
     walletController.updateAllBalances()
@@ -169,14 +160,6 @@ function startupInit(walletController, confController, pricingController, confNe
         walletController.dispatchBalances(appActions.setBalances, store);
         walletController.dispatchTransactions(appActions.setTransactions, store);
       });
-
-    // Update pricing info
-    updatePrices(pricingController, walletController)
-      .then(prices => store.dispatch(appActions.setPricing(prices)));
-
-    // Update currency information
-    walletController.updatePriceMultipliers()
-      .then(() => walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store));
 
     // Watch for updates
     walletController.pollUpdates(30000, () => { // every 30 sec
@@ -190,7 +173,7 @@ function startupInit(walletController, confController, pricingController, confNe
       walletController.updatePriceMultipliers()
         .then(() => walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store));
       // Update pricing info
-      updatePrices(pricingController, walletController)
+      walletController.updatePrices(pricingController)
         .then(prices => store.dispatch(appActions.setPricing(prices)));
     });
 

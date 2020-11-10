@@ -61,10 +61,11 @@ class RPCController {
    * Makes an RPC server request
    * @param method {string}
    * @param params {Object}
+   * @param options {Object}
    * @returns {any}
    * @private
    */
-  async _makeRequest(method, params = []) {
+  async _makeRequest(method, params = [], options = {timeout: HTTP_REQUEST_TIMEOUT}) {
     return new Promise((resolve, reject) => {
       request
         .post(`http://127.0.0.1:${this._port}`)
@@ -73,7 +74,7 @@ class RPCController {
           method,
           params
         }))
-        .timeout(HTTP_REQUEST_TIMEOUT)
+        .timeout(options.timeout)
         .then(res => {
           const { statusCode } = res;
           if(statusCode === 200) {
@@ -118,10 +119,11 @@ class RPCController {
 
   /**
    * Get information such as balances, protocol version, and more
+   * @params options {Object} options.timeout to set the timeout on the request.
    * @returns {Promise<RPCInfo>}
    */
-  async getInfo() {
-    const res = await this._makeRequest('getinfo');
+  async getInfo(options) {
+    const res = await this._makeRequest('getinfo', [], options);
     return new RPCInfo({
       protocolVersion: res.protocolversion,
       ticker: res.ticker,
@@ -134,7 +136,8 @@ class RPCController {
       keyPoolOldest: res.keypoololdest,
       relayFee: res.relayfee,
       networkActive: res.networkactive,
-      timeOffest: res.timeoffest
+      timeOffest: res.timeoffest,
+      rpcready: res.rpcready,
     });
   }
 

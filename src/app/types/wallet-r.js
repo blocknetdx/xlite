@@ -301,16 +301,16 @@ class Wallet {
       .between([this.ticker, startTime], [this.ticker, endTime], true, true)
       .toArray();
 
-    // Return utxos as deposit transactions if the data is bad
-    if (startTime === 0 && (!txs || txs.length === 0)) // TODO Remove this workaround once cc daemon listtransactions rpc is working properly
-      return (await this.getCachedUnspent(10000)).map(utxo => new RPCTransaction({
-        txId: utxo.txId,
-        n: utxo.vOut,
-        address: utxo.address,
-        amount: utxo.amount,
-        time: unixTime() - (utxo.confirmations * 60),
-        category: 'receive',
-      }, this.ticker));
+    // // Return utxos as deposit transactions if the data is bad
+    // if (startTime === 0 && (!txs || txs.length === 0)) // TODO Remove this workaround once cc daemon listtransactions rpc is working properly
+    //   return (await this.getCachedUnspent(10000)).map(utxo => new RPCTransaction({
+    //     txId: utxo.txId,
+    //     n: utxo.vOut,
+    //     address: utxo.address,
+    //     amount: utxo.amount,
+    //     time: unixTime() - (utxo.confirmations * 60),
+    //     category: 'receive',
+    //   }, this.ticker));
 
     return txs;
   }
