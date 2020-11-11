@@ -187,16 +187,16 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
     e.preventDefault();
 
     const preppedMnemonic = newMnemonic
-      .trim()
       .replace(/[\n\r\s]/g, ' ')
-      .replace(/\s+/g, ' ');
+      .replace(/\s+/g, ' ')
+      .trim();
 
     if(createFromMnemonic && preppedMnemonic.length === 0)
       return Alert.alert(Localize.text('Missing Mnemonic', 'login'), Localize.text('You must enter a valid mnemonic.', 'login'));
 
     setProcessing(true);
 
-    const m = await cloudChains.createSPVWallet(password, newMnemonic);
+    const m = await cloudChains.createSPVWallet(password, preppedMnemonic);
     if(!m) {
       setErrorMessage(Localize.text('There was a problem creating the wallet.', 'login'));
       setProcessing(false);
