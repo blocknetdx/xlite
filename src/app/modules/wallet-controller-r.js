@@ -11,7 +11,7 @@ import {
   halfYearSeconds,
   oneYearSeconds,
   multiplierForCurrency,
-  unixTime, timeout
+  unixTime, timeout, resolveAll
 } from '../util';
 import Wallet from '../types/wallet-r';
 
@@ -175,7 +175,7 @@ class WalletController {
    */
   async getTransactions(start = 0, end = 0) {
     const data = new Map();
-    const wallets = await this.getEnabledWallets();
+    const wallets = await this.getWallets();
     for (const wallet of wallets)
       data.set(wallet.ticker, (await wallet.getTransactions(start, end)));
     return data;
@@ -365,7 +365,7 @@ class WalletController {
    */
   async dispatchTransactionsStream(action, store) {
     const data = new Map();
-    const wallets = await this.getEnabledWallets();
+    const wallets = await this.getWallets();
     const promises = [];
     for (const wallet of wallets) {
       promises.push(new Promise(resolve => {
@@ -379,6 +379,25 @@ class WalletController {
       }));
     }
     return Promise.all(promises);
+  }
+
+  /**
+   * Notify the store of the latest transactions.
+   * @param ticker {String}
+   * @param action
+   * @param store
+   */
+  async dispatchTransactionsTicker(ticker, action, store) {
+    const wallet = await this.getWallet(ticker);
+    try {
+      const transactions = await wallet.getTransactions(0, 0);
+      const txns = store.getState().appState.transactions;
+      const data = new Map(!_.isNil(txns) ? txns.entries() : null);
+      data.set(wallet.ticker, transactions);
+      store.dispatch(action(IMap(data)));
+    } catch (e) {
+      // fail silently
+    }
   }
 
   /**
@@ -470,26 +489,65 @@ class WalletController {
    * @return {Promise<void>}
    */
   async updateAllBalances(fromZero=false, uiTimeout=0) {
-    try {
-      if (this._dispatchLoadingTransactions)
+    const updateRequests = [];
+    if (this._dispatchLoadingTransactions)
       this._dispatchLoadingTransactions(true);
+    try {
       await this._api.walletController_updateAllBalances();
       // Trigger fetch on the latest transactions
       const wallets = await this.getEnabledWallets();
-      const updateRequests = [];
       for (const wallet of wallets)
         updateRequests.push(wallet.updateTransactions(fromZero));
-      await Promise.all(updateRequests);
-      if(uiTimeout > 0)
-        await timeout(uiTimeout);
-      if (this._dispatchLoadingTransactions)
-      this._dispatchLoadingTransactions(false);
-    } catch (err) {
-      logger.error(err);
-      // TODO fail silently?
-      if (this._dispatchLoadingTransactions)
-      this._dispatchLoadingTransactions(false);
+    } catch (e) {
+      logger.error(e);
     }
+    return new Promise(resolve => {
+      if(uiTimeout > 0)
+        updateRequests.push(timeout(uiTimeout));
+      resolveAll(updateRequests).then(success => {
+        if (this._dispatchLoadingTransactions)
+          this._dispatchLoadingTransactions(false);
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * Fetch the latest balance and transaction info across all wallets.
+   * @param fromZero {boolean} force a start time of zero
+   * @param updateHandler {function(String)} Handler called as each coin is updated. Ticker is param1.
+   * @return {Promise<void>}
+   */
+  async updateAllBalancesStream(fromZero=false, updateHandler=null) {
+    if (this._dispatchLoadingTransactions)
+      this._dispatchLoadingTransactions(true);
+    // Concurrently ask all wallets to update their balances and transactions
+    // and stream these updates to the update handler, which will be called once
+    // for each non-error wallet update.
+    const promises = [];
+    const wallets = await this.getEnabledWallets();
+    for (const wallet of wallets) {
+      promises.push(new Promise(resolve => {
+        Promise.all([
+          this._api.walletController_updateBalanceInfo(wallet.ticker),
+          wallet.updateTransactions(fromZero)
+        ]).then(() => {
+          if (updateHandler)
+            updateHandler(wallet.ticker);
+          resolve();
+        }).catch(e => {
+          console.log(e);
+          resolve();
+        });
+      }));
+    }
+    return new Promise(resolve => {
+      resolveAll(promises).then(success => {
+        if (this._dispatchLoadingTransactions)
+          this._dispatchLoadingTransactions(true);
+        resolve();
+      });
+    });
   }
 
   /**
@@ -530,66 +588,33 @@ class WalletController {
    */
   async waitForRpcAndFetch(timeOut, store) {
     // This code concurrently checks the walletRpcReady status of each enabled
-    // wallet. Additionally, it incorporates a timeout across all wallet rpc
-    // checks.
+    // wallet.
     const promises = [];
-    const timeouts = []; // tracker handlers for clean up
-    for (const wallet of (await this.getEnabledWallets())) {
+    const wallets = await this.getWallets();
+    for (const wallet of wallets) {
       const ticker = wallet.ticker;
+      const w = wallet;
       promises.push(new Promise((resolve, reject) => {
-        let timeoutOccurred = false; // state to prevent race condition
-        let done = false; // state to prevent race condition
-        const handler = () => {
-          if (done)
-            return;
-          timeoutOccurred = true;
-          reject(new Error(`wait for rpc timeout ${ticker}`));
-        };
-        timeouts.push(handler);
-        setTimeout(handler, timeOut);
         this._api.walletController_walletRpcReady(ticker, timeOut).then(ready => {
-          if (timeoutOccurred)
-            return;
-          done = true;
-          if (ready)
-            resolve(ticker);
-          else
+          if (!ready) {
             reject(new Error(`wait for rpc timeout ${ticker}`));
-        }).catch(e => {
-          if (timeoutOccurred)
             return;
-          done = true;
+          }
+          // Notify UI of existing cached info
+          if (w.rpcEnabled()) {
+            this.updateBalanceInfo(wallet.ticker).then(() => {
+              this.dispatchTransactionsTicker(wallet.ticker, appActions.setTransactions, store);
+              this.dispatchBalances(appActions.setBalances, store);
+              resolve(ticker);
+            });
+          } else
+            resolve(ticker);
+        }).catch(e => {
           reject(e);
         });
       }));
     }
-    try {
-      let count = promises.length;
-      let failed = false;
-      const countHandler = (resolve) => {
-        count--;
-        if (count <= 0)
-          resolve();
-      };
-      await new Promise(resolve => {
-        for (const promise of promises)
-          promise.then(ticker => {
-            countHandler(resolve);
-            // Notify UI of existing cached info
-            this.dispatchBalances(appActions.setBalances, store);
-            this.dispatchTransactionsStream(appActions.setTransactions, store);
-          }).catch(e => {
-            console.log(e);
-            failed = true;
-            countHandler(resolve);
-          });
-      });
-      return !failed;
-    } catch (e) {
-      for (const handler of timeouts)
-        clearTimeout(handler);
-      return false;
-    }
+    return resolveAll(promises);
   }
 }
 

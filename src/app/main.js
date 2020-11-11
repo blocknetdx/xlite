@@ -138,7 +138,7 @@ function startupInit(walletController, confController, pricingController, confNe
     // Let listeners know about initial data
     walletController.dispatchWallets(appActions.setWallets, store);
     walletController.dispatchBalances(appActions.setBalances, store);
-    walletController.dispatchTransactionsStream(appActions.setTransactions, store);
+    walletController.dispatchTransactions(appActions.setTransactions, store);
     walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store);
     // Use MAX_SAFE_INTEGER to ensure latest prices are pulled from cache
     walletController.dispatchPrices(pricingController, appActions.setPricing, store, Number.MAX_SAFE_INTEGER);
@@ -151,23 +151,16 @@ function startupInit(walletController, confController, pricingController, confNe
     walletController.updatePriceMultipliers()
       .then(() => walletController.dispatchPriceMultipliers(appActions.setCurrencyMultipliers, store));
 
-    // Wait for rpc to become available and then fetch
+    // Wait for rpc to become available and then fetch (this also updates txs and balances)
     await walletController.waitForRpcAndFetch(slowLoad ? 12500 : 10000, store);
-
-    // Update latest balance info
-    walletController.updateAllBalances()
-      .then(() => {
-        walletController.dispatchBalances(appActions.setBalances, store);
-        walletController.dispatchTransactions(appActions.setTransactions, store);
-      });
 
     // Watch for updates
     walletController.pollUpdates(30000, () => { // every 30 sec
-      walletController.updateAllBalances()
-        .then(() => {
-          walletController.dispatchBalances(appActions.setBalances, store);
-          walletController.dispatchTransactions(appActions.setTransactions, store);
-        });
+      const handler = ticker => {
+        walletController.dispatchBalances(appActions.setBalances, store);
+        walletController.dispatchTransactionsTicker(ticker, appActions.setTransactions, store);
+      };
+      walletController.updateAllBalancesStream(false, handler);
     });
     walletController.pollPriceMultipliers(300000, () => { // every 5 min
       walletController.updatePriceMultipliers()

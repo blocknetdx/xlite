@@ -162,9 +162,12 @@ class WalletController {
    * @return {Promise<void>}
    */
   async updateBalanceInfo(ticker) {
+    const balance = await this._updateBalanceInfo(ticker);
+    if (!balance)
+      return;
     const balances = this.getBalances();
-    if (await this._updateBalanceInfo(ticker, balances))
-      this._storage.setItem(storageKeys.BALANCES, balances);
+    balances.set(ticker, balance);
+    this._storage.setItem(storageKeys.BALANCES, balances);
   }
 
   /**
@@ -174,18 +177,22 @@ class WalletController {
   async updateAllBalances() {
     // Start with existing balance data and only persist new data if change
     // was detected.
-    const balances = this.getBalances();
-    let dataChanged = false;
+    const balances = new Map();
     for (const wallet of this.getWallets()) {
       if (!wallet.rpcEnabled()) // Only query wallets that have rpc
         continue;
-      if (await this._updateBalanceInfo(wallet.ticker, balances))
-        dataChanged = true;
+      const balance = await this._updateBalanceInfo(wallet.ticker);
+      if (balance)
+        balances.set(wallet.ticker, balance);
     }
 
     // Save to storage
-    if (dataChanged)
-      this._storage.setItem(storageKeys.BALANCES, balances);
+    if (balances.size > 0) {
+      const currentBalances = this.getBalances();
+      for (const [ticker, balance] of balances)
+        currentBalances.set(ticker, balance);
+      this._storage.setItem(storageKeys.BALANCES, currentBalances);
+    }
   }
 
   /**
@@ -194,28 +201,20 @@ class WalletController {
    * the func but does not update the underlying data storage directly.
    * Returns true if the data providers were mutated.
    * @param ticker {string}
-   * @param balances {Map<string, Array<string>>}
-   * @return {Promise<boolean>}
+   * @return {Promise<Array>}
    */
-  async _updateBalanceInfo(ticker, balances) {
+  async _updateBalanceInfo(ticker) {
     // Start with existing balance data and only persist new data if no errors.
     const wallet = this.getWallet(ticker);
     if (!wallet)
-      return false; // no wallet found
-
-    let balanceUpdated = false;
+      return null; // no wallet found
 
     try {
-      const balanceInfo = await wallet.getBalance();
-      if (balanceInfo) { // ensure not null
-        balances.set(wallet.ticker, balanceInfo);
-        balanceUpdated = true;
-      }
+      return await wallet.getBalance();
     } catch (err) {
       logger.error(`failed to get balance info for ${wallet.ticker}`, err);
+      return null;
     }
-
-    return balanceUpdated;
   }
 }
 
