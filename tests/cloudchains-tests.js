@@ -199,8 +199,8 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.getCCMnemonic() CloudChains.getDecryptedMnemonic()', async function() {
       const cc = new CloudChains(ccFunc, storage);
-      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
-      cc._execFile = execFile;
+      const fakeSpawn = new FakeSpawn();
+      cc._execFile = fakeSpawn.spawn;
       const password = 'my password';
       const mnemonic = 'my mnemonic';
       // Good cases should succeed
@@ -208,16 +208,16 @@ describe('CloudChains Test Suite', function() {
         cc.getCCMnemonic(password)
           .then(resolve)
           .catch(reject);
-        mockWrite(mnemonic);
-        mockClose();
+        fakeSpawn.stdout('data', mnemonic);
+        fakeSpawn.stdout('close', 0);
       });
       checkMnemonic.should.equal(mnemonic);
       const checkMnemonic2 = await new Promise((resolve, reject) => {
         cc.getDecryptedMnemonic(password)
           .then(resolve)
           .catch(reject);
-        mockWrite(mnemonic);
-        mockClose();
+        fakeSpawn.stdout('data', mnemonic);
+        fakeSpawn.stdout('close', 0);
       });
       checkMnemonic2.should.equal(mnemonic);
       // Error on cli
@@ -225,14 +225,14 @@ describe('CloudChains Test Suite', function() {
         cc.getCCMnemonic(password)
           .then(resolve)
           .catch(resolve);
-        mockErr();
+        fakeSpawn.stdout('close', new Error('some error'));
       });
       checkMnemonicBad.should.be.instanceof(Error);
       const checkMnemonicBad2 = await new Promise(resolve => {
         cc.getDecryptedMnemonic(password)
           .then(resolve)
           .catch(resolve);
-        mockErr();
+        fakeSpawn.stdout('close', new Error('some error'));
       });
       should.not.exist(checkMnemonicBad2); // expecting null
       // Empty mnemonic
@@ -240,16 +240,16 @@ describe('CloudChains Test Suite', function() {
         cc.getCCMnemonic(password)
           .then(resolve)
           .catch(resolve);
-        mockWrite('');
-        mockClose();
+        fakeSpawn.stdout('data', '');
+        fakeSpawn.stdout('close', 0);
       });
       checkEmptyMnemonicBad.should.be.instanceof(Error);
       const checkEmptyMnemonicBad2 = await new Promise(resolve => {
         cc.getDecryptedMnemonic(password)
           .then(resolve)
           .catch(resolve);
-        mockWrite('');
-        mockClose();
+        fakeSpawn.stdout('data', '');
+        fakeSpawn.stdout('close', 0);
       });
       should.not.exist(checkEmptyMnemonicBad2); // expecting null
     });
@@ -327,7 +327,7 @@ describe('CloudChains Test Suite', function() {
     it('CloudChains.enableAllWallets()', async function() {
       const cc = new CloudChains(ccFunc, storage);
       const fakeSpawn = new FakeSpawn();
-      cc._spawn = fakeSpawn.spawn;
+      cc._execFile = fakeSpawn.spawn;
       cc.enableAllWallets.should.be.a.Function();
 
       {
@@ -441,8 +441,8 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.getCCSPVVersion()', async function() {
       const cc = new CloudChains(ccFunc, storage);
-      const { execFile, mockErr, mockWrite, mockClose } = fakeExecFile();
-      cc._execFile = execFile;
+      const fakeSpawn = new FakeSpawn();
+      cc._execFile = fakeSpawn.spawn;
       cc.getCCSPVVersion.should.be.a.Function();
       const testVersion = '1.2.3';
       // If there is an error opening the CLI
@@ -450,7 +450,7 @@ describe('CloudChains Test Suite', function() {
         cc.getCCSPVVersion()
           .then(resolve)
           .catch(reject);
-        mockErr();
+        fakeSpawn.stdout('close', new Error('some error'));
       });
       versionWhenError.should.equal('unknown');
       // If no version is outputted by the CLI
@@ -458,7 +458,7 @@ describe('CloudChains Test Suite', function() {
         cc.getCCSPVVersion()
           .then(resolve)
           .catch(reject);
-        mockClose();
+        fakeSpawn.stdout('close', 0);
       });
       versionWhenNoOutput.should.equal('');
       // If a version is outputted by the CLI
@@ -466,8 +466,8 @@ describe('CloudChains Test Suite', function() {
         cc.getCCSPVVersion()
           .then(resolve)
           .catch(reject);
-        mockWrite(testVersion);
-        mockClose();
+        fakeSpawn.stdout('data', testVersion);
+        fakeSpawn.stdout('close', 0);
       });
       version.should.equal(testVersion);
     });
@@ -521,7 +521,7 @@ describe('CloudChains Test Suite', function() {
       const rpcHelp = {ccHelp: async () => true};
       cc._rpc = rpcHelp;
       const fakeSpawn = new FakeSpawn();
-      cc._spawn = fakeSpawn.spawn;
+      cc._execFile = fakeSpawn.spawn;
       cc.startSPV.should.be.a.Function();
       const password = 'password';
 
@@ -598,7 +598,7 @@ describe('CloudChains Test Suite', function() {
         cc2._rpcWaitDelay = 50;
         cc2._rpcStartExpirySeconds = 1;
         cc2.isWalletRPCRunning = async () => false;
-        cc2._spawn = fakeSpawn.spawn;
+        cc2._execFile = fakeSpawn.spawn;
         const success = await new Promise((resolve, reject) => {
           cc2.startSPV(password).then(res => {
             res.should.be.true();
@@ -625,13 +625,11 @@ describe('CloudChains Test Suite', function() {
 
     const runCreateWalletTests = async function(password, createFromMnemonic) {
       const fakeSpawn = new FakeSpawn();
-      const {execFile, mockWrite, mockClose} = fakeExecFile();
       const makecc = () => {
         const cc = new CloudChains(ccFunc, storage);
         cc._rpcWaitDelay = 50;
         cc._rpc = {ccHelp: async () => true};
-        cc._spawn = fakeSpawn.spawn;
-        cc._execFile = execFile;
+        cc._execFile = fakeSpawn.spawn;
         cc.createSPVWallet.should.be.a.Function();
         return cc;
       };
@@ -684,8 +682,7 @@ describe('CloudChains Test Suite', function() {
             .catch(reject);
           fakeSpawn.stdout('data', 'got relayfee for currency');
           setTimeout(() => {
-            mockWrite(testMnemonic);
-            mockClose();
+            fakeSpawn.stdout('data', testMnemonic);
             fakeSpawn.stdout('close', 0);
           }, 250);
         });

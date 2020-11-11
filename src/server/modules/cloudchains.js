@@ -3,7 +3,7 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 import { ccBinDirs, ccBinNames, DEFAULT_MASTER_PORT, UNKNOWN_CC_VERSION } from '../../app/constants';
 import CCWalletConf from '../../app/types/ccwalletconf';
-import {Crypt, generateSalt, pbkdf2} from '../../app/modules/crypt';
+import {generateSalt, pbkdf2} from '../../app/modules/crypt';
 import {logger} from './logger';
 import {storageKeys} from '../constants';
 import RPCController from './rpc-controller';
@@ -386,20 +386,28 @@ class CloudChains {
   getCCSPVVersion() {
     const versionPatt = /\d+\.\d+\.\d+/;
     let version = '';
-    return new Promise(resolve => {
-      const cli = this._execFile(this.getCCSPVFilePath(), ['--version'], err => {
-        if (err) {
-          logger.error(err);
-          resolve(UNKNOWN_CC_VERSION);
-        } else
-          resolve(version);
-      });
+    let closed = false;
+    let resolve = () => {};
+    const closeHandler = err => {
+      if (closed)
+        return;
+      closed = true;
+      if (err) {
+        logger.error(err);
+        resolve(UNKNOWN_CC_VERSION);
+      } else
+        resolve(version);
+    };
+    return new Promise(res => {
+      resolve = res;
+      const cli = this._execFile(this.getCCSPVFilePath(), ['--version'], {detached: false, windowsHide: true}, closeHandler);
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
         if(versionPatt.test(str)) {
           version = str.match(versionPatt)[0];
         }
       });
+      cli.stdout.on('close', closeHandler);
     });
   }
 
@@ -411,16 +419,22 @@ class CloudChains {
   getCCMnemonic(password) {
     let mnemonic = '';
     return new Promise((resolve, reject) => {
-      const cli = this._execFile(this.getCCSPVFilePath(), ['--getmnemonic', password], err => {
+      let closed = false;
+      const closeHandler = err => {
+        if (closed)
+          return;
+        closed = true;
         if (err || !mnemonic) {
           logger.error(err);
           reject(new Error('failed to get the mnemonic'));
         } else
           resolve(mnemonic);
-      });
+      };
+      const cli = this._execFile(this.getCCSPVFilePath(), ['--getmnemonic', password], {detached: false, windowsHide: true}, closeHandler);
       cli.stdout.on('data', data => {
         mnemonic = data.toString('utf8');
       });
+      cli.stdout.on('close', closeHandler);
     });
   }
 
@@ -473,7 +487,7 @@ class CloudChains {
 
       let started = false;
       const args = password ? ['--password', password] : [];
-      const cli = this._spawn(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
+      const cli = this._execFile(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         if (started)
           return;
@@ -560,7 +574,7 @@ class CloudChains {
       } else { // Create a new wallet
         args = ['--createdefaultwallet', password];
       }
-      const cli = this._spawn(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
+      const cli = this._execFile(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         if (started)
           return;
@@ -606,7 +620,7 @@ class CloudChains {
   enableAllWallets() {
     return new Promise(resolve => {
       let started = false;
-      const cli = this._spawn(this.getCCSPVFilePath(), ['--enablerpcandconfigure'], {detached: false, windowsHide: true});
+      const cli = this._execFile(this.getCCSPVFilePath(), ['--enablerpcandconfigure'], {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
         if(this._selectionPatt.test(str)) { // kill process when selection screen appears
