@@ -33,11 +33,15 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
   }, [activeWallet]);
 
   useEffect(() => {
-    if (availWallets && availWallets.length > 0) {
-      Promise.all(availWallets.map(wallet => wallet.getAddresses()))
-        .then(response => setAddresses(response.reduce((arr, address) => arr.concat(address), [])));
+    if(wallet) {
+      wallet.getAddresses()
+        .then((res = []) => {
+          setAddresses(res);
+        });
+    } else {
+      setAddresses([]);
     }
-  }, []);
+  }, [activeWallet, wallet]);
 
   useEffect(() => {
     if(wallet) {
