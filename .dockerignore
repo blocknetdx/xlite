@@ -3,3 +3,4 @@ temp/
 dist/
 dist-native/
 node_modules/
+bin/
