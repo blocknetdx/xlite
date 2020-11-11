@@ -242,22 +242,17 @@ describe('WalletController Test Suite', function() {
   });
   it('WalletController._updateBalanceInfo()', async function() {
     const wc = await updateBalancePrep();
-    const newBalances = new Map();
     const wallet = wc.getWallet('BLOCK');
     const oldBalances = wc.getBalances();
-    await wc._updateBalanceInfo(wallet.ticker, newBalances);
-    newBalances.get('BLOCK').should.be.eql(oldBalances.get('BLOCK'));
-    newBalances.size.should.be.equal(1); // should not have any other tickers
+    const newBalances = await wc._updateBalanceInfo(wallet.ticker);
+    newBalances.should.be.eql(oldBalances.get('BLOCK'));
   });
   it('WalletController._updateBalanceInfo() should not update on wallet error', async function() {
     const wc = await updateBalancePrep();
-    const oldBalances = wc.getBalances();
-    const newBalances = oldBalances;
     const wallet = wc.getWallet('BLOCK');
     wallet.getBalance = async function() { throw new Error('fail'); };
-    await wc._updateBalanceInfo(wallet.ticker, newBalances);
-    newBalances.get('BLOCK').should.be.eql(oldBalances.get('BLOCK'));
-    newBalances.size.should.be.equal(balances.size);
+    const expectNull = await wc._updateBalanceInfo(wallet.ticker);
+    should.not.exist(expectNull);
   });
 
   after(function() {

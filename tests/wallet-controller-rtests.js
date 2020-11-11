@@ -19,6 +19,7 @@ import TokenManifest from '../src/app/modules/token-manifest';
 import Wallet from '../src/app/types/wallet-r';
 import WalletController from '../src/app/modules/wallet-controller-r';
 import XBridgeInfo from '../src/app/types/xbridgeinfo';
+import {setTransactions} from '../src/app/actions/app-actions';
 
 describe('WalletController Test Suite', function() {
   const storage = domStorage;
@@ -336,6 +337,34 @@ describe('WalletController Test Suite', function() {
       };
     };
     await wc.dispatchTransactionsStream(setTransactions, store);
+  });
+  it('WalletController.dispatchTransactionsTicker()', async function() {
+    const combinedReducers = combineReducers({ appState: appReducer });
+    const store = createStore(combinedReducers);
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
+    await wc.loadWallets();
+    const transactions = new Map([['BLOCK', [_.cloneDeep(txBLOCK)]], ['BTC', [_.cloneDeep(txBTC)]]]);
+    fakeApi.wallet_getTransactions = ticker => resolvePromise(transactions.get(ticker));
+    await wc.updateAllBalances();
+    await wc.dispatchTransactionsTicker('BLOCK', setTransactions, store);
+    should.exist(store.getState().appState.transactions.get('BLOCK'));
+    store.getState().appState.transactions.get('BLOCK').length.should.be.eql(transactions.get('BLOCK').length);
+  });
+  it('WalletController.updateAllBalancesStream()', async function() {
+    const wc = new WalletController(fakeApi, tokenManifest, storage, db);
+    await wc.loadWallets();
+    const transactions = new Map([['BLOCK', [_.cloneDeep(txBLOCK)]], ['BTC', [_.cloneDeep(txBTC)]]]);
+    fakeApi.wallet_getTransactions = ticker => resolvePromise(transactions.get(ticker));
+    // ensure that transactions are streamed into the state data
+    let checkSteps = transactions.size;
+    const updateHandler = ticker => {
+      transactions.size.should.be.equal(checkSteps);
+      should.exist(transactions.get(ticker));
+      transactions.delete(ticker);
+      checkSteps--;
+    };
+    await wc.updateAllBalancesStream(true, updateHandler);
+    checkSteps.should.be.equal(0);
   });
   it('WalletController.waitForRpcAndFetch()', async function() {
     const combinedReducers = combineReducers({ appState: appReducer });

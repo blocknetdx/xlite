@@ -185,3 +185,33 @@ export const removeTrailingZeroes = numStr => {
   }
   return numStr;
 };
+
+/**
+ * Waits for all promises to resolve (or catch). Resolves true if
+ * all promises resolved without error, otherwise resolves false.
+ * @param promises
+ * @return {Promise<boolean>}
+ */
+export const resolveAll = promises => {
+  let resolved = promises.length;
+  let done = false;
+  let success = true;
+  // Only resolve the promise once all wallet promises have resolved
+  const resolveHandler = resolve => {
+    if (done)
+      return; // prevent race conditions
+    resolved--;
+    if (resolved <= 0) {
+      done = true;
+      resolve(success);
+    }
+  };
+  return new Promise(resolve => {
+    for (const p of promises)
+      p.then(() => resolveHandler(resolve))
+        .catch(() => {
+          success = false;
+          resolveHandler(resolve);
+        });
+  });
+};

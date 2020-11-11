@@ -30,16 +30,18 @@ let TransactionsPanelHeader = ({ selectedFilter, onTransactionFilter, walletCont
 
   const onRefreshButton = e => {
     e.preventDefault();
-    const then = () => {
+    const then = ticker => {
       walletController.dispatchBalances(appActions.setBalances, store);
-      walletController.dispatchTransactions(appActions.setTransactions, store);
+      if (ticker)
+        walletController.dispatchTransactionsTicker(ticker, appActions.setTransactions, store);
+      else
+        walletController.dispatchTransactions(appActions.setTransactions, store);
     };
     if(isCoinTransactions && wallet) {
       walletController.updateBalanceInfo(selectedTicker, true, 1000)
         .then(then);
     } else {
-      walletController.updateAllBalances(true, 1000)
-        .then(then);
+      walletController.updateAllBalancesStream(true, then);
     }
   };
 
