@@ -186,7 +186,11 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
   const onRegisterSubmit = async function(e) {
     e.preventDefault();
 
-    const preppedMnemonic = newMnemonic.trim();
+    const preppedMnemonic = newMnemonic
+      .trim()
+      .replace(/[\n\r\s]/g, ' ')
+      .replace(/\s+/g, ' ');
+
     if(createFromMnemonic && preppedMnemonic.length === 0)
       return Alert.alert(Localize.text('Missing Mnemonic', 'login'), Localize.text('You must enter a valid mnemonic.', 'login'));
 
