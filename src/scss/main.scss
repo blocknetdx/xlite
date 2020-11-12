@@ -312,6 +312,11 @@ div.lw-percent-bar {
   background: $lw-secondary-6;
 }
 
+a.inactive {
+  text-decoration: none;
+  cursor: default;
+}
+
 // In case we want to manually do scrollbars rather than use perfect scrollbar
 //$lw-scrollbar-color: #d4d4d4;
 //::-webkit-scrollbar {
