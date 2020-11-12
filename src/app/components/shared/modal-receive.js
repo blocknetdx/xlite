@@ -72,9 +72,13 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
   if (!wallets || !availWallets) // wait for data
     return <Modal />;
 
+  const disableButtons = !wallet;
+
   const onGenerateNewAddress = async function(e) {
     try {
       e.preventDefault();
+      if(disableButtons)
+        return;
       const newAddress = await wallet.generateNewAddress();
       setAddress(newAddress);
     } catch(err) {
@@ -82,14 +86,20 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
     }
   };
 
-  const onSelectReceivingAddress = () => {
+  const onSelectReceivingAddress = e => {
+    e.preventDefault();
+    if(disableButtons)
+      return;
     setShowReceiveAllAddresses(!showReceiveAllAddresses);
   };
 
   const onCopyAddress = () => {
+    const trimmedAddress = address.trim();
+    if(!trimmedAddress)
+      return;
     setShowAddressCopiedConfirmation(true);
     try {
-      api.general_setClipboard(address.trim());
+      api.general_setClipboard(trimmedAddress);
     } catch(err) {
       handleError(err);
     }
@@ -132,8 +142,8 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
           onButtonClick={onCopyAddress}
           onChange={setAddress} />
         <div className={'lw-modal-field-label-container'}>
-          <a href={'#'} onClick={onGenerateNewAddress} className={'lw-color-secondary-6'}><Localize context={'receive-modal'}>Generate new address</Localize></a>
-          <a href={'#'} onClick={onSelectReceivingAddress} className={'lw-modal-field-label right-end'}><Localize context={'receive-modal'}>Select receiving address</Localize></a>
+          <a href={'#'} onClick={onGenerateNewAddress} className={`lw-color-secondary-6 ${disableButtons ? 'inactive' : ''}`}><Localize context={'receive-modal'}>Generate new address</Localize></a>
+          <a href={'#'} onClick={onSelectReceivingAddress} className={`lw-modal-field-label right-end ${disableButtons ? 'inactive' : ''}`}><Localize context={'receive-modal'}>Select receiving address</Localize></a>
         </div>
         <div className={'lw-modal-receive-qr-code-container'}>
           {addressDataUrl ? <img src={addressDataUrl} alt={Localize.text('Address qr code', 'receive-modal')} style={{}} /> : null}
