@@ -23,7 +23,12 @@ const SidebarFilterableList = ({ placeholder, items, onClick = () => {} }) => {
   const filterPatt = filter ? new RegExp(escapeRegExp(filter), 'i') : null;
 
   const filteredItems = items
-    .filter(({ text }) => filterPatt ? filterPatt.test(text) : true);
+    .filter(({ id, text }) => {
+      if(filterPatt)
+        return filterPatt.test(text) || filterPatt.test(id);
+      else
+        return true;
+    });
 
   return (
     <div className={'lw-sidebar-filterable-list-container'}>
