@@ -544,7 +544,7 @@ class WalletController {
     return new Promise(resolve => {
       resolveAll(promises).then(success => {
         if (this._dispatchLoadingTransactions)
-          this._dispatchLoadingTransactions(true);
+          this._dispatchLoadingTransactions(false);
         resolve();
       });
     });
