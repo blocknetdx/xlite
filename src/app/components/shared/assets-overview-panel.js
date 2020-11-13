@@ -138,7 +138,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                     null
                   }
                   {!hidePercent ?
-                    <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0}}>
+                    <TableData className={`text-monospace ${hidePercentBar ? '' : 'dual-line'}`} style={{paddingTop: 0, paddingBottom: 0}}>
                       {!hidePercentBar ?
                         <Column justify={'center'} style={{marginTop: -8}}>
                           <div style={{marginBottom: 3, textAlign: 'left'}}>{percent}</div>
@@ -152,7 +152,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                     null
                   }
                   <TableData className={'text-monospace'}>{removeTrailingZeroes(totalBalance)}</TableData>
-                  <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'right'}}>
+                  <TableData className={'text-monospace dual-line'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'right'}}>
                     <div>
                       {removeTrailingZeroes(math.multiply(bignumber(Number(totalBalance)), btcMultiplier).toFixed(MAX_DECIMAL_PLACE))}
                     </div>
