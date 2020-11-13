@@ -68,4 +68,15 @@ Portfolio.propTypes = {
   balanceOverTime: PropTypes.func, // function('day|week|month|half-year|year', currency, currencyMultiplier)
 };
 
+// const generateTestData = () => {
+//   const testChartData = [];
+//   const min = 200;
+//   const max = 300;
+//   for(let i = 0; i < 365; i++) {
+//     const num = Math.floor(Math.random() * (max - min + 1) + min);
+//     testChartData.push([moment().subtract(i, 'd').unix(), num]);
+//   }
+//   return testChartData;
+// };
+
 export default Portfolio;
