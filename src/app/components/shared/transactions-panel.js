@@ -110,7 +110,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
 
               return (
                 <TableRow key={t.key()} clickable={selectable} onClick={onRowClick}>
-                  <TableData style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                  <TableData className={'dual-line'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
                     <Row>
                       <Column justify={'center'}>
                         <img alt={Localize.text('Received icon', 'transactions')}
@@ -149,7 +149,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                   {!brief && !hideAddress ? <TableData className={'text-monospace'}>{t.address}</TableData> : null}
                   {!brief ? <TableData className={'text-monospace'}>{t.amount}</TableData> : null}
                   {!brief ?
-                    <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                    <TableData className={'text-monospace dual-line'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
                       <div className={'lw-table-top-label'}>
                         {sent ? '-' : '+'}{math.multiply(bignumber(t.amount), btcMultiplier).toFixed(MAX_DECIMAL_PLACE)}
                       </div>
@@ -158,7 +158,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                       </div>
                     </TableData>
                     :  // Brief requires displaying the actual amount and currency equivalent
-                    <TableData className={'text-monospace'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'right'}}>
+                    <TableData className={'text-monospace dual-line'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'right'}}>
                       <div className={'lw-table-top-label'}>
                         {sent ? '-' : '+'}{bignumber(t.amount).toFixed(4)}
                       </div>

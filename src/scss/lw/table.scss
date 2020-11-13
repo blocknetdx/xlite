@@ -77,13 +77,16 @@ $lw-row-padding-vert: 12px;
 
         div.lw-table-data-container {
           font-size: 13px;
-          line-height: 16px;
+          line-height: 25px;
           text-align: center;
           &.lw-table-data-container-small {
             @media only screen and (max-width: 1056px) {
               font-size: 10px;
               line-height: 13px;
             }
+          }
+          &.dual-line {
+            line-height: 16px;
           }
         }
 
