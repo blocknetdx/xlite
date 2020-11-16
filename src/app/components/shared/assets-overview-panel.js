@@ -173,7 +173,8 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
             setActiveView(activeViews.PORTFOLIO);
           }}><Localize context={'portfolio'}>View all assets</Localize> <i className={'fas fa-chevron-right'} /></a>
           :
-          <a style={styles.inactiveFooterButton}><Localize context={'universal'}>Nothing more to load</Localize></a>
+          null
+          // <a style={styles.inactiveFooterButton}><Localize context={'universal'}>Nothing more to load</Localize></a>
         }
       </CardFooter>
     </Card>

@@ -180,7 +180,8 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
               setActiveView(activeViews.TRANSACTIONS);
             }}><Localize context={'transactions'}>View all transactions</Localize> <i className={'fas fa-chevron-right'} /></a>
             :
-            <a href={'#'}><Localize context={'universal'}>Load more</Localize> <i className={'fas fa-chevron-down'} /></a>
+            null
+            // <a href={'#'}><Localize context={'universal'}>Load more</Localize> <i className={'fas fa-chevron-down'} /></a>
           }
         </CardFooter>
 
