@@ -74,7 +74,7 @@ export const ZOOM_MAX = 1.5;
 export const ZOOM_MIN = .6;
 export const ZOOM_INCREMENT = .1;
 
-export const HTTP_REQUEST_TIMEOUT = 10000;
+export const HTTP_REQUEST_TIMEOUT = 15000;
 
 export const altCurrencies = {
   USD: 'USD',

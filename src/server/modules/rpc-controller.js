@@ -395,7 +395,7 @@ class RPCController {
       startTime = 0;
     if (!_.isNumber(endTime) || endTime === 0)
       endTime = unixTime();
-    const res = await this._makeRequest('listtransactions', [startTime, endTime]);
+    const res = await this._makeRequest('listtransactions', [startTime, endTime], {timeout: 60000});
     return res.map(t => new RPCTransaction({
       txId: t.txid,
       n: t.vout,
