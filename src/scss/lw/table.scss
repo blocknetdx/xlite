@@ -1,4 +1,5 @@
 @import './variables';
+@import './mixins';
 
 $lw-row-padding-horiz: 20px;
 $lw-row-padding-vert: 12px;
@@ -69,6 +70,7 @@ $lw-row-padding-vert: 12px;
         padding-right: $lw-row-padding-horiz;
 
         &.clickable {
+          @include default-hover-transition(background-color);
           &:hover {
             cursor: pointer;
             background-color: $lw-bg-3;

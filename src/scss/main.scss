@@ -27,6 +27,7 @@
 @import "./lw/copyable-link";
 @import "./lw/filter-menu";
 @import "./lw/chart";
+@import "./lw/mixins";
 
 // Change default sweetalert z-index
 .swal2-container {
@@ -316,6 +317,10 @@ div.lw-percent-bar {
 a.inactive {
   text-decoration: none;
   cursor: default;
+}
+
+a, button {
+  @include default-hover-transition(color, background-color, opacity);
 }
 
 // In case we want to manually do scrollbars rather than use perfect scrollbar

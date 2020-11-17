@@ -1,5 +1,6 @@
 @import './variables';
 @import './fonts';
+@import './mixins';
 
 $lw-button-background-color: $lw-bg-2;
 $lw-button-background-hover-color: $lw-bg-1;
@@ -32,11 +33,13 @@ button {
   background-color: $lw-button-background-color;
   color: $lw-button-text-color;
   user-select: none;
+  @include default-hover-transition(background-color);
 
   &.lw-button-transparent {
     background-color: transparent;
     color: $lw-button-transparent-text-color;
     min-width: 0;
+    @include default-hover-transition(opacity);
 
     &:disabled {
       opacity: .55;
@@ -99,6 +102,7 @@ button {
   font-size: 12px;
   font-weight: 500;
   line-height: 1.67;
+  @include default-hover-transition(border-color, color);
 
   letter-spacing: normal;
 

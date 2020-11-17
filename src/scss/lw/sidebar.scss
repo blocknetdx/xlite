@@ -1,4 +1,5 @@
 @import './variables';
+@import './mixins';
 
 $lw-sidebar-background: $lw-bg-5;
 $lw-sidebar-line-color: transparent;
@@ -38,6 +39,7 @@ $lw-sidebar-hover-color: darken($lw-sidebar-background, 5%);
     user-select: none;
     border-radius: 0;
     padding-left: 20px;
+    @include default-hover-transition(background-color);
 
     i {
       font-size: 18px;
@@ -127,6 +129,7 @@ button.lw-sidebar-filterable-list-item {
   text-align: left;
   user-select: none;
   color: $lw-text-primary;
+  @include default-hover-transition(background-color);
 
   &:last-child {
     margin-bottom: 0;
