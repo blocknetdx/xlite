@@ -17,7 +17,8 @@ const rmrf = require('rmrf-promise');
   const filesToCopy = [
     'bin',
     'dist',
-    'locales'
+    'locales',
+    'static-data',
   ];
 
   for(const file of filesToCopy) {

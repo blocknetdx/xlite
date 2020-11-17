@@ -1,0 +1,86 @@
+[
+  {
+    "ticker": "BTC",
+    "name": "Bitcoin",
+    "website": "https://bitcoin.org/en/",
+    "explorer": "https://btc.cryptoid.info/btc/",
+    "explorerTx": "https://btc.cryptoid.info/btc/tx.dws?{{tx}}.htm"
+  },
+  {
+    "ticker": "BLOCK",
+    "name": "Blocknet",
+    "website": "https://blocknet.co/",
+    "explorer": "https://chainz.cryptoid.info/block/",
+    "explorerTx": "https://chainz.cryptoid.info/block/tx.dws?{{tx}}.htm"
+  },
+  {
+    "ticker": "LTC",
+    "name": "Litecoin",
+    "website": "https://litecoin.org/",
+    "explorer": "https://chainz.cryptoid.info/ltc/",
+    "explorerTx": "https://chainz.cryptoid.info/ltc/tx.dws?{{tx}}.htm"
+  },
+  {
+    "ticker": "PHR",
+    "name": "Phore",
+    "website": "https://phore.io/",
+    "explorer": "https://chainz.cryptoid.info/phr/",
+    "explorerTx": "https://chainz.cryptoid.info/phr/tx.dws?{{tx}}.htm"
+  },
+  {
+    "ticker": "SYS",
+    "name": "Syscoin",
+    "website": "http://syscoin.org/",
+    "explorer": "https://chainz.cryptoid.info/sys/",
+    "explorerTx": "https://chainz.cryptoid.info/sys/tx.dws?{{tx}}.htm"
+  },
+  {
+    "ticker": "BCH",
+    "name": "Bitcoin Cash",
+    "website": "https://www.bitcoincash.org/",
+    "explorer": "https://explorer.bitcoincash.org/",
+    "explorerTx": "https://explorer.bitcoincash.org/tx/{{tx}}"
+  },
+  {
+    "ticker": "DASH",
+    "name": "Dash",
+    "website": "https://www.dash.org/",
+    "explorer": "https://explorer.dash.org/",
+    "explorerTx": "https://explorer.dash.org/insight/tx/{{tx}}"
+  },
+  {
+    "ticker": "DGB",
+    "name": "Digibyte",
+    "website": "http://www.digibyte.io/",
+    "explorer": "https://digiexplorer.info/",
+    "explorerTx": "https://digiexplorer.info/tx/{{tx}}"
+  },
+  {
+    "ticker": "DOGE",
+    "name": "Dogecoin",
+    "website": "http://dogecoin.com/",
+    "explorer": "https://blockchair.com/dogecoin/",
+    "explorerTx": "https://blockchair.com/dogecoin/transaction/{{tx}}"
+  },
+  {
+    "ticker": "RVN",
+    "name": "Ravencoin",
+    "website": "https://ravencoin.org/",
+    "explorer": "https://ravencoin.network/",
+    "explorerTx": "https://ravencoin.network/tx/{{tx}}"
+  },
+  {
+    "ticker": "PIVX",
+    "name": "PivX",
+    "website": "http://www.pivx.org/",
+    "explorer": "https://explorer.pivx.org/",
+    "explorerTx": "https://explorer.pivx.link/tx/{{tx}}"
+  },
+  {
+    "ticker": "POLIS",
+    "name": "Polis",
+    "website": "https://polispay.org/",
+    "explorer": "https://explorer.polispay.org/",
+    "explorerTx": "https://explorer.polispay.org/tx/{{tx}}"
+  }
+]

@@ -36,8 +36,8 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
   const altAmount = math.multiply(altMultiplier, bignumber(Number(total)));
 
   // ToDo get website data from somewhere
-  const website = wallet.ticker === 'BLOCK' ? 'blocknet.co' : '';
-  const explorerLink = `https://chainz.cryptoid.info/${wallet.ticker.toLowerCase()}/`;
+  const website = wallet.getWebsiteLink();
+  const explorerLink = wallet.getExplorerLink();
 
   // ToDo add change over time data
 

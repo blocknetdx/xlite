@@ -352,4 +352,32 @@ describe('Wallet Test Suite', function() {
     const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
     should.not.exist(await wallet.send(recipients));
   });
+  it('Wallet.getExplorerLink() will return the coin explorer link', () => {
+    const wallet = new Wallet(token, conf, appStorage);
+    const explorerLink = 'https://block-explorer.com/';
+    wallet._explorerLink = explorerLink;
+    wallet.getExplorerLink().should.equal(explorerLink);
+  });
+  it('Wallet.getExplorerLinkForTx() will return the link for a transaction in the explorer', () => {
+    const wallet = new Wallet(token, conf, appStorage);
+    const explorerTxLink = 'https://block-explorer.com/tx/';
+    wallet._explorerTxLink = explorerTxLink + '{{tx}}';
+    const tx = 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0';
+    wallet.getExplorerLinkForTx(tx)
+      .should.be.equal(explorerTxLink + tx);
+  });
+  it('Wallet.getExplorerLinkForTx() will return the general coin explorer link if an invalid transaction is passed in', () => {
+    const wallet = new Wallet(token, conf, appStorage);
+    const explorerLink = 'https://block-explorer.com/';
+    wallet._explorerLink = explorerLink;
+    const tx = 'some/thing/';
+    wallet.getExplorerLinkForTx(tx)
+      .should.be.equal(explorerLink);
+  });
+  it('Wallet.getWebsiteLink() will return the coin website link', () => {
+    const wallet = new Wallet(token, conf, appStorage);
+    const websiteLink = 'https://somecryptocurrency.com';
+    wallet._websiteLink = websiteLink;
+    wallet.getWebsiteLink().should.equal(websiteLink);
+  });
 });
