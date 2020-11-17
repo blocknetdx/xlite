@@ -40,3 +40,5 @@ export const storageKeys = {
   BALANCES: 'BALANCES',
   ALT_CURRENCY_MULTIPLIERS: 'ALT_CURRENCY_MULTIPLIERS',
 };
+
+export const coinDataPath = path.resolve(__dirname, '../../../static-data/coin-data.json');

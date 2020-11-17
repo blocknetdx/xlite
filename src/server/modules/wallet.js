@@ -10,6 +10,8 @@ import {unixTime, timeout} from '../../app/util';
 
 import _ from 'lodash';
 import {all, create} from 'mathjs';
+import fs from 'fs-extra';
+import { coinDataPath } from '../constants';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -21,6 +23,27 @@ const { bignumber } = math;
  * Class representing a wallet
  */
 class Wallet {
+
+  /**
+   * Gets the static coin data
+   * @param ticker {string}
+   * @returns {{explorerTx: string, explorer: string}}
+   */
+  static getCoinData(ticker) {
+    let coinData;
+    try {
+      coinData = fs.readJsonSync(coinDataPath);
+    } catch(err) {
+      logger.error(`Error loading ${coinDataPath}`);
+      coinData = [];
+    }
+    const { explorer = '', explorerTx = '', website = '' } = coinData.find(d => d.ticker === ticker) || {};
+    return {
+      explorer,
+      explorerTx,
+      website,
+    };
+  }
 
   /**
    * RPCController Instance for enabled wallets
@@ -70,6 +93,24 @@ class Wallet {
   _cachedAddrs = {fetchTime: 0, addresses: []};
 
   /**
+   * @type {string}
+   * @private
+   */
+  _explorerLink = '';
+
+  /**
+   * @type {string}
+   * @private
+   */
+  _explorerTxLink = '';
+
+  /**
+   * @type {string}
+   * @private
+   */
+  _websiteLink = '';
+
+  /**
    * Constructs a wallet
    * @param token {Token}
    * @param conf {CCWalletConf}
@@ -81,6 +122,10 @@ class Wallet {
     this._storage = storage;
     this.ticker = token.ticker;
     this.name = token.blockchain;
+    const { explorer, explorerTx, website } = Wallet.getCoinData(token.ticker);
+    this._explorerLink = explorer;
+    this._explorerTxLink = explorerTx;
+    this._websiteLink = website;
     this.initRpcIfEnabled();
   }
 
@@ -362,6 +407,33 @@ class Wallet {
 
     return txid;
   }
+
+  /**
+   * @returns {string}
+   */
+  getExplorerLink() {
+    return this._explorerLink;
+  }
+
+  /**
+   * @param tx {string}
+   * @returns {string}
+   */
+  getExplorerLinkForTx(tx) {
+    // if not valid hex, return the general explorer link
+    if(!/^[a-f0-9]{32,}$/i.test(tx))
+      return this._explorerLink;
+    else
+      return this._explorerTxLink.replace('{{tx}}', tx);
+  }
+
+  /**
+   * @returns {string}
+   */
+  getWebsiteLink() {
+    return this._websiteLink;
+  }
+
 }
 
 export default Wallet;

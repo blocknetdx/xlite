@@ -70,6 +70,18 @@ class Wallet {
    */
   _rpcEnabled = false;
 
+  /**
+   * @type {string}
+   * @private
+   */
+  _explorerLink = '';
+
+  /**
+   * @type {string}
+   * @private
+   */
+  _websiteLink = '';
+
   // Do not store any in memory state, this class creates ephemeral
   // instances, any persistent data should be added to dom storage.
 
@@ -210,12 +222,30 @@ class Wallet {
   }
 
   /**
+   * @returns {string}
+   */
+  getExplorerLink() {
+    if(!this._explorerLink)
+      this._explorerLink = this._api.wallet_getExplorerLink(this.ticker);
+    return this._explorerLink;
+  }
+
+  /**
    * Return the transaction explorer link.
    * @param txid {string}
    * @return {string}
    */
   getExplorerLinkForTx(txid) {
-    return `https://chainz.cryptoid.info/${this.ticker.toLowerCase()}/tx.dws?${txid}.htm`;
+    return this._api.wallet_getExplorerLinkForTx(this.ticker, txid);
+  }
+
+  /**
+   * @returns {string}
+   */
+  getWebsiteLink() {
+    if(!this._websiteLink)
+      this._websiteLink = this._api.wallet_getWebsiteLink(this.ticker);
+    return this._websiteLink;
   }
 
   /**

@@ -114,6 +114,12 @@ const FakeApi = (fakeApi) => {
         ]);
       }
     },
+    explorerLink: 'https://some-explorer.com',
+    explorerTxLink: 'https://some-explorer.com',
+    websiteLink: 'https://somewebsite.com',
+    wallet_getExplorerLink: (ticker) => fakeApi.explorerLink,
+    wallet_getExplorerLinkForTx: (ticker, tx) => fakeApi.explorerTxLink + '/' + tx,
+    wallet_getWebsiteLink: (ticker) => fakeApi.websiteLink,
   });
   return fakeApi;
 };

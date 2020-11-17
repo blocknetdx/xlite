@@ -78,6 +78,9 @@ export const apiConstants = {
   wallet_generateNewAddress: 'wallet_generateNewAddress',
   wallet_getCachedUnspent: 'wallet_getCachedUnspent',
   wallet_send: 'wallet_send',
+  wallet_getExplorerLink: 'wallet_getExplorerLink',
+  wallet_getExplorerLinkForTx: 'wallet_getExplorerLinkForTx',
+  wallet_getWebsiteLink: 'wallet_getWebsiteLink',
 
   pricing_getPrice: 'pricing_getPrice',
 };
@@ -306,6 +309,15 @@ const wallet_API = {
   },
   [apiConstants.wallet_send]: async (ticker, recipients) => {
     return ipcRenderer.invoke(apiConstants.wallet_send, ticker, recipients);
+  },
+  [apiConstants.wallet_getExplorerLink]: (ticker) => {
+    return ipcRenderer.sendSync(apiConstants.wallet_getExplorerLink, ticker);
+  },
+  [apiConstants.wallet_getExplorerLinkForTx]: (ticker, tx) => {
+    return ipcRenderer.sendSync(apiConstants.wallet_getExplorerLinkForTx, ticker, tx);
+  },
+  [apiConstants.wallet_getWebsiteLink]: (ticker) => {
+    return ipcRenderer.sendSync(apiConstants.wallet_getWebsiteLink, ticker);
   },
 };
 

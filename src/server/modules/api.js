@@ -393,6 +393,15 @@ class Api {
       recipients = recipients.map(r => new Recipient(r));
       return this._walletController.getWallet(ticker).send(recipients);
     });
+    this._proc.on(apiConstants.wallet_getExplorerLink, (evt, ticker) => {
+      evt.returnValue = this._walletController.getWallet(ticker).getExplorerLink();
+    });
+    this._proc.on(apiConstants.wallet_getExplorerLinkForTx, (evt, ticker, tx) => {
+      evt.returnValue = this._walletController.getWallet(ticker).getExplorerLinkForTx(tx);
+    });
+    this._proc.on(apiConstants.wallet_getWebsiteLink, (evt, ticker) => {
+      evt.returnValue = this._walletController.getWallet(ticker).getWebsiteLink();
+    });
   }
 
   /**

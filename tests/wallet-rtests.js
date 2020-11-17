@@ -264,10 +264,25 @@ describe('Wallet Test Suite', function() {
     const fakeUtxos = await fakeApi.wallet_getCachedUnspent(wallet.ticker);
     await wallet.getCachedUnspent(60).should.finally.be.eql(fakeUtxos);
   });
-  it('Wallet.getExplorerLinkForTx()', async function() {
+  it('Wallet.getExplorerLink should return a link string', function() {
+    const explorerLink = 'https://test-block-explorer.com';
+    fakeApi.explorerLink = explorerLink;
     const wallet = new Wallet(walletData, fakeApi, appStorage, db);
-    wallet.getExplorerLinkForTx('a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0')
-      .should.be.equal('https://chainz.cryptoid.info/block/tx.dws?a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0.htm')
+    wallet.getExplorerLink().should.equal(explorerLink);
+  });
+  it('Wallet.getExplorerLinkForTx() should return a link string', async function() {
+    const explorerTxLink = 'https://test-block-explorer.com';
+    fakeApi.explorerTxLink = explorerTxLink;
+    const wallet = new Wallet(walletData, fakeApi, appStorage, db);
+    const tx = 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0';
+    wallet.getExplorerLinkForTx(tx)
+      .should.equal(explorerTxLink + '/' + tx);
+  });
+  it('Wallet.getWebsiteLink() should return a link string', function() {
+    const websiteLink = 'https://test-crypto-site.com';
+    fakeApi.websiteLink = websiteLink;
+    const wallet = new Wallet(walletData, fakeApi, appStorage, db);
+    wallet.getWebsiteLink().should.equal(websiteLink);
   });
   it('Wallet.send() should succeed', async function() {
     const wallet = new Wallet(walletData, fakeApi, appStorage, db);
