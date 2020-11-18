@@ -12,7 +12,8 @@ const IconTrend = ({ negative = false }) => {
     container: {
       width: '24px',
       height: '24px',
-      objectFit: 'contain'
+      objectFit: 'contain',
+      display: 'inline-block',
     }
   };
   return (

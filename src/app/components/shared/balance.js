@@ -43,11 +43,11 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
 
     return (
       <div className={'lw-balance-outer-container d-flex flex-column justify-content-center'} style={style}>
-        <div className={'d-flex flex-row justify-content-start'}>
+        <div className={'d-flex flex-row justify-content-start flex-nowrap'}>
           <img alt={Localize.text('{{coin}} image', 'balance', {coin: wallet.ticker})} srcSet={wallet.imagePath} style={{width: 32, height: 32}} />
           <h3 style={{fontSize: 24, lineHeight: '32px', marginLeft: 10}}>{wallet.name}</h3>
         </div>
-        <div className={'d-flex flex-row justify-content-between'}>
+        <div className={'d-flex flex-row justify-content-between flex-nowrap'}>
           <div className={'d-flex flex-column justify-content-start'}>
             <div style={{fontSize: 14}} className={'lw-color-secondary-2'}>{Localize.text('Total {{coin}} balance', 'balance', {coin: wallet.ticker})}:</div>
             <div className={'lw-balance-coindetails'}><h2>{total} {activeWallet}</h2> <h4>{altCurrency} {currencyLinter(altAmount)}</h4></div>
@@ -84,7 +84,7 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
       <div className={'lw-balance-outer-container'} style={style}>
         <div className={'lw-balance-note'}><Localize context={'balance'}>Total wallet balance</Localize></div>
         <div className={'lw-balance-container'}>
-          <h2>{BTC + ' ' + totalBalance}</h2> <h4>{altCurrency} {totalAltCurrency}</h4>
+          <h2 className={'lw-balance-current-balance'}>{BTC + ' ' + totalBalance}<span className={'lw-balance-alt-currency-note'}>{altCurrency} {totalAltCurrency}</span></h2>
         </div>
         <div className={'lw-balance-volume'}>
           <IconTrend negative={n < 0} />
