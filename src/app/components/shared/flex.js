@@ -4,7 +4,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-export const Column = ({ children, className = '', justify = 'flex-start', style = {} }) => {
+export const Column = ({ children, className = '', id = '', justify = 'flex-start', style = {} }) => {
 
   const styles = {
     display: 'flex',
@@ -15,12 +15,13 @@ export const Column = ({ children, className = '', justify = 'flex-start', style
   };
 
   return (
-    <div className={className} style={styles}>{children}</div>
+    <div id={id} className={className} style={styles}>{children}</div>
   );
 };
 Column.propTypes = {
   children: PropTypes.any,
   className: PropTypes.string,
+  id: PropTypes.string,
   style: PropTypes.object,
   wrap: PropTypes.oneOf(['nowrap', 'wrap']),
   justify: PropTypes.oneOf(['flex-start', 'center', 'flex-end', 'space-between', 'space-around'])

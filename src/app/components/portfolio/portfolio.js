@@ -11,11 +11,14 @@ import Chart from '../shared/chart';
 import {Column, Row} from '../shared/flex';
 import {multiplierForCurrency} from '../../util';
 import { SIDEBAR_WIDTH, balanceFilters, localStorageKeys } from '../../constants';
+import moment from 'moment';
+import $ from 'jquery';
 
 const Portfolio = ({ windowWidth, altCurrency, currencyMultipliers, balanceOverTime }) => {
   const [chartData, setChartData] = useState([[0, 0]]);
   const initialChartScale = domStorage.getItem(localStorageKeys.ACTIVE_CHART_FILTER) || 'half-year';
   const [chartScale, setChartScale] = useState(initialChartScale);
+  const [headCol2Width, setHeadCol2Width] = useState(0);
 
   useEffect(() => {
     if (multiplierForCurrency('BTC', altCurrency, currencyMultipliers) > 0)
@@ -25,16 +28,18 @@ const Portfolio = ({ windowWidth, altCurrency, currencyMultipliers, balanceOverT
         });
   }, [balanceOverTime, chartScale, altCurrency, currencyMultipliers]);
 
+  useEffect(() => {
+    setTimeout(() => {
+      const { clientWidth = 0 } = $('#js-portfolioHeaderCol2')[0] || {};
+      setHeadCol2Width(clientWidth);
+    }, 0);
+  }, [windowWidth]);
+
   const onBalanceFilterSelected = filter => {
     const selectedChartScale = Object.keys(balanceFilters).find(key => balanceFilters[key] === filter) || 'half-year';
     domStorage.setItem(localStorageKeys.ACTIVE_CHART_FILTER, selectedChartScale);
     setChartScale(selectedChartScale);
   };
-
-  const containerHorizPadding = 25;
-  const headCol1Width = 282;
-  const headCol3Width = 250;
-  const headCol2Width = windowWidth - SIDEBAR_WIDTH - headCol1Width - headCol3Width - containerHorizPadding * 2;
 
   const hidePercent = windowWidth < 1200;
   const hideVolume = windowWidth < 1150;
@@ -47,11 +52,15 @@ const Portfolio = ({ windowWidth, altCurrency, currencyMultipliers, balanceOverT
         <Column>
           <Balance />
         </Column>
-        <Column>
-          <Chart className={'lw-portfolio-chart'} chartData={chartData} currency={altCurrency} simple={false} simpleStrokeColor={'#ccc'}
-                 hideAxes={true} defaultWidth={headCol2Width} defaultHeight={100}
-                 gradientTopColor={'#00ffff'} gradientBottomColor={'rgba(0, 71, 255, 0)'}
-                 chartGridColor={'#949494'} chartScale={chartScale} />
+        <Column id={'js-portfolioHeaderCol2'} style={{minWidth: 0, marginLeft: 30, marginRight: 20, height: 100, flexGrow: 1, overflowX: 'hidden'}}>
+          {headCol2Width ?
+            <Chart className={'lw-portfolio-chart'} chartData={chartData} currency={altCurrency} simple={false} simpleStrokeColor={'#ccc'}
+                   hideAxes={true} defaultWidth={headCol2Width} defaultHeight={100}
+                   gradientTopColor={'#00ffff'} gradientBottomColor={'rgba(0, 71, 255, 0)'}
+                   chartGridColor={'#949494'} chartScale={chartScale} />
+            :
+            null
+          }
         </Column>
         <Column style={{margin: 'auto 0 20px auto'}}>
           <BalanceFilters selectedFilter={balanceFilters[chartScale]} filters={Object.values(balanceFilters).map(key => key)} onFilterSelected={onBalanceFilterSelected} />

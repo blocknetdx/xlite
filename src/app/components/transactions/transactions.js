@@ -6,6 +6,7 @@ import React from 'react';
 import Balance from '../shared/balance';
 import { activeViews } from '../../constants';
 import TransactionsPanel from '../shared/transactions-panel';
+import {Column, Row} from '../shared/flex';
 
 const Transactions = ({ activeView }) => {
 
@@ -13,10 +14,12 @@ const Transactions = ({ activeView }) => {
 
   return (
     <div className={'lw-transactions-container'}>
-      <Balance showCoinDetails={coinSpecificTransactions} />
-
+      <Row style={{height: 115, minHeight: 115, maxHeight: 150}}>
+        <Column style={{width: '100%'}}>
+          <Balance showCoinDetails={coinSpecificTransactions} style={{position: 'relative'}} />
+        </Column>
+      </Row>
       <TransactionsPanel selectable={true} coinSpecificTransactions={coinSpecificTransactions} brief={false} />
-
     </div>
   );
 };

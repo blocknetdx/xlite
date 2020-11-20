@@ -4,23 +4,35 @@
 
   padding-left: 0;
   margin-top: 25px;
-  min-height: 115px;
+  min-height: 90px;
 
   .lw-balance-note {
     font-size: 13px;
+    line-height: 17px;
     color: $lw-secondary-2;
   }
 
   .lw-balance-container {
-    height: 26px;
+    line-height: 1;
+    .lw-balance-current-balance {
+      font-weight: 600;
+      margin-bottom: 0;
+    }
+    .lw-balance-alt-currency-note {
+      color: $lw-secondary-2;
+      display: inline-block;
+      margin-left: 10px;
+      font-weight: 500;
+      font-size: 16px;
+    }
   }
 
   .lw-balance-volume {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+    white-space: pre;
+    margin-top: -2px;
 
     .lw-balance-volume-text {
+      display: inline-block;
       font-family: IBMPlexSans;
       font-size: 14px;
       font-weight: 500;
