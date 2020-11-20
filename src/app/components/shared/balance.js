@@ -53,7 +53,7 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
             <div className={'lw-balance-coindetails'}><h2>{total} {activeWallet}</h2> <h4>{altCurrency} {currencyLinter(altAmount)}</h4></div>
           </div>
           <div className={'d-flex flex-column justify-content-start lw-color-secondary-3'} style={{fontSize: 14, textAlign: 'right'}}>
-            <div><Localize context={'balance'}>Website</Localize>: {website ? <CopyableLink href={`https://${website}`}>{website}</CopyableLink> : <span className={'lw-text-primary'}>{Localize.text('n/a', 'balance')}</span>}</div>
+            <div><Localize context={'balance'}>Website</Localize>: {website ? <CopyableLink href={website}>{website}</CopyableLink> : <span className={'lw-text-primary'}>{Localize.text('n/a', 'balance')}</span>}</div>
             <div><Localize context={'balance'}>Explorer</Localize>: <CopyableLink href={explorerLink}>{explorerLink}</CopyableLink></div>
           </div>
         </div>
