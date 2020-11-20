@@ -292,6 +292,7 @@ class CloudChains {
   loadConfs(manifest = null) {
     const settingsDir = this.getSettingsDir();
     let success = true;
+    const defaultAddressCount = 40;
     const confs = fs.readdirSync(settingsDir)
       .map(f => {
         if (!this._reConfFile.test(f))
@@ -308,10 +309,17 @@ class CloudChains {
           } else if (manifest && manifest.getToken(ticker)) { // update with manifest rpc ports
             const token = manifest.getToken(ticker);
             conf.rpcPort = token.xbinfo.rpcport;
+            if (conf.addressCount < defaultAddressCount)
+              conf.addressCount = defaultAddressCount;
             this._updateConfRpc(conf, filePath, fs.writeJsonSync);
             return conf;
-          } else
+          } else {
+            if (conf.addressCount < defaultAddressCount) {
+              conf.addressCount = defaultAddressCount;
+              this._updateConfRpc(conf, filePath, fs.writeJsonSync);
+            }
             return conf;
+          }
         } catch (err) {
           logger.error(`failed to read token conf: ${f}`, err); // non-fatal
           success = false;
