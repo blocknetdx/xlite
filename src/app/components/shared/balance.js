@@ -42,17 +42,21 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
   // ToDo add change over time data
 
     return (
-      <div className={'lw-balance-outer-container d-flex flex-column justify-content-center'} style={style}>
-        <div className={'d-flex flex-row justify-content-start flex-nowrap'}>
-          <img alt={Localize.text('{{coin}} image', 'balance', {coin: wallet.ticker})} srcSet={wallet.imagePath} style={{width: 32, height: 32}} />
-          <h3 style={{fontSize: 24, lineHeight: '32px', marginLeft: 10}}>{wallet.name}</h3>
-        </div>
-        <div className={'d-flex flex-row justify-content-between flex-nowrap'}>
-          <div className={'d-flex flex-column justify-content-start'}>
+      <div className={'lw-balance-outer-container'} style={style}>
+        <div style={{display: 'inline-block'}}>
+          <div>
+            <div style={{float: 'left'}}>
+              <img alt={Localize.text('{{coin}} image', 'balance', {coin: wallet.ticker})} srcSet={wallet.imagePath} style={{width: 32, height: 32}} />
+            </div>
+            <div style={{display: 'inline-block', paddingLeft: 10, clear: 'left'}}>
+              <h3 style={{fontSize: 24, lineHeight: '32px'}}>{wallet.name}</h3>
+            </div>
+          </div>
+          <div className={'lw-balance-container'}>
             <div style={{fontSize: 14}} className={'lw-color-secondary-2'}>{Localize.text('Total {{coin}} balance', 'balance', {coin: wallet.ticker})}:</div>
             <div className={'lw-balance-coindetails'}><h2>{total} {activeWallet}</h2> <h4>{altCurrency} {currencyLinter(altAmount)}</h4></div>
           </div>
-          <div className={'d-flex flex-column justify-content-start lw-color-secondary-3'} style={{fontSize: 14, textAlign: 'right'}}>
+          <div className={'lw-color-secondary-3'} style={{display: 'inline-block', fontSize: 14, textAlign: 'right', position: 'absolute', float: 'right', bottom: 0, right: 0, paddingBottom: 12}}>
             <div><Localize context={'balance'}>Website</Localize>: {website ? <CopyableLink href={website}>{website}</CopyableLink> : <span className={'lw-text-primary'}>{Localize.text('n/a', 'balance')}</span>}</div>
             <div><Localize context={'balance'}>Explorer</Localize>: <CopyableLink href={explorerLink}>{explorerLink}</CopyableLink></div>
           </div>
