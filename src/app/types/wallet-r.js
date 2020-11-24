@@ -4,6 +4,7 @@
 import {localStorageKeys} from '../constants';
 import {logger} from '../modules/logger-r';
 import {publicPath} from '../util/public-path-r';
+import LWDB from '../modules/lwdb';
 import RPCTransaction from './rpc-transaction';
 import Token from './token';
 import {unixTime} from '../util';
@@ -327,9 +328,11 @@ class Wallet {
       endTime = startTime;
 
     // filter by token ticker and time range
-    const txs = await this._db.transactions.where(['ticker+time'])
-      .between([this.ticker, startTime], [this.ticker, endTime], true, true)
+    const txs = await this._db.transactions.where(['ticker+time+category'])
+      .between([this.ticker, startTime, LWDB.minKey], [this.ticker, endTime, LWDB.maxKey],
+        true, true)
       .toArray();
+    return txs;
 
     // // Return utxos as deposit transactions if the data is bad
     // if (startTime === 0 && (!txs || txs.length === 0)) // TODO Remove this workaround once cc daemon listtransactions rpc is working properly
@@ -341,8 +344,6 @@ class Wallet {
     //     time: unixTime() - (utxo.confirmations * 60),
     //     category: 'receive',
     //   }, this.ticker));
-
-    return txs;
   }
 
   /**

@@ -35,6 +35,17 @@ import ReactDOM from 'react-dom';
 const {api} = window;
 const {isDev} = api;
 
+// TODO Remove prior to release (Beta only)
+if (!domStorage.getItem('BETA_0_9_7f')) {
+  (async () => {
+    await LWDB.delete('LWDB');
+    // const db = new LWDB('LWDB');
+    // await db.clear();
+  })();
+  domStorage.clear();
+  domStorage.setItem('BETA_0_9_7f', true);
+}
+
 // Init db
 const db = new LWDB('LWDB');
 
@@ -53,13 +64,6 @@ if(isDev) {
     const state = store.getState();
     console.log(new Date().toLocaleString() + ' state', state);
   });
-}
-
-// TODO Remove prior to release (Beta only)
-if (!domStorage.getItem('BETA_0_9_2')) {
-  (async () => await db.clear())();
-  domStorage.clear();
-  domStorage.setItem('BETA_0_9_2', true);
 }
 
 const updateScrollbars = (innerWidth, innerHeight) => {

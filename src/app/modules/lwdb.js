@@ -21,7 +21,7 @@ class LWDB extends Dexie {
     super(dbname);
     // Increment version on edits: https://dexie.org/docs/Tutorial/Design#database-versioning
     this.version(1).stores({
-      transactions: '[txId+n],[ticker+time],ticker,time,address',
+      transactions: '[txId+n+category],[ticker+time+category],ticker,time,address',
     });
     this.transactions = this.table('transactions');
     this.transactions.mapToClass(RPCTransaction);

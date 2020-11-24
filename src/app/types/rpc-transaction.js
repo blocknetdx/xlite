@@ -114,7 +114,7 @@ class RPCTransaction {
    * @return {string}
    */
   key() {
-    return this.txId + ':' + this.n;
+    return this.txId + ':' + this.n + ':' + this.category;
   }
 
   /**
