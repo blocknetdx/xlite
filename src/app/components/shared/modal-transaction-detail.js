@@ -59,11 +59,11 @@ const TransactionDetailModal = ({ altCurrency, currencyMultipliers, openExternal
                   Localize.text('Total sent', 'transactions')
                   :
                   Localize.text('Total Received', 'transactions')
-                }</span>: <span className={'lw-color-secondary-10'}><span className={'text-monospace'}>{selectedTx.tx.amount}</span> {selectedTx.wallet.ticker}</span>
+                }</span>: <span className={'lw-color-secondary-10'}><span className={'text-monospace'}>{selectedTx.tx.amountWithFees()}</span> {selectedTx.wallet.ticker}</span>
           </div>
         </Row>
         <Row justify={'center'}>
-          <div style={{color: '#777', marginBottom: 36}}>{altCurrency} <span className={'text-monospace'}>{currencyLinter(math.multiply(bignumber(selectedTx.tx.amount), bignumber(selectedAltMultiplier)))}</span></div>
+          <div style={{color: '#777', marginBottom: 36}}>{altCurrency} <span className={'text-monospace'}>{currencyLinter(math.multiply(bignumber(selectedTx.tx.amountWithFees()), bignumber(selectedAltMultiplier)))}</span></div>
         </Row>
         <Row>
           <Divider />

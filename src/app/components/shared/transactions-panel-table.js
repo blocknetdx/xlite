@@ -71,7 +71,7 @@ const TransactionsPanelTable = ({
                 <TableData className={'lw-transactions-asset-image'} style={styles.text}>
                   <AssetWithImage wallet={wallet} />
                 </TableData>
-                <TableData className={'text-monospace'} style={styles.text}>{t.amount}</TableData>
+                <TableData className={'text-monospace'} style={styles.text}>{t.amountWithFees()}</TableData>
                 {hiddenFeature ? null : <TableData className={'text-monospace'} style={styles.text}>No. Label</TableData>}
                 <TableData className={'text-monospace'} style={styles.text}>{t.address}</TableData>
                 {hiddenFeature ? null : <TableData className={'text-monospace'} style={styles.text}>June 30 2020</TableData>}

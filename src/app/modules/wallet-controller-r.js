@@ -252,9 +252,9 @@ class WalletController {
           break; // done, sorted array ensures nothing missing
         }
         if (tx.isSend())
-          runningBalance -= Math.abs(tx.amount) * multiplier;
+          runningBalance -= Math.abs(tx.amountWithFees()) * multiplier;
         if (tx.isReceive())
-          runningBalance += Math.abs(tx.amount) * multiplier;
+          runningBalance += Math.abs(tx.amountWithFees()) * multiplier;
       }
       if (!txRemaining)
         transactions = []; // remove because all txs have been processed
@@ -268,9 +268,9 @@ class WalletController {
           if (tx.time >= i + period)
             break;
           if (tx.isSend())
-            runningBalance -= Math.abs(tx.amount) * multiplier;
+            runningBalance -= Math.abs(tx.amountWithFees()) * multiplier;
           if (tx.isReceive())
-            runningBalance += Math.abs(tx.amount) * multiplier;
+            runningBalance += Math.abs(tx.amountWithFees()) * multiplier;
         }
         if (runningBalance < 0)
           runningBalance = 0;

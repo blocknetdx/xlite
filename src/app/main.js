@@ -36,14 +36,14 @@ const {api} = window;
 const {isDev} = api;
 
 // TODO Remove prior to release (Beta only)
-if (!domStorage.getItem('BETA_0_9_7f')) {
+if (!domStorage.getItem('BETA_0_9_7g')) {
   (async () => {
     await LWDB.delete('LWDB');
     // const db = new LWDB('LWDB');
     // await db.clear();
   })();
   domStorage.clear();
-  domStorage.setItem('BETA_0_9_7f', true);
+  domStorage.setItem('BETA_0_9_7g', true);
 }
 
 // Init db
