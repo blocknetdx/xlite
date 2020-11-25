@@ -401,7 +401,7 @@ class RPCController {
       n: t.vout,
       address: t.address,
       amount: Math.abs(t.amount),
-      fee: t.fee,
+      fee: Math.abs(t.fee),
       blockHash: t.blockhash,
       blockTime: t.blocktime,
       category: t.category,

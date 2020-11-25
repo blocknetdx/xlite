@@ -132,6 +132,14 @@ class RPCTransaction {
   isReceive() {
     return this.category === 'receive';
   }
+
+  /**
+   * Return the total amount plus fees.
+   * @return {number}
+   */
+  amountWithFees() {
+    return this.amount + this.fee;
+  }
 }
 
 export default RPCTransaction;
