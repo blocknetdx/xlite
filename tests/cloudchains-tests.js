@@ -328,6 +328,7 @@ describe('CloudChains Test Suite', function() {
       const cc = new CloudChains(ccFunc, storage);
       const fakeSpawn = new FakeSpawn();
       cc._execFile = fakeSpawn.spawn;
+      cc._spawn = fakeSpawn.spawn;
       cc.enableAllWallets.should.be.a.Function();
 
       {
@@ -522,6 +523,7 @@ describe('CloudChains Test Suite', function() {
       cc._rpc = rpcHelp;
       const fakeSpawn = new FakeSpawn();
       cc._execFile = fakeSpawn.spawn;
+      cc._spawn = fakeSpawn.spawn;
       cc.startSPV.should.be.a.Function();
       const password = 'password';
 
@@ -599,6 +601,7 @@ describe('CloudChains Test Suite', function() {
         cc2._rpcStartExpirySeconds = 1;
         cc2.isWalletRPCRunning = async () => false;
         cc2._execFile = fakeSpawn.spawn;
+        cc2._spawn = fakeSpawn.spawn;
         const success = await new Promise((resolve, reject) => {
           cc2.startSPV(password).then(res => {
             res.should.be.true();
@@ -630,6 +633,7 @@ describe('CloudChains Test Suite', function() {
         cc._rpcWaitDelay = 50;
         cc._rpc = {ccHelp: async () => true};
         cc._execFile = fakeSpawn.spawn;
+        cc._spawn = fakeSpawn.spawn;
         cc.createSPVWallet.should.be.a.Function();
         return cc;
       };
