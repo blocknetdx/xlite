@@ -6,6 +6,7 @@ import {logger} from '../modules/logger-r';
 import {publicPath} from '../util/public-path-r';
 import LWDB from '../modules/lwdb';
 import RPCTransaction from './rpc-transaction';
+import RPCUnspent from './rpc-unspent';
 import Token from './token';
 import {unixTime} from '../util';
 
@@ -216,7 +217,8 @@ class Wallet {
    */
   async getCachedUnspent(cacheExpirySeconds) {
     try {
-      return await this._api.wallet_getCachedUnspent(this.ticker, cacheExpirySeconds);
+      const unspent = await this._api.wallet_getCachedUnspent(this.ticker, cacheExpirySeconds);
+      return unspent.map(utxo => new RPCUnspent(utxo));
     } catch (err) {
       return [];
     }

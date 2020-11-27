@@ -12,6 +12,7 @@ import AssetWithImage from './asset-with-image';
 import Wallet from '../../types/wallet-r';
 import {walletSorter} from '../../util';
 import {Map as IMap} from 'immutable';
+import RPCTransaction from '../../types/rpc-transaction';
 
 const TransactionsPanelTable = ({
     style,
@@ -35,12 +36,13 @@ const TransactionsPanelTable = ({
   };
 
   useEffect(() => {
+    // Map to RPCTransaction type
     Promise.all(sortedWallets.map(wallet => getCachedUnspent(wallet)))
       .then(response => setTransactions(response
         .filter(([ticker, txs]) => txs.length > 0)
-        .reduce((arr, [ticker, txs]) => arr.concat(txs.map(tx => [ticker, tx])), [])
+        .reduce((arr, [ticker, txs]) => arr.concat(txs.map(tx => [ticker, new RPCTransaction(tx, ticker)])), [])
       ));
-  }, [activeWallet]);
+  }, [activeWallet, sortedWallets]);
 
   const styles = {
     text: {
