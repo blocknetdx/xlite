@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 import {HTTP_REQUEST_TIMEOUT} from '../../app/constants';
+import {logger} from './logger';
 import RPCInfo from '../../app/types/rpc-info';
 import RPCNetworkInfo from '../../app/types/rpc-network-info';
 import RPCBlockchainInfo from '../../app/types/rpc-blockchain-info';
@@ -227,7 +228,11 @@ class RPCController {
    * @returns {Promise<RPCUnspent[]>}
    */
   async listUnspent() {
-    const res = await this._makeRequest('listunspent');
+    let res = await this._makeRequest('listunspent');
+    if (!res) {
+      logger.warn(`listunspent is null for port ${this._port}`);
+      res = [];
+    }
     return res.map(obj => new RPCUnspent({
       txId: obj.txid,
       vOut: obj.vout,
@@ -395,7 +400,11 @@ class RPCController {
       startTime = 0;
     if (!_.isNumber(endTime) || endTime === 0)
       endTime = unixTime();
-    const res = await this._makeRequest('listtransactions', [startTime, endTime], {timeout: 60000});
+    let res = await this._makeRequest('listtransactions', [startTime, endTime], {timeout: 60000});
+    if (!res) {
+      logger.warn(`listtransactions is null for port ${this._port} start ${startTime} end ${endTime}`);
+      res = [];
+    }
     return res.map(t => new RPCTransaction({
       txId: t.txid,
       n: t.vout,

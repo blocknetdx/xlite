@@ -378,7 +378,9 @@ class Api {
       return this._walletController.getWallet(ticker).getBalance();
     });
     this._proc.handle(apiConstants.wallet_getTransactions, async (evt, ticker, startTime, endTime) => {
-      return sanitize(await this._walletController.getWallet(ticker).getTransactions(startTime, endTime), Blacklist, Whitelist);
+      const wallet = this._walletController.getWallet(ticker);
+      const txs = await wallet.getTransactions(startTime, endTime);
+      return sanitize(txs, Blacklist, Whitelist);
     });
     this._proc.handle(apiConstants.wallet_getAddresses, (evt, ticker) => {
       return this._walletController.getWallet(ticker).getAddresses();
@@ -387,7 +389,9 @@ class Api {
       return this._walletController.getWallet(ticker).generateNewAddress();
     });
     this._proc.handle(apiConstants.wallet_getCachedUnspent, async (evt, ticker, cacheExpirySeconds) => {
-      return sanitize(await this._walletController.getWallet(ticker).getCachedUnspent(cacheExpirySeconds), Blacklist, Whitelist);
+      const wallet = this._walletController.getWallet(ticker);
+      const utxos = await wallet.getCachedUnspent(cacheExpirySeconds);
+      return sanitize(utxos, Blacklist, Whitelist);
     });
     this._proc.handle(apiConstants.wallet_send, (evt, ticker, recipients) => {
       recipients = recipients.map(r => new Recipient(r));
