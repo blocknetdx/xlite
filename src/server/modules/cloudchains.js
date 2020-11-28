@@ -495,7 +495,7 @@ class CloudChains {
 
       let started = false;
       const args = password ? ['--password', password] : [];
-      const cli = this._execFile(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
+      const cli = this._spawn(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         if (started)
           return;
@@ -517,7 +517,7 @@ class CloudChains {
       });
       cli.stderr.on('data', data => {
         const str = data.toString('utf8');
-        logger.info(`startSPV ${str}`);
+        logger.error(`startSPV error: ${str}`);
         if (started)
           return;
         started = true;
@@ -582,7 +582,7 @@ class CloudChains {
       } else { // Create a new wallet
         args = ['--createdefaultwallet', password];
       }
-      const cli = this._execFile(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
+      const cli = this._spawn(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         if (started)
           return;
@@ -628,7 +628,7 @@ class CloudChains {
   enableAllWallets() {
     return new Promise(resolve => {
       let started = false;
-      const cli = this._execFile(this.getCCSPVFilePath(), ['--enablerpcandconfigure'], {detached: false, windowsHide: true});
+      const cli = this._spawn(this.getCCSPVFilePath(), ['--enablerpcandconfigure'], {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
         if(this._selectionPatt.test(str)) { // kill process when selection screen appears

@@ -215,19 +215,7 @@ class Wallet {
    * @return {Promise<null|string[]>}
    */
   async getBalance() {
-    if (this.rpc.isNull() || !this.rpcEnabled()) {
-      logger.error(`failed to get balance info for ${this.ticker} because rpc is disabled`);
-      return null;
-    }
-
-    let unspent;
-    try {
-      unspent = await this.rpc.listUnspent();
-    } catch(err) {
-      logger.error(`failed to list utxos for ${this.ticker}`, err);
-      return null;
-    }
-
+    const unspent = await this.getCachedUnspent(0);
     let total = bignumber(0);
     let spendable = bignumber(0);
     for(let { amount, spendable: isSpendable } of unspent) {

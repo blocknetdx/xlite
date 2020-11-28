@@ -37,7 +37,7 @@ const Dashboard = ({ windowHeight, windowWidth, altCurrency, wallets, balances, 
         .then(data => {
           setChartData(data);
         });
-  }, [setChartData, chartScale, balanceOverTime, altCurrency, currencyMultipliers]);
+  }, [setChartData, chartScale, altCurrency, wallets, balances, currencyMultipliers, balanceOverTime]);
 
   const onBalanceFilterSelected = filter => {
     const selectedChartScale = Object.keys(balanceFilters).find(key => balanceFilters[key] === filter) || 'half-year';
