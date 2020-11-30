@@ -348,7 +348,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
           <Row justify={'space-between'}>
             <span className={'lw-modal-field-label'}><Localize context={'sendModal'}>Send to address</Localize>:</span>
-            <span className={'color-negative'}><Localize context={'sendModal'}>Required field</Localize></span>
+            {!address.trim() ? <span className={'color-negative'}><Localize context={'sendModal'}>Required field</Localize></span> : null}
           </Row>
           <AddressInput
             placeholder={wallet ? Localize.text('Enter {{name}} receiving address', 'sendModal', {name: wallet.name}) : ''}
