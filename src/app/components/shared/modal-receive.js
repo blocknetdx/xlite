@@ -87,7 +87,8 @@ const ReceiveModal = ({ activeWallet, wallets, hideReceiveModal }) => {
   };
 
   const onSelectReceivingAddress = e => {
-    e.preventDefault();
+    if(e)
+      e.preventDefault();
     if(disableButtons)
       return;
     setShowReceiveAllAddresses(!showReceiveAllAddresses);
