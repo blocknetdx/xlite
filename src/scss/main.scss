@@ -323,6 +323,10 @@ a, button {
   @include default-hover-transition(color, background-color, opacity);
 }
 
+.dropdown-menu.show {
+  margin-top: 0;
+}
+
 // In case we want to manually do scrollbars rather than use perfect scrollbar
 //$lw-scrollbar-color: #d4d4d4;
 //::-webkit-scrollbar {
