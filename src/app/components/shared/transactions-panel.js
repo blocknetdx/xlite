@@ -115,7 +115,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                       <Column justify={'center'}>
                         <img alt={Localize.text('Received icon', 'transactions')}
                              style={{marginRight: 10, height: 24, width: 'auto'}}
-                             srcSet={(t.type === 'send' ?
+                             srcSet={(sent ?
                                  [
                                    `${publicPath}/images/icons/icon-sent.png`,
                                    `${publicPath}/images/icons/icon-sent@2x.png 2x`,
