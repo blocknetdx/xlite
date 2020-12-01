@@ -144,7 +144,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                     </Row>
                   </TableData>
                   <TableData className={'lw-transactions-asset-image'}>
-                    <AssetWithImage wallet={wallet} />
+                    <AssetWithImage shortenName={brief} wallet={wallet} />
                   </TableData>
                   {!brief && !hideAddress ? <TableData className={'text-monospace'}>{t.address}</TableData> : null}
                   {!brief ? <TableData className={'text-monospace'}>{t.amountWithFees()}</TableData> : null}
