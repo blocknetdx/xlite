@@ -169,11 +169,15 @@ const startup = async () => {
   }
 
   if (!await cloudChains.isWalletRPCRunning()) {
-    const binFilePath = cloudChains.getCCSPVFilePath();
+    const [binFilePath, verified] = await cloudChains.getCCSPVFilePath();
     const exists = await fs.pathExists(binFilePath);
     if (!exists) {
       logger.error(`Unable to find CloudChains Litewallet at ${binFilePath}`);
       displayFatalError = makeError(Localize.text('Issue'), Localize.text(`Failed to locate the CloudChains Litewallet at ${binFilePath}.`));
+      return;
+    } else if(!verified) {
+      logger.error(`Unable to verify authenticity of CloudChains Litewallet at ${binFilePath}`);
+      displayFatalError = makeError(Localize.text('Issue'), Localize.text(`Failed to verify authenticity the CloudChains Litewallet at ${binFilePath}.`));
       return;
     }
   }

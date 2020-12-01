@@ -19,6 +19,7 @@ const rmrf = require('rmrf-promise');
     'dist',
     'locales',
     'static-data',
+    'bin.json',
   ];
 
   for(const file of filesToCopy) {

@@ -1,5 +1,14 @@
 {
-  "linux": "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.4.0-lin.zip",
-  "mac": "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.4.0-mac.zip",
-  "win": "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.4.0-win.zip"
+  "linux": [
+    "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.4.0-lin.zip",
+    "cac57f1bf9579771c77cfce62c87a3db555e6a72b418470ea87980212242e3dd"
+  ],
+  "mac": [
+    "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.4.0-mac.zip",
+    "c265c9019565a05cc4b11d0aa79e6bce5b888e03b782f0e5b30fceefd87b92c4"
+  ],
+  "win": [
+    "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.4.0-win.zip",
+    "c9686b9108f3617407389d89cb1eac063659aa133e69065e39f38ee8602121f0"
+  ]
 }

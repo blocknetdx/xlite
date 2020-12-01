@@ -2,14 +2,18 @@ const fs = require('fs-extra');
 const https = require('https');
 const path = require('path');
 const unzip = require('extract-zip');
+const invert = require('lodash/invert');
+const { getFileHash } = require('../src/server/util/get-file-hash');
+const { ccBinDirs, ccBinNames } = require('../src/server/constants/cc-bin');
 
 (async function() {
 
   const platform = process.argv[process.argv.length - 1].trim();
   const binPath = path.resolve(__dirname, '../bin');
-  const binaries = await fs.readJson(path.resolve(__dirname, '../bin.json'));
+  const binariesJsonPath = path.resolve(__dirname, '../bin.json');
+  const binaries = await fs.readJson(binariesJsonPath);
   const dir = path.join(binPath, platform);
-  const downloadPath = binaries[platform];
+  const downloadPath = binaries[platform] ? binaries[platform][0] : '';
   await fs.emptyDir(dir);
 
   if(!downloadPath) {
@@ -42,6 +46,14 @@ const unzip = require('extract-zip');
     console.log(`Unzipping ${zipFilePath}`);
     await unzip(zipFilePath, {dir});
     await fs.remove(zipFilePath);
+    const hash = await getFileHash(path.join(dir, ccBinNames[invert(ccBinDirs)[platform]]));
+    const prevHash = binaries[platform][1];
+    // If the binary has been updated, then update the hash in the json file
+    if(prevHash !== hash) {
+      binaries[platform][1] = hash;
+      await fs.writeJson(binariesJsonPath, binaries, {spaces: 2});
+    }
+
   }
 
 })();

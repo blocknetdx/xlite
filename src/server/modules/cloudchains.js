@@ -1,13 +1,15 @@
 // Copyright (c) 2020 The Blocknet developers
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
-import { ccBinDirs, ccBinNames, DEFAULT_MASTER_PORT, UNKNOWN_CC_VERSION } from '../../app/constants';
+import { DEFAULT_MASTER_PORT, platforms, UNKNOWN_CC_VERSION } from '../../app/constants';
 import CCWalletConf from '../../app/types/ccwalletconf';
 import {generateSalt, pbkdf2} from '../../app/modules/crypt';
 import {logger} from './logger';
 import {storageKeys} from '../constants';
+import { ccBinDirs, ccBinNames } from '../constants/cc-bin';
 import RPCController from './rpc-controller';
 import {unixTime} from '../../app/util';
+import { getFileHash } from '../util/get-file-hash';
 
 import _ from 'lodash';
 import electron from 'electron';
@@ -380,18 +382,26 @@ class CloudChains {
 
   /**
    * Gets the CloudChains CLI file path
-   * @returns {string}
+   * @returns {Promise<(string|boolean)[]>}
    */
-  getCCSPVFilePath() {
+  async getCCSPVFilePath() {
     const platform = this._platform;
-    return path.join(this.getCLIDir(), ccBinNames[platform]);
+    const binPath = path.join(this.getCLIDir(), ccBinNames[platform]);
+    let verified;
+    try {
+      verified = await this.verifyCCBinHash(binPath, platform);
+    } catch(err) {
+      logger.error(err.message);
+      verified = false;
+    }
+    return [binPath, verified];
   }
 
   /**
    * Gets the version of the CC CLI and returns an empty string on failure
    * @returns {Promise<string>}
    */
-  getCCSPVVersion() {
+  async getCCSPVVersion() {
     const versionPatt = /\d+\.\d+\.\d+/;
     let version = '';
     let closed = false;
@@ -406,9 +416,14 @@ class CloudChains {
       } else
         resolve(version);
     };
+    const [filePath, verified] = await this.getCCSPVFilePath();
     return new Promise(res => {
       resolve = res;
-      const cli = this._execFile(this.getCCSPVFilePath(), ['--version'], {detached: false, windowsHide: true}, closeHandler);
+      if(!verified) { // fail on verification error
+        closeHandler('failed to get version because of cc binary verification failure');
+        return;
+      }
+      const cli = this._execFile(filePath, ['--version'], {detached: false, windowsHide: true}, closeHandler);
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
         if(versionPatt.test(str)) {
@@ -424,8 +439,9 @@ class CloudChains {
    * @param password {string}
    * @returns {Promise<string>}
    */
-  getCCMnemonic(password) {
+  async getCCMnemonic(password) {
     let mnemonic = '';
+    const [filePath, verified] = await this.getCCSPVFilePath();
     return new Promise((resolve, reject) => {
       let closed = false;
       const closeHandler = err => {
@@ -438,7 +454,11 @@ class CloudChains {
         } else
           resolve(mnemonic);
       };
-      const cli = this._execFile(this.getCCSPVFilePath(), ['--getmnemonic', password], {detached: false, windowsHide: true}, closeHandler);
+      if(!verified) { // fail on verification error
+        closeHandler('failed to get mnemonic because of cc binary verification failure');
+        return;
+      }
+      const cli = this._execFile(filePath, ['--getmnemonic', password], {detached: false, windowsHide: true}, closeHandler);
       cli.stdout.on('data', data => {
         mnemonic = data.toString('utf8');
       });
@@ -477,8 +497,13 @@ class CloudChains {
    * @param password {string}
    * @returns {Promise<boolean>}
    */
-  startSPV(password = '') {
+  async startSPV(password = '') {
+    const [filePath, verified] = await this.getCCSPVFilePath();
     return new Promise(resolve => {
+      if(!verified) { // fail on verification error
+        resolve(false);
+        return;
+      }
       this.isWalletRPCRunning().then(running => { // success if wallet already running
         if (running) {
           logger.info('CloudChains wallet running');
@@ -495,7 +520,7 @@ class CloudChains {
 
       let started = false;
       const args = password ? ['--password', password] : [];
-      const cli = this._spawn(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
+      const cli = this._spawn(filePath, args, {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         if (started)
           return;
@@ -550,10 +575,14 @@ class CloudChains {
    * @param mnemonic {string}
    * @returns {Promise<string>}
    */
-  createSPVWallet(password, mnemonic = '') {
+  async createSPVWallet(password, mnemonic = '') {
+    const [filePath, verified] = await this.getCCSPVFilePath();
     return new Promise((resolve, reject) => {
       if (!password) { // fail on bad password
         reject(new Error('failed to create wallet with empty password'));
+        return;
+      } else if(!verified) { // fail on verification error
+        reject(new Error('failed to create wallet because of cc binary verification failure'));
         return;
       }
 
@@ -582,7 +611,7 @@ class CloudChains {
       } else { // Create a new wallet
         args = ['--createdefaultwallet', password];
       }
-      const cli = this._spawn(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
+      const cli = this._spawn(filePath, args, {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         if (started)
           return;
@@ -625,10 +654,15 @@ class CloudChains {
    * Enables all wallets using the CloudChains CLI param --enablerpcandconfigure
    * @returns {Promise<boolean>}
    */
-  enableAllWallets() {
+  async enableAllWallets() {
+    const [filePath, verified] = await this.getCCSPVFilePath();
     return new Promise(resolve => {
+      if(!verified) { // fail on verification error
+        resolve(false);
+        return;
+      }
       let started = false;
-      const cli = this._spawn(this.getCCSPVFilePath(), ['--enablerpcandconfigure'], {detached: false, windowsHide: true});
+      const cli = this._spawn(filePath, ['--enablerpcandconfigure'], {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
         if(this._selectionPatt.test(str)) { // kill process when selection screen appears
@@ -753,6 +787,28 @@ class CloudChains {
         }, wait);
       });
   }
+
+  /**
+   * Checks the CC binary against the recorded hash
+   * @param binPath {string}
+   * @param platform {platform} win32, darwin, linux
+   * @returns {Promise<boolean>}
+   */
+  async verifyCCBinHash(binPath, platform) {
+    const invertedPlatforms = _.invert(platforms);
+    const binData = fs.readJsonSync(path.resolve(__dirname, '../../../bin.json'));
+    const recordedHash = binData[invertedPlatforms[platform]][1];
+    const hash = await getFileHash(binPath);
+    let verified;
+    if(recordedHash === hash) {
+      verified = true;
+    } else {
+      verified = false;
+      logger.error(`Invalid hash for ${binPath}. SHA256 hash ${hash} does not equal recorded hash ${recordedHash}.`);
+    }
+    return verified;
+  }
+
 }
 
 export default CloudChains;

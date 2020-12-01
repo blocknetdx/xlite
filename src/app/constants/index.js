@@ -114,18 +114,6 @@ export const platforms = {
   linux: 'linux'
 };
 
-export const ccBinDirs = {
-  win32: 'win',
-  darwin: 'mac',
-  linux: 'linux'
-};
-
-export const ccBinNames = {
-  win32: 'Cloudchains-SPV.exe',
-  darwin: 'Cloudchains-SPV',
-  linux: 'Cloudchains-SPV'
-};
-
 export const DEFAULT_MASTER_PORT = 9955;
 
 export const UNKNOWN_CC_VERSION = 'unknown';

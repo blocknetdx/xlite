@@ -9,7 +9,8 @@ import path from 'path';
 import CCWalletConf from '../src/app/types/ccwalletconf';
 import CloudChains from '../src/server/modules/cloudchains';
 import {Crypt, pbkdf2} from '../src/app/modules/crypt';
-import {DEFAULT_MASTER_PORT, platforms, ccBinDirs, ccBinNames} from '../src/app/constants';
+import {DEFAULT_MASTER_PORT, platforms} from '../src/app/constants';
+import { ccBinDirs, ccBinNames } from '../src/server/constants/cc-bin';
 import fakeExecFile, {FakeSpawn} from './fake-exec-file';
 import FakeRPCController from './fake-rpc-controller';
 import {parseAPIError} from '../src/app/util';
@@ -61,6 +62,7 @@ describe('CloudChains Test Suite', function() {
   const settingsDir = path.join(dir, 'settings');
   const ccFunc = () => { return dir; };
   const storage = new SimpleStorage(); // memory only
+  const fakeVerifyCCBinHash = () => true;
 
   it('CloudChains.constructor()', function() {
     const cc = new CloudChains(ccFunc, storage);
@@ -199,6 +201,7 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.getCCMnemonic() CloudChains.getDecryptedMnemonic()', async function() {
       const cc = new CloudChains(ccFunc, storage);
+      cc.verifyCCBinHash = fakeVerifyCCBinHash;
       const fakeSpawn = new FakeSpawn();
       cc._execFile = fakeSpawn.spawn;
       const password = 'my password';
@@ -326,6 +329,7 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.enableAllWallets()', async function() {
       const cc = new CloudChains(ccFunc, storage);
+      cc.verifyCCBinHash = fakeVerifyCCBinHash;
       const fakeSpawn = new FakeSpawn();
       cc._execFile = fakeSpawn.spawn;
       cc._spawn = fakeSpawn.spawn;
@@ -426,15 +430,21 @@ describe('CloudChains Test Suite', function() {
         platformNamePatt.test(cliDir).should.be.true();
       }
     });
-    it('CloudChains.getCCSPVFilePath()', function() {
+    it('CloudChains.getCCSPVFilePath()', async function() {
       const cc = new CloudChains(ccFunc, storage);
+      cc.verifyCCBinHash = fakeVerifyCCBinHash;
       cc.getCCSPVFilePath.should.be.a.Function();
+      (cc.getCCSPVFilePath()).should.be.a.Promise();
       for(const platform of platformArr) {
         cc._platform = platform;
-        const filePath = cc.getCCSPVFilePath();
-        // Check that the dir is a valid string
+        const res = await cc.getCCSPVFilePath();
+        res.should.be.an.Array();
+        const [ filePath, verified ] = res;
+        // Check that the file path is a valid string
         filePath.should.be.a.String();
         filePath.length.should.be.greaterThan(0);
+        // Check that there is a verified boolean
+        verified.should.be.a.Boolean();
         // Check that the file is platform-specific
         const platformNamePatt = new RegExp(escapeRegExp(ccBinNames[platform]));
         platformNamePatt.test(filePath).should.be.true();
@@ -442,6 +452,7 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.getCCSPVVersion()', async function() {
       const cc = new CloudChains(ccFunc, storage);
+      cc.verifyCCBinHash = fakeVerifyCCBinHash;
       const fakeSpawn = new FakeSpawn();
       cc._execFile = fakeSpawn.spawn;
       cc.getCCSPVVersion.should.be.a.Function();
@@ -518,6 +529,7 @@ describe('CloudChains Test Suite', function() {
     });
     it('CloudChains.startSPV()', async function() {
       const cc = new CloudChains(ccFunc, storage);
+      cc.verifyCCBinHash = fakeVerifyCCBinHash;
       cc._rpcWaitDelay = 50;
       const rpcHelp = {ccHelp: async () => true};
       cc._rpc = rpcHelp;
@@ -596,6 +608,7 @@ describe('CloudChains Test Suite', function() {
         fakeSpawn.clear();
         rpcHelp.ccHelp = async () => true;
         const cc2 = new CloudChains(ccFunc, storage);
+        cc2.verifyCCBinHash = fakeVerifyCCBinHash;
         cc2._rpc = rpcHelp;
         cc2._rpcWaitDelay = 50;
         cc2._rpcStartExpirySeconds = 1;
@@ -630,6 +643,7 @@ describe('CloudChains Test Suite', function() {
       const fakeSpawn = new FakeSpawn();
       const makecc = () => {
         const cc = new CloudChains(ccFunc, storage);
+        cc.verifyCCBinHash = fakeVerifyCCBinHash;
         cc._rpcWaitDelay = 50;
         cc._rpc = {ccHelp: async () => true};
         cc._execFile = fakeSpawn.spawn;
