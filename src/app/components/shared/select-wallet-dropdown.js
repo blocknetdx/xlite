@@ -11,6 +11,9 @@ const SelectWalletDropdown = ({ selected = '', style = {}, wallets, onSelect }) 
 
   const wallet = wallets && wallets.find(w => w.ticker === selected) || null;
 
+  const filteredWallets = !wallets ? [] : wallets
+    .filter(w => w.ticker !== selected);
+
   return (
     <div className={'dropdown'} style={style}>
       <a href={'#'} ref={node => node ? $(node).dropdown() : null} className={'lw-coin-select'} data-toggle={'dropdown'}>
@@ -19,20 +22,29 @@ const SelectWalletDropdown = ({ selected = '', style = {}, wallets, onSelect }) 
         <i className={'fas fa-caret-down'} />
       </a>
       <div className={'dropdown-menu'}>
-        {wallets && wallets
-          .filter(w => w.ticker !== selected)
-          .map(w => {
-            const onClick = e => {
-              e.preventDefault();
-              onSelect(w.ticker);
-            };
-            return (
-              <button key={w.ticker} className="dropdown-item lw-coin-select-item" type="button" onClick={onClick}>
-                <img alt={Localize.text('Coin icon', 'receive-modal')} srcSet={w.imagePath} />
-                <div>{`${w.name} (${w.ticker})`}</div>
+        {wallets && filteredWallets.length > 0 ?
+          filteredWallets
+            .map(w => {
+              const onClick = e => {
+                e.preventDefault();
+                onSelect(w.ticker);
+              };
+              return (
+                <button key={w.ticker} className="dropdown-item lw-coin-select-item" type="button" onClick={onClick}>
+                  <img alt={Localize.text('Coin icon', 'receive-modal')} srcSet={w.imagePath} />
+                  <div>{`${w.name} (${w.ticker})`}</div>
+                </button>
+              );
+            })
+          :
+          wallets && filteredWallets.length === 0 ?
+            [
+              <button key={'empty-list-item'} className="dropdown-item lw-coin-select-item disabled" type="button">
+                <div>----</div>
               </button>
-            );
-          })
+            ]
+            :
+            null
         }
       </div>
     </div>
