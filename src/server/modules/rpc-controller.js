@@ -400,10 +400,11 @@ class RPCController {
       startTime = 0;
     if (!_.isNumber(endTime) || endTime === 0)
       endTime = unixTime();
-    let res = await this._makeRequest('listtransactions', [startTime, endTime], {timeout: 60000});
+    const res = await this._makeRequest('listtransactions', [startTime, endTime], {timeout: 60000});
     if (!res) {
-      logger.warn(`listtransactions is null for port ${this._port} start ${startTime} end ${endTime}`);
-      res = [];
+      const emsg = `listtransactions is null for port ${this._port} start ${startTime} end ${endTime}`;
+      logger.warn(emsg);
+      throw new Error(emsg);
     }
     return res.map(t => new RPCTransaction({
       txId: t.txid,
