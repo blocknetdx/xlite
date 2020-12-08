@@ -15,14 +15,26 @@ const rmrf = require('rmrf-promise');
   await fs.ensureDir(buildDir);
 
   const filesToCopy = [
-    'bin',
     'dist',
     'locales',
     'static-data',
   ];
 
+  // Copy base directories
   for(const file of filesToCopy) {
     await fs.copy(path.join(baseDir, file), path.join(tempDir, file));
+  }
+
+  // Copy platform-specific binary or whole bin directory if platform directory not specified
+  const platform = process.argv[process.argv.length - 1].trim();
+  const binDir = path.resolve(__dirname, '../bin');
+  const platformBinDir = path.join(binDir, platform);
+  const tempBinDir = path.join(tempDir, 'bin');
+  if(fs.existsSync(platformBinDir)) {
+    await fs.ensureDir(tempBinDir);
+    await fs.copy(platformBinDir, path.join(tempBinDir, platform));
+  } else {
+    await fs.copy(binDir, tempBinDir);
   }
 
   const packageJson = await fs.readJson(path.join(baseDir, 'package.json'));
