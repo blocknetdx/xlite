@@ -91,12 +91,12 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
         </CardHeader>
         <CardBody>
           <Table small={brief}>
-            <TableColumn size={hideAddress ? 2 : 3}><Localize context={'transactions'}>Transaction</Localize></TableColumn>
-            <TableColumn size={2}><Localize context={'transactions'}>Asset</Localize></TableColumn>
-            {!brief && !hideAddress ? <TableColumn size={7}><Localize context={'transactions'}>Address</Localize></TableColumn> : null}
-            {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn> : null}
-            {!brief ? <TableColumn size={2}>{Localize.text('Value ({{value}})', 'transactions', {value: altCurrencies.BTC})}</TableColumn>
-              : <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn>}
+            <TableColumn size={hideAddress ? 4 : 6}><Localize context={'transactions'}>Transaction</Localize></TableColumn>
+            <TableColumn size={brief ? 3 : 4}><Localize context={'transactions'}>Asset</Localize></TableColumn>
+            {!brief && !hideAddress ? <TableColumn size={14}><Localize context={'transactions'}>Address</Localize></TableColumn> : null}
+            {!brief ? <TableColumn size={4}><Localize context={'transactions'}>Amount</Localize></TableColumn> : null}
+            {!brief ? <TableColumn size={4}>{Localize.text('Value ({{value}})', 'transactions', {value: altCurrencies.BTC})}</TableColumn>
+              : <TableColumn size={4}><Localize context={'transactions'}>Amount</Localize></TableColumn>}
             {filteredTxs.map(([ticker, t]) => {
               const wallet = walletLookup.get(ticker);
               const sent = t.isSend();
@@ -143,8 +143,8 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                       }
                     </Row>
                   </TableData>
-                  <TableData className={'lw-transactions-asset-image'}>
-                    <AssetWithImage shortenName={brief} wallet={wallet} />
+                  <TableData className={'lw-transactions-asset-image'} style={{justifyContent: 'flex-start', alignItems: 'flex-start'}}>
+                    <AssetWithImage shortenName={brief} style={{alignItems: 'flex-start', justifyContent: 'flex-start', textAlign: 'left'}} wallet={wallet} />
                   </TableData>
                   {!brief && !hideAddress ? <TableData className={'text-monospace'}>{t.address}</TableData> : null}
                   {!brief ? <TableData className={'text-monospace'}>{truncate(t.amountWithFees(), MAX_DECIMAL_PLACE)}</TableData> : null}

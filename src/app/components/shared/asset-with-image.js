@@ -6,7 +6,7 @@ import React from 'react';
 import Localize from './localize';
 import Wallet from '../../types/wallet-r';
 
-const AssetWithImage = ({ shortenName = false, wallet }) => {
+const AssetWithImage = ({ shortenName = false, style = {}, wallet }) => {
 
   const { ticker } = wallet;
 
@@ -25,11 +25,12 @@ const AssetWithImage = ({ shortenName = false, wallet }) => {
   };
 
   return (
-    <div style={styles.container}><img alt={Localize.text('{{coin}} icon', 'universal', {coin: ticker})} style={styles.image} srcSet={wallet.imagePath} />{ shortenName ? ticker : wallet.name}</div>
+    <div style={{...styles.container, ...style}}><img alt={Localize.text('{{coin}} icon', 'universal', {coin: ticker})} style={styles.image} srcSet={wallet.imagePath} />{ shortenName ? ticker : wallet.name}</div>
   );
 };
 AssetWithImage.propTypes = {
   shortenName: PropTypes.bool,
+  style: PropTypes.object,
   wallet: PropTypes.instanceOf(Wallet)
 };
 
