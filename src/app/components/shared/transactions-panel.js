@@ -93,7 +93,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
           <Table small={brief}>
             <TableColumn size={hideAddress ? 2 : 3}><Localize context={'transactions'}>Transaction</Localize></TableColumn>
             <TableColumn size={2}><Localize context={'transactions'}>Asset</Localize></TableColumn>
-            {!brief && !hideAddress ? <TableColumn size={7}><Localize context={'transactions'}>To address</Localize></TableColumn> : null}
+            {!brief && !hideAddress ? <TableColumn size={7}><Localize context={'transactions'}>Address</Localize></TableColumn> : null}
             {!brief ? <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn> : null}
             {!brief ? <TableColumn size={2}>{Localize.text('Value ({{value}})', 'transactions', {value: altCurrencies.BTC})}</TableColumn>
               : <TableColumn size={2}><Localize context={'transactions'}>Amount</Localize></TableColumn>}
