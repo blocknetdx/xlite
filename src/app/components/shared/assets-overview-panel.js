@@ -12,7 +12,7 @@ import * as appActions from '../../actions/app-actions';
 import { activeViews, MAX_DECIMAL_PLACE, altCurrencySymbol, altCurrencies } from '../../constants';
 import { Column } from './flex';
 import PercentBar from './percent-bar';
-import { multiplierForCurrency, removeTrailingZeroes, walletSorter } from '../../util';
+import { multiplierForCurrency, removeTrailingZeroes, truncate, walletSorter } from '../../util';
 import {Map as IMap} from 'immutable';
 import Wallet from '../../types/wallet-r';
 import { all, create } from 'mathjs';
@@ -122,7 +122,7 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                     <AssetWithImage shortenName={hideTicker || hideCoinText} wallet={w} />
                   </TableData>
                   {!hideTicker ? <TableData>{ticker}</TableData> : null}
-                  <TableData className={'text-monospace'}>{altCurrencySymbol(altCurrency)}{Number(altMultiplier.toFixed(MAX_DECIMAL_PLACE))}</TableData>
+                  <TableData className={'text-monospace'}>{altCurrencySymbol(altCurrency)}{truncate(altMultiplier, MAX_DECIMAL_PLACE, true)}</TableData>
                   {!hidePriceGraph ?
                     <TableData>
                     {/*  Only render chart if data is available */}
@@ -151,13 +151,13 @@ const AssetsOverviewPanel = ({ hidePercentBar = false, hideTicker = false, hideV
                     :
                     null
                   }
-                  <TableData className={'text-monospace'}>{removeTrailingZeroes(totalBalance)}</TableData>
+                  <TableData className={'text-monospace'}>{truncate(totalBalance, MAX_DECIMAL_PLACE, true)}</TableData>
                   <TableData className={'text-monospace dual-line'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'right'}}>
                     <div>
-                      {removeTrailingZeroes(math.multiply(bignumber(Number(totalBalance)), btcMultiplier).toFixed(MAX_DECIMAL_PLACE))}
+                      {truncate(math.multiply(bignumber(Number(totalBalance)), btcMultiplier).toNumber(), MAX_DECIMAL_PLACE, true)}
                     </div>
                     <div className={'lw-card-tablerow-bottom-label'}>
-                      {`${altCurrencySymbol(altCurrency)}${altBalances[ticker].toFixed(2)}`}
+                      {`${altCurrencySymbol(altCurrency)}${truncate(altBalances[ticker], 2)}`}
                     </div>
                   </TableData>
                 </TableRow>
