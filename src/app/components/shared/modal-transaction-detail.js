@@ -7,9 +7,10 @@ import { Modal, ModalBody, ModalHeader } from './modal';
 import Localize from './localize';
 import {publicPath} from '../../util/public-path-r';
 import { Column, Row } from './flex';
-import {currencyLinter, multiplierForCurrency} from '../../util';
+import { currencyLinter, multiplierForCurrency, truncate } from '../../util';
 import { all, create } from 'mathjs';
 import { connect } from 'react-redux';
+import { MAX_DECIMAL_PLACE } from '../../constants';
 
 const math = create(all, {
   number: 'BigNumber',
@@ -59,7 +60,7 @@ const TransactionDetailModal = ({ altCurrency, currencyMultipliers, openExternal
                   Localize.text('Total sent', 'transactions')
                   :
                   Localize.text('Total Received', 'transactions')
-                }</span>: <span className={'lw-color-secondary-10'}><span className={'text-monospace'}>{selectedTx.tx.amountWithFees()}</span> {selectedTx.wallet.ticker}</span>
+                }</span>: <span className={'lw-color-secondary-10'}><span className={'text-monospace'}>{truncate(selectedTx.tx.amountWithFees(), MAX_DECIMAL_PLACE, true)}</span> {selectedTx.wallet.ticker}</span>
           </div>
         </Row>
         <Row justify={'center'}>
@@ -74,8 +75,8 @@ const TransactionDetailModal = ({ altCurrency, currencyMultipliers, openExternal
           </Column>
           <Column justify={'center'}>
             <div>
-              <div className={'lw-color-secondary-10'}>BTC <span className={'text-monospace'}>{selectedBTCMultiplier}</span></div>
-              <div className={'lw-color-secondary-6'}>{altCurrency} <span className={'text-monospace'}>{selectedAltMultiplier}</span></div>
+              <div className={'lw-color-secondary-10'}>BTC <span className={'text-monospace'}>{truncate(selectedBTCMultiplier, MAX_DECIMAL_PLACE, true)}</span></div>
+              <div className={'lw-color-secondary-6'}>{altCurrency} <span className={'text-monospace'}>{truncate(selectedAltMultiplier, MAX_DECIMAL_PLACE, true)}</span></div>
             </div>
           </Column>
         </Row>

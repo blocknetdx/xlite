@@ -12,7 +12,7 @@ import moment from 'moment';
 import AssetWithImage from './asset-with-image';
 import { activeViews, MAX_DECIMAL_PLACE, altCurrencies, altCurrencySymbol } from '../../constants';
 import {Map as IMap} from 'immutable';
-import {multiplierForCurrency, currencyLinter} from '../../util';
+import { multiplierForCurrency, currencyLinter, truncate, removeTrailingZeroes } from '../../util';
 import {publicPath} from '../../util/public-path-r';
 import { all, create } from 'mathjs';
 import Wallet from '../../types/wallet-r';
@@ -147,11 +147,11 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                     <AssetWithImage shortenName={brief} wallet={wallet} />
                   </TableData>
                   {!brief && !hideAddress ? <TableData className={'text-monospace'}>{t.address}</TableData> : null}
-                  {!brief ? <TableData className={'text-monospace'}>{t.amountWithFees()}</TableData> : null}
+                  {!brief ? <TableData className={'text-monospace'}>{truncate(t.amountWithFees(), MAX_DECIMAL_PLACE)}</TableData> : null}
                   {!brief ?
                     <TableData className={'text-monospace dual-line'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
                       <div className={'lw-table-top-label'}>
-                        {sent ? '-' : '+'}{math.multiply(bignumber(t.amountWithFees()), btcMultiplier).toFixed(MAX_DECIMAL_PLACE)}
+                        {sent ? '-' : '+'}{truncate(math.multiply(bignumber(t.amountWithFees()), btcMultiplier).toNumber(), MAX_DECIMAL_PLACE)}
                       </div>
                       <div className={'lw-table-bottom-label'}>
                         {sent ? '-' : '+'}{altCurrencySymbol(altCurrency)}{currencyLinter(math.multiply(bignumber(t.amountWithFees()), currencyMultiplier))}
@@ -160,7 +160,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                     :  // Brief requires displaying the actual amount and currency equivalent
                     <TableData className={'text-monospace dual-line'} style={{paddingTop: 0, paddingBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'right'}}>
                       <div className={'lw-table-top-label'}>
-                        {sent ? '-' : '+'}{bignumber(t.amountWithFees()).toFixed(4)}
+                        {sent ? '-' : '+'}{truncate(t.amountWithFees(), 4)}
                       </div>
                       <div className={'lw-table-bottom-label'}>
                         {sent ? '-' : '+'}{altCurrencySymbol(altCurrency)}{currencyLinter(math.multiply(bignumber(t.amountWithFees()), currencyMultiplier))}

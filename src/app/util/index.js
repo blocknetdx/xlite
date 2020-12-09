@@ -215,3 +215,19 @@ export const resolveAll = promises => {
         });
   });
 };
+
+/**
+ * @param num {number}
+ * @param decimalPlaces {number}
+ * @param = removeTrailing {boolean}
+ * @returns {string}
+ */
+export const truncate = (num = 0, decimalPlaces = 0, removeTrailing = false) => {
+  let multiplier = 1;
+  for(let i = 0; i < decimalPlaces; i++) {
+    multiplier = multiplier * 10;
+  }
+  const truncated = Math.trunc(math.multiply(bignumber(num), bignumber(multiplier)).toNumber()) / multiplier;
+  const fixed = truncated.toFixed(decimalPlaces);
+  return removeTrailing ? removeTrailingZeroes(fixed) : fixed;
+};

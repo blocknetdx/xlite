@@ -1,7 +1,7 @@
 // Copyright (c) 2020 The Blocknet developers
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
-import {currencyLinter, multiplierForCurrency} from '../../util';
+import { currencyLinter, multiplierForCurrency, truncate } from '../../util';
 import Localize from './localize';
 import {MAX_DECIMAL_PLACE, altCurrencies} from '../../constants';
 import {oneSat} from '../../util';
@@ -54,7 +54,7 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
           </div>
           <div className={'lw-balance-container'}>
             <div style={{fontSize: 14}} className={'lw-color-secondary-2'}>{Localize.text('Total {{coin}} balance', 'balance', {coin: wallet.ticker})}:</div>
-            <div className={'lw-balance-coindetails'}><h2>{total} {activeWallet}</h2> <h4>{altCurrency} {currencyLinter(altAmount)}</h4></div>
+            <div className={'lw-balance-coindetails'}><h2>{truncate(total, MAX_DECIMAL_PLACE, true)} {activeWallet}</h2> <h4>{altCurrency} {currencyLinter(altAmount)}</h4></div>
           </div>
           <div className={'lw-color-secondary-3'} style={{display: 'inline-block', fontSize: 14, textAlign: 'right', position: 'absolute', float: 'right', bottom: 0, right: 0, paddingBottom: 12}}>
             <div><Localize context={'balance'}>Website</Localize>: {website ? <CopyableLink href={website}>{website}</CopyableLink> : <span className={'lw-text-primary'}>{Localize.text('n/a', 'balance')}</span>}</div>
@@ -72,9 +72,9 @@ let Balance = ({ showCoinDetails = false, activeWallet, altCurrency, wallets, ba
       const coinBtc = math.multiply(bignumber(total), bignumber(currencyMultiplier));
       allCoinBtc = math.add(allCoinBtc, coinBtc);
     }
-    const totalBalance = allCoinBtc.toFixed(MAX_DECIMAL_PLACE);
+    const totalBalance = truncate(allCoinBtc, MAX_DECIMAL_PLACE);
     const btcMultiplier = multiplierForCurrency(BTC, altCurrency, currencyMultipliers);
-    const totalAltCurrency = math.multiply(allCoinBtc, bignumber(btcMultiplier)).toFixed(2);
+    const totalAltCurrency = truncate(math.multiply(allCoinBtc, bignumber(btcMultiplier)).toNumber(), 2);
     const priceChange = pricing.getPriceChange(BTC, altCurrency);
     const btcPriceChange = math.multiply(allCoinBtc, bignumber(priceChange));
     const currencyPriceChange = math.multiply(btcPriceChange, bignumber(btcMultiplier)).toFixed(2);
