@@ -7,7 +7,7 @@ import {generateSalt, pbkdf2} from '../../app/modules/crypt';
 import {logger} from './logger';
 import {storageKeys} from '../constants';
 import RPCController from './rpc-controller';
-import {unixTime} from '../../app/util';
+import {timeout, unixTime} from '../../app/util';
 
 import _ from 'lodash';
 import electron from 'electron';
@@ -487,7 +487,7 @@ class CloudChains {
         }
 
       if (this.spvIsRunning()) { // first kill the prior process if rpc isn't working
-        this._cli.kill();
+        this._cli.kill('SIGINT');
         this._cli = null;
       }
 
@@ -506,7 +506,7 @@ class CloudChains {
         ) {
           started = true;
           resolve(false);
-          cli.kill();
+          cli.kill('SIGINT');
         } else if(/master\sRPC\sserver/i.test(str)) {
           started = true;
           // give the master RPC server a second to start
@@ -522,7 +522,7 @@ class CloudChains {
           return;
         started = true;
         resolve(false);
-        cli.kill();
+        cli.kill('SIGINT');
       });
       cli.stdout.on('close', code => {
         logger.info(`startSPV child process exited with code ${!code ? '0' : code}`);
@@ -536,12 +536,17 @@ class CloudChains {
 
   /**
    * Stops the CloudChains CLI
-   * @returns {boolean}
+   * @returns {Promise<boolean>}
    */
-  stopSPV() {
-    if (this._isCLIAvailable())
-      return this._cli.kill();
-    return false;
+  async stopSPV() {
+    let r = false;
+    if (await this.isWalletRPCRunning())
+      r = await this._rpc.ccStop();
+    else {
+      if (this._isCLIAvailable())
+        return this._cli.kill('SIGINT');
+    }
+    return r;
   }
 
   /**
@@ -558,7 +563,7 @@ class CloudChains {
       }
 
       if (this.spvIsRunning()) { // stop existing if running
-        this._cli.kill();
+        this._cli.kill('SIGINT');
         this._cli = null;
       }
 
@@ -595,12 +600,12 @@ class CloudChains {
               createHandler();
             else {
               createHandler(new Error('failed to start rpc server'));
-              cli.kill();
+              cli.kill('SIGINT');
             }
           })
           .catch(() => {
             createHandler(new Error('failed to start rpc server'));
-            cli.kill();
+            cli.kill('SIGINT');
           });
       });
       cli.stderr.on('data', data => {
@@ -610,7 +615,7 @@ class CloudChains {
           return;
         started = true;
         createHandler(new Error('failed to create a new wallet'));
-        cli.kill();
+        cli.kill('SIGINT');
       });
       cli.stdout.on('close', code => {
         logger.info(`child process exited with code ${!code ? '0' : code}`);
@@ -636,7 +641,7 @@ class CloudChains {
             return;
           started = true;
           resolve(true);
-          cli.kill();
+          cli.kill('SIGINT');
         }
       });
       cli.stderr.on('data', data => {
@@ -646,7 +651,7 @@ class CloudChains {
           return;
         started = true;
         resolve(false);
-        cli.kill();
+        cli.kill('SIGINT');
       });
       cli.stdout.on('close', code => {
         logger.info(`enableAllWallets child process exited with code ${!code ? '0' : code}`);

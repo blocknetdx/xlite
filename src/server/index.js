@@ -231,11 +231,11 @@ app.on('ready', async () => {
     });
   });
   // Shutdown the cli on window close if it's running.
-  app.on('quit', (event) => {
+  app.on('quit', async (event) => {
     if (!cloudChains.spvIsRunning())
       return;
     try {
-      if (!cloudChains.stopSPV())
+      if (!(await cloudChains.stopSPV()))
         logger.error('failed to stop the wallet daemon');
       else
         logger.error('wallet shutdown');

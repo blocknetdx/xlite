@@ -432,6 +432,19 @@ class RPCController {
       return e;
     }
   }
+
+  /**
+   * Stop the CloudChains server daemon.
+   * @return {Promise<boolean>}
+   */
+  async ccStop() {
+    try {
+      await this._makeRequest('stop', []);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }
 
 export default RPCController;

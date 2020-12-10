@@ -614,16 +614,19 @@ describe('CloudChains Test Suite', function() {
       }
 
     });
-    it('CloudChains.stopSPV()', function() {
+    it('CloudChains.stopSPV()', async function() {
       const cc = new CloudChains(ccFunc, storage);
       cc.stopSPV.should.be.a.Function();
       // If there is no running CLI process
-      cc.stopSPV().should.be.false();
+      await cc.stopSPV().should.finally.be.false();
       // If there is a running CLI process
       const { execFile, wasKilled } = fakeExecFile();
       cc._cli = execFile('somepath', [], () => {});
-      cc.stopSPV();
+      await cc.stopSPV();
       wasKilled().should.be.true();
+      cc._rpc = new FakeRPCController();
+      cc._masterConf = {rpcEnabled: true};
+      await cc.stopSPV().should.finally.be.true();
     });
 
     const runCreateWalletTests = async function(password, createFromMnemonic) {

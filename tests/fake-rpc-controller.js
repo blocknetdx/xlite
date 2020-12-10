@@ -15,6 +15,7 @@ class FakeRPCController {
   _port = 41414;
   _username = 'testuser';
   _password = 'test';
+  ccStopResult = true;
 
   constructor() {
   }
@@ -418,6 +419,10 @@ class FakeRPCController {
    */
   async ccHelp() {
     return 'Some help text';
+  }
+
+  async ccStop() {
+    return this.ccStopResult;
   }
 }
 
