@@ -440,7 +440,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
             <div style={{flexGrow: 1}} />
 
-            <Row style={{fontSize, marginBottom: defaultMarginBottom * 2}} justify={'flex-end'}>
+            <Row style={{fontSize, marginBottom: defaultMarginBottom * 2}} justify={'center'}>
               <Button type={'button'} onClick={progress === 1 ? onConfirm : onSend} disabled={!address || insufficient || inputAmountIsDust || (progress === 1 && confirmTimer > 0)}>
                 {progress === 1 && confirmTimer ?
                   Localize.text('Wait {{time}}', 'sendModal', {time: confirmTimer})
@@ -467,7 +467,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
                 <div style={{flexGrow: 1}} />
 
-                <Row style={{fontSize, marginBottom: defaultMarginBottom * 2}} justify={'flex-end'}>
+                <Row style={{fontSize, marginBottom: defaultMarginBottom * 2}} justify={'center'}>
                   {openExternalLinks ?
                     <Button type={'button'} onClick={onViewOnExplorer}><Localize context={'sendModal'}>View on explorer</Localize> <i className={'fas fa-long-arrow-alt-right'} /></Button>
                     :
