@@ -7,7 +7,7 @@ import {generateSalt, pbkdf2} from '../../app/modules/crypt';
 import {logger} from './logger';
 import {storageKeys} from '../constants';
 import RPCController from './rpc-controller';
-import {timeout, unixTime} from '../../app/util';
+import {unixTime} from '../../app/util';
 
 import _ from 'lodash';
 import electron from 'electron';
@@ -89,12 +89,7 @@ class CloudChains {
    * @type {RegExp}
    * @private
    */
-  _loginPatt = /\[login]/i;
-  /**
-   * @type {RegExp}
-   * @private
-   */
-  _unableToInitializePatt = /unable\sto\sinitialize/i;
+  _badPasswordPatt = /(?:BADPASSWORD|BADMNEMONIC)/i;
   /**
    * @type {SimpleStorage}
    * @private
@@ -491,7 +486,7 @@ class CloudChains {
         this._cli = null;
       }
 
-      logger.info('starting CloudChains daemon');
+      logger.info('Starting CloudChains daemon');
 
       let started = false;
       const args = password ? ['--password', password] : [];
@@ -501,7 +496,7 @@ class CloudChains {
           return;
         const str = data.toString('utf8');
         if(
-          (this._loginPatt.test(str) && this._unableToInitializePatt.test(str))
+          (this._badPasswordPatt.test(str))
           || (!password && this._selectionPatt.test(str))
         ) {
           started = true;

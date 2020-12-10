@@ -181,7 +181,7 @@ const startup = async () => {
   // No need to await and hold up the whole process for this
   cloudChains.getCCSPVVersion()
     .then(ccVersion => {
-      logger.info(`Using CloudChains Litewallet version ${ccVersion}`);
+      logger.info(`Using CloudChains daemon v${ccVersion}`);
     })
     .catch(err => {
       logger.error(err);
@@ -238,7 +238,7 @@ app.on('ready', async () => {
       if (!(await cloudChains.stopSPV()))
         logger.error('failed to stop the wallet daemon');
       else
-        logger.error('wallet shutdown');
+        logger.info('wallet shutdown');
     } catch (e) {
       console.log('wallet shutdown with error', e);
     }
