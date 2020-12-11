@@ -95,7 +95,7 @@ api.general_onShutdown(() => {
   // Display shutdown alert and add delay before full shutdown request
   Alert.message(Localize.text('Shutdown', 'shutdown'),
     Localize.text('Wallet is shutting down, please wait...', 'shutdown'));
-  timeout(2000).then(() => {
+  timeout(1000).then(() => {
     api.general_requestClose();
   });
 });
