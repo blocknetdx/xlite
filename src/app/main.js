@@ -87,6 +87,19 @@ const updateScrollbars = (innerWidth, innerHeight) => {
   }
 };
 
+let shutdownRequested = false;
+api.general_onShutdown(() => {
+  if (shutdownRequested)
+    return;
+  shutdownRequested = true;
+  // Display shutdown alert and add delay before full shutdown request
+  Alert.message(Localize.text('Shutdown', 'shutdown'),
+    Localize.text('Wallet is shutting down, please wait...', 'shutdown'));
+  timeout(2000).then(() => {
+    api.general_requestClose();
+  });
+});
+
 // Add window event handlers
 window.addEventListener('paste', async function(e) {
   const type = $(e.target).attr('type');

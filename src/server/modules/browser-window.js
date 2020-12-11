@@ -39,7 +39,13 @@ class BrowserWindow {
     if(onLoad) onLoad = onLoad.bind(this);
     if(onClose) onClose = onClose.bind(this);
 
-    browserWindow.once('close', async function() {
+    browserWindow.once('ready-to-show', async function() {
+      if(onBeforeLoad) await onBeforeLoad();
+      browserWindow.show();
+      if(onLoad) await onLoad();
+    }.bind(this));
+
+    browserWindow.on('closed', async () => {
       if(onClose) await onClose();
 
       // remove the window from our array of windows
@@ -47,15 +53,7 @@ class BrowserWindow {
       BrowserWindow._allWindows.splice(winIdx, 1);
 
       if (this.isMainWindow) BrowserWindow.closeAllWindows();
-    }.bind(this));
 
-    browserWindow.once('ready-to-show', async function() {
-      if(onBeforeLoad) await onBeforeLoad();
-      browserWindow.show();
-      if(onLoad) await onLoad();
-    }.bind(this));
-
-    browserWindow.on('closed', () => {
       for(const [event, listener] of [...this._listeners.entries()]) {
         ipcMain.removeListener(event, listener);
       }
@@ -90,6 +88,10 @@ class BrowserWindow {
     } catch(err) {
       console.error(err);
     }
+  }
+
+  getWindow() {
+    return this._window;
   }
 }
 

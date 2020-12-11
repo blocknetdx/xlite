@@ -33,6 +33,7 @@ export const apiConstants = {
   general_onZoomOut: 'general_onZoomOut',
   general_onZoomReset: 'general_onZoomReset',
   general_getPlatform: 'general_getPlatform',
+  general_onShutdown: 'general_onShutdown',
 
   cloudChains_isInstalled: 'cloudChains_isInstalled',
   cloudChains_hasSettings: 'cloudChains_hasSettings',
@@ -168,6 +169,11 @@ const general_API = {
   },
   [apiConstants.general_onZoomReset]: callback => {
     ipcRenderer.on(apiConstants.general_onZoomReset, () => {
+      callback();
+    });
+  },
+  [apiConstants.general_onShutdown]: callback => {
+    ipcRenderer.on(apiConstants.general_onShutdown, () => {
       callback();
     });
   },

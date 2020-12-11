@@ -76,6 +76,12 @@ class Api {
   _pricing = null;
 
   /**
+   * @type {Object}
+   * @private
+   */
+  _shutdown = null;
+
+  /**
    * If true this will allow electron to open external links.
    * @type {boolean}
    * @private
@@ -93,11 +99,12 @@ class Api {
    * @param walletController {WalletController}
    * @param zoomController {ZoomController}
    * @param pricing {Pricing}
+   * @param shutdown {Object}
    */
   constructor(storage, app, proc, err,
               cloudChains = null, confController = null,
               walletController = null, zoomController = null,
-              pricing = null) {
+              pricing = null, shutdown = null) {
     this._storage = storage;
     this._app = app;
     this._proc = proc;
@@ -107,6 +114,7 @@ class Api {
     this._walletController = walletController;
     this._zoomController = zoomController;
     this._pricing = pricing;
+    this._shutdown = shutdown;
     this._init();
   }
 
@@ -174,8 +182,9 @@ class Api {
       if (_.has(screenSize, 'width') && _.has(screenSize, 'height'))
         this._storage.setItem(storageKeys.SCREEN_SIZE, screenSize);
     });
-    this._proc.on(apiConstants.general_requestClose, (evt, reason) => {
+    this._proc.on(apiConstants.general_requestClose, async (evt, reason) => {
       logger.error(reason);
+      await this._shutdown.shutdown();
       this._app.quit();
     });
     this._proc.handle(apiConstants.general_userLocale, (evt, arg) => {

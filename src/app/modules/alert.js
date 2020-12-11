@@ -32,10 +32,11 @@ class Alert {
    * @param content {Object}
    * @param confirmButtonText {string}
    * @param cancelButtonText {string}
+   * @param showButton {boolean}
    * @returns {Object}
    * @private
    */
-  static _constructSwalConfiguration(icon, title, text, content, confirmButtonText, cancelButtonText = '') {
+  static _constructSwalConfiguration(icon, title, text, content, confirmButtonText, cancelButtonText = '', showButton = true) {
     const options = {
       title,
       text,
@@ -56,9 +57,11 @@ class Alert {
       Object.assign(options, content);
     if (confirmButtonText)
       options.confirmButtonText = confirmButtonText;
-    if (cancelButtonText)
+    if (cancelButtonText) {
       options.showCancelButton = true;
       options.cancelButtonText = cancelButtonText;
+    }
+    options.showConfirmButton = showButton;
     return options;
   }
 
@@ -184,6 +187,25 @@ class Alert {
       text,
       null,
       buttonText
+    );
+    return Alert._swal.fire(options);
+  }
+
+  /**
+   * Displays a message without a confirm button.
+   * @param title {string}
+   * @param text {string}
+   * @returns {Promise<Object>} SweetAlert result object (i.e. result.value, result.dismiss)
+   */
+  static message(title = '', text = '') {
+    const options = Alert._constructSwalConfiguration(
+      'info',
+      title,
+      text,
+      null,
+      '',
+      '',
+      false,
     );
     return Alert._swal.fire(options);
   }

@@ -3,6 +3,7 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 import {publicPath} from './util/public-path'; // must be at top
 import Api from './modules/api';
+import {apiConstants} from '../app/api';
 import CloudChains from './modules/cloudchains';
 import {DATA_DIR, getLocaleData, storageKeys} from './constants';
 import {DEFAULT_LOCALE, DEFAULT_ZOOM_FACTOR} from '../app/constants';
@@ -200,6 +201,33 @@ const startup = async () => {
 app.on('ready', async () => {
   await startup();
 
+  let shutdownRequested = false;
+  const shutdownMgr = {
+    shutdownRequested: () => shutdownRequested,
+    shutdown: async () => {
+      if (shutdownRequested)
+        return;
+      shutdownRequested = true;
+      // Shutdown the cli on window close if it's running.
+      if (!cloudChains.spvIsRunning()) {
+        logger.info('wallet shutdown');
+        console.log('wallet shutdown');
+        return;
+      }
+      try {
+        if (!(await cloudChains.stopSPV())) {
+          logger.error('failed to stop the wallet daemon');
+          console.log('failed to stop the wallet daemon');
+        } else {
+          logger.info('wallet shutdown');
+          console.log('wallet shutdown');
+        }
+      } catch (e) {
+        console.log('wallet shutdown with error', e);
+      }
+    }
+  };
+
   // displayFatalError = makeError('Test', '123'); // force debug error screen
   // Create the api
   api = new Api(storage, app, ipcMain, displayFatalError,
@@ -208,6 +236,7 @@ app.on('ready', async () => {
     walletController,
     zoomController,
     pricing,
+    shutdownMgr,
   );
 
   // Notify of fatal error
@@ -218,6 +247,13 @@ app.on('ready', async () => {
 
   // Create the app window
   appWindow = openAppWindow(path.resolve(__dirname, '../static/index.html'), storage, devtools);
+  // Prevent close outside shutdown
+  appWindow.getWindow().on('close', e => {
+    if (!shutdownMgr.shutdownRequested()) {
+      e.preventDefault();
+      appWindow.getWindow().send(apiConstants.general_onShutdown);
+    }
+  });
   // Prevent opening any new windows at this point
   app.on('web-contents-created', (event, contents) => {
     contents.on('new-window', (event, navigationUrl) => {
@@ -230,18 +266,9 @@ app.on('ready', async () => {
       event.preventDefault();
     });
   });
-  // Shutdown the cli on window close if it's running.
-  app.on('quit', async (event) => {
-    if (!cloudChains.spvIsRunning())
-      return;
-    try {
-      if (!(await cloudChains.stopSPV()))
-        logger.error('failed to stop the wallet daemon');
-      else
-        logger.info('wallet shutdown');
-    } catch (e) {
-      console.log('wallet shutdown with error', e);
-    }
+  app.on('will-quit', async (event) => {
+    if (!shutdownMgr.shutdownRequested())
+      await shutdownMgr.shutdown();
   });
 
   if (isDev) {
