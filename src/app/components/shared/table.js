@@ -95,7 +95,24 @@ export const Table = ({ children = [], small = false, className = '' }) => {
         {columns.map((c, i) => React.cloneElement(c, {key: `col-${i}`, idx: i, final: i === columns.length - 1}))}
       </div>
       <div className={'lw-table-body'}>
-        <PerfectScrollbar>
+        <PerfectScrollbar
+          containerRef={ref => {
+            if (ref) {
+
+              // ToDo update perfect scrollbar library when a new version comes out that addresses this issue
+
+              // there appears to be an intermittent problem with how perfect scrollbar calculates the bottom of the
+              // scrollable area and while there is no updated version fixing this problem, the code snippet from the
+              // following link fixes the calculation problem at least temporarily until perfect scrollbar addresses it
+              // https://github.com/mdbootstrap/perfect-scrollbar/issues/920#issuecomment-711472390
+              ref._getBoundingClientRect = ref.getBoundingClientRect;
+              ref.getBoundingClientRect = () => {
+                const original = ref._getBoundingClientRect();
+                return { ...original, height: Math.round(original.height) };
+              };
+            }
+          }}
+        >
           {rows.map((r, i) => React.cloneElement(r, {key: `row-${i}`, small, idx: i, sizes}))}
         </PerfectScrollbar>
       </div>
