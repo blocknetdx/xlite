@@ -82,6 +82,12 @@ class Api {
   _shutdown = null;
 
   /**
+   * @type {ContextMenu}
+   * @private
+   */
+  _contextMenu = null;
+
+  /**
    * If true this will allow electron to open external links.
    * @type {boolean}
    * @private
@@ -104,7 +110,7 @@ class Api {
   constructor(storage, app, proc, err,
               cloudChains = null, confController = null,
               walletController = null, zoomController = null,
-              pricing = null, shutdown = null) {
+              pricing = null, shutdown = null, contextMenu) {
     this._storage = storage;
     this._app = app;
     this._proc = proc;
@@ -115,6 +121,7 @@ class Api {
     this._zoomController = zoomController;
     this._pricing = pricing;
     this._shutdown = shutdown;
+    this._contextMenu = contextMenu;
     this._init();
   }
 
@@ -139,6 +146,7 @@ class Api {
   _init() {
     this._initEnv();
     this._initGeneral();
+    this._initContextMenu();
     if (this._err)
       return; // do not expose rest of api on error
 
@@ -238,6 +246,18 @@ class Api {
       evt.returnValue = process.platform;
     });
     } // end zoomController
+  }
+
+  _initContextMenu() {
+    this._proc.on(apiConstants.contextMenu_showCopyMenu, () => {
+      this._contextMenu.showCopyMenu();
+    });
+    this._proc.on(apiConstants.contextMenu_showPasteMenu, () => {
+      this._contextMenu.showPasteMenu();
+    });
+    this._proc.on(apiConstants.contextMenu_showStandardMenu, () => {
+      this._contextMenu.showStandardMenu();
+    });
   }
 
   /**

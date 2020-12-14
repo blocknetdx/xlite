@@ -35,6 +35,10 @@ export const apiConstants = {
   general_getPlatform: 'general_getPlatform',
   general_onShutdown: 'general_onShutdown',
 
+  contextMenu_showCopyMenu: 'contextMenu_showCopyMenu',
+  contextMenu_showPasteMenu: 'contextMenu_showPasteMenu',
+  contextMenu_showStandardMenu: 'contextMenu_showStandardMenu',
+
   cloudChains_isInstalled: 'cloudChains_isInstalled',
   cloudChains_hasSettings: 'cloudChains_hasSettings',
   cloudChains_getWalletConf: 'cloudChains_getWalletConf',
@@ -176,6 +180,19 @@ const general_API = {
     ipcRenderer.on(apiConstants.general_onShutdown, () => {
       callback();
     });
+  },
+};
+
+// Context menu api
+const contextMenu_API = {
+  [apiConstants.contextMenu_showCopyMenu]: () => {
+    ipcRenderer.send(apiConstants.contextMenu_showCopyMenu);
+  },
+  [apiConstants.contextMenu_showPasteMenu]: () => {
+    ipcRenderer.send(apiConstants.contextMenu_showPasteMenu);
+  },
+  [apiConstants.contextMenu_showStandardMenu]: () => {
+    ipcRenderer.send(apiConstants.contextMenu_showStandardMenu);
   },
 };
 
@@ -343,6 +360,7 @@ if (contextBridge && !init) {
     isDev,
     ...env_API,
     ...general_API,
+    ...contextMenu_API,
     ...cloudChains_API,
     ...confController_API,
     ...walletController_API,

@@ -6,6 +6,7 @@ import {Map as IMap} from 'immutable';
 import Api from '../src/server/modules/api';
 import {sanitize, sanitizeObj, Blacklist, Whitelist} from '../src/app/modules/api-r';
 import SimpleStorage from '../src/server/modules/storage';
+import ContextMenu from '../src/server/modules/context-menu';
 
 describe('Api Test Suite', function() {
   let storage;
@@ -22,7 +23,8 @@ describe('Api Test Suite', function() {
     const confController = {'c': true};
     const walletController = {'w': true};
     const zoomController = {'z': true};
-    const api = new Api(storage, app, proc, err, cloudChains, confController, walletController, zoomController);
+    const contextMenu = new ContextMenu();
+    const api = new Api(storage, app, proc, err, cloudChains, confController, walletController, zoomController, null, null, contextMenu);
     api._storage.should.be.instanceof(SimpleStorage);
     api._app.quit.should.be.a.Function();
     api._proc.on.should.be.a.Function();
@@ -32,6 +34,7 @@ describe('Api Test Suite', function() {
     api._confController.should.be.eql(confController);
     api._walletController.should.be.eql(walletController);
     api._zoomController.should.be.eql(zoomController);
+    api._contextMenu.should.be.an.instanceOf(ContextMenu);
     Whitelist.should.be.an.Array();
     Blacklist.should.be.an.Array();
   });

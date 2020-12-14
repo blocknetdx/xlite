@@ -23,6 +23,7 @@ import contextMenu from 'electron-context-menu';
 import fs from 'fs-extra';
 import isDev from 'electron-is-dev';
 import path from 'path';
+import ContextMenu from './modules/context-menu';
 
 // Handle any uncaught exceptions
 process.on('uncaughtException', err => {
@@ -201,6 +202,8 @@ const startup = async () => {
 app.on('ready', async () => {
   await startup();
 
+  const contextMenuController = new ContextMenu(Menu);
+
   let shutdownRequested = false;
   const shutdownMgr = {
     shutdownRequested: () => shutdownRequested,
@@ -237,6 +240,7 @@ app.on('ready', async () => {
     zoomController,
     pricing,
     shutdownMgr,
+    contextMenuController,
   );
 
   // Notify of fatal error
