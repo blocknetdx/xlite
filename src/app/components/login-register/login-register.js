@@ -16,11 +16,12 @@ import React, { useEffect, useState } from 'react';
 import { LoginInput } from '../shared/inputs';
 import { checkPassword, timeout } from '../../util';
 import Alert from '../../modules/alert';
+import ContextMenu from '../../modules/context-menu';
 
 const {api} = window;
 const {isDev} = api;
 
-const LoginPasswordSubmitInput = ({ hidden, setHidden, password, readOnly = false, setPassword, onSubmit }) => {
+const LoginPasswordSubmitInput = ({ hidden, setHidden, password, readOnly = false, setPassword, onContextMenu, onSubmit }) => {
 
   const [ focused, setFocused ] = useState(false);
 
@@ -49,6 +50,7 @@ const LoginPasswordSubmitInput = ({ hidden, setHidden, password, readOnly = fals
              required={true}
              spellCheck={false}
              readOnly={readOnly}
+             onContextMenu={onContextMenu}
              onChange={e => setPassword(e.target.value)}
              onFocus={() => setFocused(true)}
              onBlur={() => setFocused(false)} />
@@ -73,7 +75,8 @@ LoginPasswordSubmitInput.propTypes = {
   password: PropTypes.string,
   readOnly: PropTypes.bool,
   setPassword: PropTypes.func,
-  onSubmit: PropTypes.func
+  onSubmit: PropTypes.func,
+  onContextMenu: PropTypes.func,
 };
 
 const okIconWidth = 20;
@@ -279,6 +282,22 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
   const showLogin = cloudChains && (cloudChainsWalletCreated || (cloudChainsIsWalletRPCRunning && cloudChainsStoredPassword));
   const showRegistration = !showLogin && cloudChains && !cloudChainsWalletCreated;
 
+  const onMnemonicContextMenu = e => {
+    e.preventDefault();
+    const menu = new ContextMenu();
+    menu.showCopyMenu();
+  };
+  const onEnterMnemonicContextMenu = e => {
+    e.preventDefault();
+    const menu = new ContextMenu();
+    menu.showStandardMenu();
+  };
+  const onPasswordContextMenu = e => {
+    e.preventDefault();
+    const menu = new ContextMenu();
+    menu.showPasteMenu();
+  };
+
   return (
     <div className={'lw-login-container'}>
       <div className={'lw-login-inner-container'}>
@@ -289,7 +308,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
           <div style={styles.bodyContainer}>
 
             <div className={'lw-color-secondary-3'} style={{marginBottom: 20, fontSize: 14}}><Localize context={'login'}>Below is the mnemonic seed for your wallet. Please save it securely for your records. If you forget your password or otherwise lose your wallet, you will be able to restore your wallet using these words.</Localize></div>
-            <textarea ref={node => node ? textareaNode = node : null} className={'lw-login-textarea text-center text-monospace'} rows={4} value={mnemonic} readOnly={true} onFocus={onTextareaFocus} />
+            <textarea ref={node => node ? textareaNode = node : null} className={'lw-login-textarea text-center text-monospace'} rows={4} value={mnemonic} readOnly={true} onFocus={onTextareaFocus} onContextMenu={onMnemonicContextMenu} />
 
             <Button
               type={'button'}
@@ -306,6 +325,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
                 password={password}
                 setPassword={setPassword}
                 readOnly={processing}
+                onContextMenu={onPasswordContextMenu}
                 onSubmit={onLoginSubmit} />
             </div>
         }
@@ -319,18 +339,20 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
                             hidden={hidden}
                             setHidden={setHidden}
                             readOnly={processing}
+                            onContextMenu={onPasswordContextMenu}
                             onChange={setPassword} />
                 <LoginInput placeholder={Localize.text('Repeat password', 'login')}
                             value={passwordRepeat}
                             type={'password'}
                             hidden={hidden}
                             readOnly={processing}
+                            onContextMenu={onPasswordContextMenu}
                             onChange={setPasswordRepeat} />
                 {createFromMnemonic ?
                   <textarea className={'lw-login-textarea'}
                             rows={4} value={newMnemonic} style={{fontSize: 16}}
                             placeholder={Localize.text('Enter mnemonic', 'login')}
-                            required={true} onChange={onMnemonicChange} />
+                            required={true} onChange={onMnemonicChange} onContextMenu={onEnterMnemonicContextMenu} />
                   :
                   null
                 }
