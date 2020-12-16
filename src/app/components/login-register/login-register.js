@@ -98,6 +98,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
   const [ cloudChainsIsWalletRPCRunning, setCloudChainsIsWalletRPCRunning ] = useState(false);
   const [ cloudChainsStoredPassword, setCloudChainsStoredPassword ] = useState(false);
   const [ createFromMnemonic, setCreateFromMnemonic ] = useState(false);
+  const [ restoreFromMnemonic, setRestoreFromMnemonic ] = useState(false);
   const [ newMnemonic, setNewMnemonic ] = useState('');
 
   const passwordsMatch = password && password === passwordRepeat;
@@ -197,6 +198,14 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
     if(createFromMnemonic && preppedMnemonic.length === 0)
       return Alert.alert(Localize.text('Missing Mnemonic', 'login'), Localize.text('You must enter a valid mnemonic.', 'login'));
 
+    if(restoreFromMnemonic) {
+      const { isConfirmed } = await Alert.warning(Localize.text('Are you sure?', 'login'), Localize.text('Importing a new mnemonic will remove the old wallet. Please backup the old wallet before proceeding!', 'login'));
+      if(!isConfirmed) {
+        setProcessing(false);
+        return;
+      }
+    }
+
     setProcessing(true);
 
     const m = await cloudChains.createSPVWallet(password, preppedMnemonic);
@@ -265,6 +274,15 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
     setCreateFromMnemonic(!createFromMnemonic);
   };
 
+  const toggleRestoreFromMnemonic = e => {
+    e.preventDefault();
+    if(restoreFromMnemonic) {
+      setRestoreFromMnemonic(false);
+    } else {
+      setRestoreFromMnemonic(true);
+    }
+  };
+
   const onMnemonicChange = e => {
     e.preventDefault();
     setNewMnemonic(e.target.value);
@@ -279,8 +297,8 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
   // Show the login if the wallet was created or if the rpc is running
   // and there's a known cloudchains password. Otherwise, show the
   // registration screen.
-  const showLogin = cloudChains && (cloudChainsWalletCreated || (cloudChainsIsWalletRPCRunning && cloudChainsStoredPassword));
-  const showRegistration = !showLogin && cloudChains && !cloudChainsWalletCreated;
+  const showLogin = !restoreFromMnemonic && cloudChains && (cloudChainsWalletCreated || (cloudChainsIsWalletRPCRunning && cloudChainsStoredPassword));
+  const showRegistration = !showLogin && cloudChains && (restoreFromMnemonic || !cloudChainsWalletCreated);
 
   const onMnemonicContextMenu = e => {
     e.preventDefault();
@@ -327,6 +345,10 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
                 readOnly={processing}
                 onContextMenu={onPasswordContextMenu}
                 onSubmit={onLoginSubmit} />
+              <div className={'lw-login-create-from-mnemonic-button-container'}>
+                <a href={'#'} className={'lw-login-create-from-mnemonic-button'}
+                   onClick={toggleRestoreFromMnemonic}>{Localize.text('Restore wallet from mnemonic', 'login')}</a>
+              </div>
             </div>
         }
         { showRegistration && !mnemonic &&
@@ -348,7 +370,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
                             readOnly={processing}
                             onContextMenu={onPasswordContextMenu}
                             onChange={setPasswordRepeat} />
-                {createFromMnemonic ?
+                {createFromMnemonic || restoreFromMnemonic ?
                   <textarea className={'lw-login-textarea'}
                             rows={4} value={newMnemonic} style={{fontSize: 16}}
                             placeholder={Localize.text('Enter mnemonic', 'login')}
@@ -356,9 +378,9 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
                   :
                   null
                 }
-                <div className={'lw-login-create-from-mnemonic-button-container'} style={{marginTop: createFromMnemonic ? 0 : -10}}>
+                <div className={'lw-login-create-from-mnemonic-button-container'} style={{marginTop: createFromMnemonic || restoreFromMnemonic ? 0 : -10}}>
                   <a href={'#'} className={'lw-login-create-from-mnemonic-button'}
-                        onClick={toggleCreateFromMnemonic}>{createFromMnemonic ? Localize.text('Hide mnemonic input', 'login') : Localize.text('Create wallet from mnemonic', 'login')}</a>
+                     onClick={restoreFromMnemonic ? toggleRestoreFromMnemonic : toggleCreateFromMnemonic}>{restoreFromMnemonic || createFromMnemonic ? Localize.text('Hide mnemonic input', 'login') : Localize.text('Create wallet from mnemonic', 'login')}</a>
                 </div>
                 <div style={{marginBottom: 10}}>
                   <div className={'lw-color-secondary-5'} style={{fontSize: 13}}>
@@ -375,7 +397,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
                   type={'submit'}
                   className={'w-100'}
                   disabled={!goodPassword || processing}
-                  style={{height: 50}}>{processing ? <Spinner /> : <Localize context={'login'}>Create Wallet</Localize>}</Button>
+                  style={{height: 50}}>{processing ? <Spinner /> : restoreFromMnemonic ? <Localize context={'login'}>Restore Wallet</Localize> : <Localize context={'login'}>Create Wallet</Localize>}</Button>
 
               </form>
             </div>

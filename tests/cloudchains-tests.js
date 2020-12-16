@@ -3,6 +3,7 @@
 import 'should';
 import escapeRegExp from 'lodash/escapeRegExp';
 import fs from 'fs-extra';
+import moment from 'moment';
 import os from 'os';
 import path from 'path';
 
@@ -59,6 +60,8 @@ describe('CloudChains Test Suite', function() {
 
   const dir = path.join(tmp, 'CloudChains');
   const settingsDir = path.join(dir, 'settings');
+  const backupDir = path.join(dir, 'backups');
+  const keyPath = path.join(dir, 'key.dat');
   const ccFunc = () => { return dir; };
   const storage = new SimpleStorage(); // memory only
 
@@ -82,6 +85,7 @@ describe('CloudChains Test Suite', function() {
       cc.hasSettings().should.be.false();
       fs.mkdirpSync(settingsDir); // create directories outside app
       fs.writeFileSync(path.join(settingsDir, 'config-master.json'), '');
+      fs.ensureFileSync(keyPath); // create placeholder key file
       cc.isInstalled().should.be.true();
       cc.hasSettings().should.be.true();
     });
@@ -93,7 +97,17 @@ describe('CloudChains Test Suite', function() {
     it('CloudChains.getSettingsDir()', function() {
       fs.mkdirpSync(settingsDir); // create directories outside app
       const cc = new CloudChains(ccFunc, storage);
-      cc.getCloudChainsDir().should.be.equal(dir);
+      cc.getSettingsDir().should.be.equal(settingsDir);
+    });
+    it('CloudChains.getBackupDir()', function() {
+      fs.mkdirpSync(backupDir); // create directories outside app
+      const cc = new CloudChains(ccFunc, storage);
+      cc.getBackupDir().should.be.equal(backupDir);
+    });
+    it('CloudChains.getKeyPath()', function() {
+      fs.mkdirpSync(backupDir); // create directories outside app
+      const cc = new CloudChains(ccFunc, storage);
+      cc.getKeyPath().should.be.equal(keyPath);
     });
   });
 
@@ -724,6 +738,11 @@ describe('CloudChains Test Suite', function() {
       // Test using password and mnemonic
       const mnemonic = 'one two three four five six seven eight nine ten eleven twelve';
       await runCreateWalletTests(password, mnemonic);
+      // Test creation with a previous key
+      await fs.ensureFile(keyPath);
+      await runCreateWalletTests(password, mnemonic);
+      const keyBackedUp = await fs.pathExists(path.join(backupDir, `key_${moment().format('YYYYMMDD')}.dat`));
+      keyBackedUp.should.be.true();
     });
     it('CloudChains._isCLIAvailable()', function() {
       const cc = new CloudChains(ccFunc, storage);
