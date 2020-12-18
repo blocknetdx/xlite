@@ -732,6 +732,9 @@ describe('CloudChains Test Suite', function() {
 
     it('CloudChains.createSPVWallet()', async function() {
       this.timeout(5000);
+      if (fs.pathExistsSync(backupDir)) // ensure no existing backups
+        fs.removeSync(backupDir);
+      fs.mkdirpSync(backupDir);
       const password = 'password';
       // Test using password only
       await runCreateWalletTests(password);
@@ -741,8 +744,20 @@ describe('CloudChains Test Suite', function() {
       // Test creation with a previous key
       await fs.ensureFile(keyPath);
       await runCreateWalletTests(password, mnemonic);
-      const keyBackedUp = await fs.pathExists(path.join(backupDir, `key_${moment().format('YYYYMMDD')}.dat`));
-      keyBackedUp.should.be.true();
+      const wallets = fs.readdirSync(backupDir);
+      wallets.should.be.lengthOf(1);
+      /^key_\d{14}\.dat$/i.test(wallets[0]).should.be.true();
+      const prefix = `key_${moment().format('YYYYMMDDHHmm')}`; // do not check seconds
+      wallets[0].startsWith(prefix).should.be.true();
+      fs.removeSync(wallets[0]);
+    });
+    it('CloudChains.createSPVWallet() backup should not be created on non-mnemonic', async function() {
+      if (fs.pathExistsSync(backupDir)) // ensure no existing backups
+        fs.removeSync(backupDir);
+      fs.mkdirpSync(backupDir);
+      const walletPath = path.join(backupDir, `key_${moment().format('YYYYMMDDHHmmss')}.dat`);
+      await runCreateWalletTests('password');
+      fs.pathExistsSync(walletPath).should.be.false();
     });
     it('CloudChains._isCLIAvailable()', function() {
       const cc = new CloudChains(ccFunc, storage);

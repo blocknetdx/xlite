@@ -592,11 +592,12 @@ class CloudChains {
       }
 
       // Check if key file already exists and if so move to backup folder
+      // Only move to backup if creating wallet with mnemonic
       if(this.isInstalled()) {
         const keyPath = this.getKeyPath();
         const keyExt = path.extname(keyPath);
         const keyName = path.basename(keyPath, keyExt);
-        const backupFilePath = path.join(this.getBackupDir(), `${keyName}_${moment().format('YYYYMMDD')}${keyExt}`);
+        const backupFilePath = path.join(this.getBackupDir(), `${keyName}_${moment().format('YYYYMMDDHHmmss')}${keyExt}`);
         try {
           fs.moveSync(keyPath, backupFilePath, {overwrite: true});
         } catch(err) {

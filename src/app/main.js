@@ -210,7 +210,7 @@ function startupInit(walletController, confController, pricingController, confNe
   const ccVersion = await api.cloudChains_getCCSPVVersion();
   store.dispatch(appActions.setCCVersion(ccVersion));
 
-  const cloudChains = new CloudChains(api);
+  const cloudChains = new CloudChains(api, db, domStorage);
   if (await cloudChains.isNewInstall()) { // If new install clear the storage
     domStorage.clear();
     await db.clear();
