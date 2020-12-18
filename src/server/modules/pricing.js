@@ -26,25 +26,24 @@ export default class Pricing {
    * @return {Promise<PriceData[]|null>}
    */
   static async defaultPricingApi(ticker, currency) {
-    return []; // TODO Pulling this much data is hitting api limits, consider moving to backend
 
     const res = await Promise.all([
-      request // endpoint docs https://min-api.cryptocompare.com/documentation?key=Historical&cat=dataHistoday
-        .get(`https://min-api.cryptocompare.com/data/v2/histoday?fsym=${ticker}&tsym=${currency}&limit=8`)
+      // 24 hour data
+      request
+        .get(`https://chainapi-dev-cc.core.cloudchainsinc.com/api/prices_full?from_currencies=${ticker}&to_currencies=${currency}`)
         .set('accept', 'application/json'),
-      request // endpoint docs https://min-api.cryptocompare.com/documentation?key=Price&cat=multipleSymbolsFullPriceEndpoint
-        .get(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${ticker}&tsyms=${currency}`)
-        .set('accept', 'application/json')
+      // historical data
+      request
+        .get(`https://chainapi-dev-cc.core.cloudchainsinc.com/api/historiesday?from_currencies=${ticker}&to_currency=${currency}`)
+        .set('accept', 'application/json'),
     ]);
 
     let pricingArr = [];
     { // data from the last twenty-four hours
-      const { statusCode, body = {} } = res[1];
-      const { Response = '', Message = '', RAW = {} } = body;
+      const { statusCode, body = {} } = res[0];
+      const { RAW = {} } = body;
       if(statusCode !== 200) {
         logger.error(`cryptocompare fetch current pricing data call for ${ticker}/${currency} failed with statusCode ${statusCode}`);
-      } else if(Response === 'Error') {
-        logger.error(`cryptocompare fetch current pricing data for ${ticker}/${currency} failed with error message '${Message}'`);
       } else if(_.has(RAW, ticker) && _.has(RAW[ticker], currency)) {
         const day = RAW[ticker][currency];
         pricingArr = pricingArr.concat([new PriceData({
@@ -61,7 +60,7 @@ export default class Pricing {
     }
 
     { // historical data for the last week
-      const { statusCode, body = {} } = res[0];
+      const { statusCode, body = {} } = res[1];
       const { Response = '', Message = '', Data = {} } = body;
       const reqField = 'Data';
       if(statusCode !== 200) {
