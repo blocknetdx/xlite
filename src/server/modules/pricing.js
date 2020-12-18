@@ -43,7 +43,7 @@ export default class Pricing {
       const { statusCode, body = {} } = res[0];
       const { RAW = {} } = body;
       if(statusCode !== 200) {
-        logger.error(`cryptocompare fetch current pricing data call for ${ticker}/${currency} failed with statusCode ${statusCode}`);
+        logger.error(`fetch current pricing data call for ${ticker}/${currency} failed with statusCode ${statusCode}`);
       } else if(_.has(RAW, ticker) && _.has(RAW[ticker], currency)) {
         const day = RAW[ticker][currency];
         pricingArr = pricingArr.concat([new PriceData({
@@ -60,16 +60,32 @@ export default class Pricing {
     }
 
     { // historical data for the last week
+      // Sample data:
+      // {"BCH_USD":{"Data":{"Aggregated":false,"Data":[{"close":265.73,"conversionSymbol":"BTC","conversionType":"multiply","high":269.01,"low":261.53,"open":268.97,"time":1607558400,"volumefrom":140999.48,"volumeto":37467346.71},{"close":259.34,"conversionSymbol":"BTC","conversionType":"multiply","high":263.31,"low":258.62,"open":265.73,"time":1607644800,"volumefrom":186007.19,"volumeto":48239344.01},{"close":267.93,"conversionSymbol":"BTC","conversionType":"multiply","high":274.89,"low":267.74,"open":259.34,"time":1607731200,"volumefrom":152748.78,"volumeto":40925265.03},{"close":275.84,"conversionSymbol":"BTC","conversionType":"multiply","high":279.87,"low":270.86,"open":267.93,"time":1607817600,"volumefrom":152623.21,"volumeto":42099987.57},{"close":276.98,"conversionSymbol":"BTC","conversionType":"multiply","high":279.48,"low":267.92,"open":275.84,"time":1607904000,"volumefrom":169383.22,"volumeto":46915306.14},{"close":288.71,"conversionSymbol":"BTC","conversionType":"multiply","high":299.41,"low":275.88,"open":276.98,"time":1607990400,"volumefrom":314660.83,"volumeto":90846705.57},{"close":312.6,"conversionSymbol":"BTC","conversionType":"multiply","high":319,"low":305.34,"open":288.71,"time":1608076800,"volumefrom":412740.49,"volumeto":129020689.09},{"close":310.84,"conversionSymbol":"BTC","conversionType":"multiply","high":339.59,"low":303.31,"open":312.6,"time":1608163200,"volumefrom":543395.75,"volumeto":168908023.9},{"close":311.81,"conversionSymbol":"","conversionType":"direct","high":319.75,"low":305.17,"open":310.85,"time":1608249600,"volumefrom":20338.26,"volumeto":6369434.62}],"TimeFrom":1607558400,"TimeTo":1608249600},"HasWarning":false,"Message":"","RateLimit":{},"Response":"Success","Type":100}}
       const { statusCode, body = {} } = res[1];
-      const { Response = '', Message = '', Data = {} } = body;
+      const { Response = '', Message = '' } = body;
+      const dataKey = `${ticker}_${currency}`;
       const reqField = 'Data';
-      if(statusCode !== 200) {
-        logger.error(`cryptocompare fetch historical pricing data call for ${ticker}/${currency} failed with statusCode ${statusCode}`);
+      if (!_.has(body, dataKey) || !_.has(body[dataKey], reqField) || !_.has(body[dataKey][reqField], reqField)) {
+        logger.error(`fetch historical pricing data call for ${ticker}/${currency} failed: missing data`);
+      } else if(statusCode !== 200) {
+        logger.error(`fetch historical pricing data call for ${ticker}/${currency} failed with statusCode ${statusCode}`);
       } else if(Response === 'Error') {
-        logger.error(`cryptocompare fetch historical pricing data for ${ticker}/${currency} failed with error message '${Message}'`);
-      } else if(_.has(Data, reqField) && _.isArray(Data[reqField])) {
+        logger.error(`fetch historical pricing data for ${ticker}/${currency} failed with error message '${Message}'`);
+      } else {
+        const results = body[dataKey][reqField][reqField];
         const m = new Map();
-        for (const day of Data[reqField]) {
+        const expectedKeys = ['open','close','high','low','volumefrom'];
+        for (const day of results) {
+          let stop = false;
+          for (const key of expectedKeys) {
+            if (!_.has(day, key)) {
+              stop = true;
+              break;
+            }
+          }
+          if (stop) // missing keys
+            continue;
           const pd = new PriceData({
             date: new Date(day.time * 1000).toISOString(),
             open: day['open'],
