@@ -16,6 +16,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import childProcess from 'child_process';
 import { v4 as uuidV4 } from 'uuid';
+import moment from 'moment';
 
 /**
  * Manage CloudChains litewallet configuration.
@@ -43,6 +44,16 @@ class CloudChains {
    * @private
    */
   _cloudChainsSettingsDir = '';
+  /**
+   * @type {string}
+   * @private
+   */
+  _cloudChainsBackupDir = '';
+  /**
+   * @type {string}
+   * @private
+   */
+  _cloudChainsKeyPath = '';
   /**
    * @type {Map<string, CCWalletConf>}
    * @private
@@ -134,6 +145,8 @@ class CloudChains {
   constructor(pathFunc, storage) {
     this._cloudChainsDir = pathFunc();
     this._cloudChainsSettingsDir = path.join(this._cloudChainsDir, 'settings');
+    this._cloudChainsBackupDir = path.join(this._cloudChainsDir, 'backups');
+    this._cloudChainsKeyPath = path.join(this._cloudChainsDir, 'key.dat');
     this._storage = storage;
   }
 
@@ -143,7 +156,7 @@ class CloudChains {
    */
   isInstalled() {
     try {
-      return fs.pathExistsSync(this._cloudChainsDir);
+      return fs.pathExistsSync(this._cloudChainsKeyPath);
     } catch (err) {
       logger.error('is installed check failed', err);
       return false;
@@ -177,6 +190,22 @@ class CloudChains {
    */
   getSettingsDir() {
     return this._cloudChainsSettingsDir;
+  }
+
+  /**
+   * Return CloudChains wallet backup directory.
+   * @return {string}
+   */
+  getBackupDir() {
+    return this._cloudChainsBackupDir;
+  }
+
+  /**
+   * Return CloudChains wallet key file
+   * @return {string}
+   */
+  getKeyPath() {
+    return this._cloudChainsKeyPath;
   }
 
   /**
@@ -560,6 +589,20 @@ class CloudChains {
       if (this.spvIsRunning()) { // stop existing if running
         this._cli.kill('SIGINT');
         this._cli = null;
+      }
+
+      // Check if key file already exists and if so move to backup folder
+      // Only move to backup if creating wallet with mnemonic
+      if(this.isInstalled()) {
+        const keyPath = this.getKeyPath();
+        const keyExt = path.extname(keyPath);
+        const keyName = path.basename(keyPath, keyExt);
+        const backupFilePath = path.join(this.getBackupDir(), `${keyName}_${moment().format('YYYYMMDDHHmmss')}${keyExt}`);
+        try {
+          fs.moveSync(keyPath, backupFilePath, {overwrite: true});
+        } catch(err) {
+          logger.error(`Move key file failed with error: ${err.message}`);
+        }
       }
 
       const resolveMnemonic = () => {

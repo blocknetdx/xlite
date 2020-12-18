@@ -314,6 +314,8 @@ class Api {
       return this._cloudChains.stopSPV();
     });
     this._proc.handle(apiConstants.cloudChains_createSPVWallet, (evt, password, mnemonic) => {
+      if (password)
+        this._clearWalletStorage();
       return this._cloudChains.createSPVWallet(password, mnemonic);
     });
     this._proc.handle(apiConstants.cloudChains_enableAllWallets, (evt, arg) => {
@@ -444,6 +446,18 @@ class Api {
   _initPricing() {
     this._proc.handle(apiConstants.pricing_getPrice, (evt, ticker, currency) => {
       return this._pricing.getPrice(ticker, currency);
+    });
+  }
+
+  /**
+   * Clears wallet related storage.
+   * @private
+   */
+  _clearWalletStorage() {
+    this._storage.setItems({
+      [storageKeys.PASSWORD]: '',
+      [storageKeys.SALT]: '',
+      [storageKeys.BALANCES]: null
     });
   }
 }

@@ -8,13 +8,34 @@ import {parseAPIError} from '../util';
  * CloudChains renderer counterpart.
  */
 class CloudChains {
+  /**
+   * @type {Object}
+   * @private
+   */
+  _api = null;
+
+  /**
+   * @type {LWDB}
+   * @private
+   */
+  _db = null;
+
+  /**
+   * @type {DOMStorage}
+   * @private
+   */
+  _storage = null;
 
   /**
    * Constructor
    * @param api {Object} Context bridge api
+   * @param db {LWDB}
+   * @param storage {DOMStorage}
    */
-  constructor(api) {
+  constructor(api, db, storage) {
     this._api = api;
+    this._db = db;
+    this._storage = storage;
   }
 
   /**
@@ -232,6 +253,8 @@ class CloudChains {
    */
   async createSPVWallet(password, mnemonic = '') {
     try {
+      if (password)
+        await this._clearWalletStorage();
       return await this._api.cloudChains_createSPVWallet(password, mnemonic);
     } catch (e) {
       return '';
@@ -293,6 +316,16 @@ class CloudChains {
     } catch (e) {
       return false;
     }
+  }
+
+  /**
+   * Clear wallet dbs.
+   * @return {Promise<void>}
+   * @private
+   */
+  async _clearWalletStorage() {
+    await this._db.clear(); // <- clear all indexeddb data
+    this._storage.clear(); // <- clear all stored data
   }
 }
 
