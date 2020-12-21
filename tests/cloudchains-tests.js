@@ -531,6 +531,7 @@ describe('CloudChains Test Suite', function() {
       }
     });
     it('CloudChains.startSPV()', async function() {
+      this.timeout(2500);
       const cc = new CloudChains(ccFunc, storage);
       cc._rpcWaitDelay = 50;
       const rpcHelp = {ccHelp: async () => true};
@@ -585,7 +586,10 @@ describe('CloudChains Test Suite', function() {
           cc.startSPV(password)
             .then(resolve)
             .catch(reject);
-          fakeSpawn.stdout('data', 'master rpc server');
+          fakeSpawn.stdout('data', 'Password:');
+          setTimeout(() => {
+            fakeSpawn.stdout('data', 'master rpc server');
+          }, 250);
         });
         success.should.be.true();
       }
@@ -598,7 +602,10 @@ describe('CloudChains Test Suite', function() {
           cc.startSPV(password)
             .then(resolve)
             .catch(reject);
-          fakeSpawn.stdout('data', 'master rpc server');
+          fakeSpawn.stdout('data', 'Password:');
+          setTimeout(() => {
+            fakeSpawn.stdout('data', 'master rpc server');
+          }, 250);
           setTimeout(() => {
             rpcHelp.ccHelp = async () => true;
           }, 500);
@@ -622,7 +629,10 @@ describe('CloudChains Test Suite', function() {
             cc2.isWalletRPCRunning = async () => true;
             cc2.startSPV(password).then(resolve).catch(reject);
           });
-          fakeSpawn.stdout('data', 'master rpc server');
+          fakeSpawn.stdout('data', 'Password:');
+          setTimeout(() => {
+            fakeSpawn.stdout('data', 'master rpc server');
+          }, 250);
         });
         success.should.be.true();
       }
@@ -701,7 +711,10 @@ describe('CloudChains Test Suite', function() {
           cc.createSPVWallet(password, createFromMnemonic)
             .then(resolve)
             .catch(reject);
-          fakeSpawn.stdout('data', 'got relayfee for currency');
+          fakeSpawn.stdout('data', 'Password:');
+          setTimeout(() => {
+            fakeSpawn.stdout('data', 'master rpc server');
+          }, 250);
           setTimeout(() => {
             fakeSpawn.stdout('data', testMnemonic);
             fakeSpawn.stdout('close', 0);
@@ -723,7 +736,7 @@ describe('CloudChains Test Suite', function() {
               err = e;
               resolve();
             });
-          fakeSpawn.stdout('data', 'got relayfee for currency');
+          fakeSpawn.stdout('data', 'master rpc server');
           fakeSpawn.stdout('close', 0);
         });
         should.exist(err);
@@ -731,7 +744,7 @@ describe('CloudChains Test Suite', function() {
     };
 
     it('CloudChains.createSPVWallet()', async function() {
-      this.timeout(5000);
+      this.timeout(3500);
       if (fs.pathExistsSync(backupDir)) // ensure no existing backups
         fs.removeSync(backupDir);
       fs.mkdirpSync(backupDir);

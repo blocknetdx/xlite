@@ -518,13 +518,18 @@ class CloudChains {
       logger.info('Starting CloudChains daemon');
 
       let started = false;
-      const args = password ? ['--password', password] : [];
+      let waitForPasswd = true;
+      const args = password ? ['--password'] : [];
       const cli = this._spawn(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
+      cli.stdin.setEncoding('utf-8');
       cli.stdout.on('data', data => {
         if (started)
           return;
         const str = data.toString('utf8');
-        if(
+        if (waitForPasswd && /^password:/i.test(str)) {
+          waitForPasswd = false;
+          cli.stdin.write(password + '\r\n');
+        } else if (
           (this._badPasswordPatt.test(str))
           || (!password && this._selectionPatt.test(str))
         ) {
@@ -535,7 +540,7 @@ class CloudChains {
           started = true;
           // give the master RPC server a second to start
           const expiry = unixTime() + this._rpcStartExpirySeconds;
-          this._waitForRpc(expiry, this._rpcWaitDelay).then(available => resolve(available))
+          this._waitForRpc(expiry, this._rpcWaitDelay).then(available => resolve(available && !waitForPasswd))
             .catch(() => resolve(false));
         }
       });
@@ -621,30 +626,53 @@ class CloudChains {
       let started = false;
       let args;
       if(mnemonic) { // Create a wallet from a previous mnemonic
-        args = ['--createwalletmnemonic', password, mnemonic];
+        args = ['--createwalletmnemonic'];
       } else { // Create a new wallet
-        args = ['--createdefaultwallet', password];
+        args = ['--createdefaultwallet'];
       }
+
+      // cloudchains daemon supports reading password/mnemonic from stdin. We
+      // are expecting the daemon to return feedback (bad password/mnemonic).
+      // The mnemonic is optional and as a result is tracked in the state.
+      // If passwd and mnemonic then perform mnemonic submission else perform
+      // only password submission.
+      let waitForPasswd = true;
+      let waitForMnem = true;
+
       const cli = this._spawn(this.getCCSPVFilePath(), args, {detached: false, windowsHide: true});
+      cli.stdin.setEncoding('utf-8');
       cli.stdout.on('data', data => {
         if (started)
           return;
-        started = true;
 
-        const expiry = unixTime() + this._rpcStartExpirySeconds; // Wait rpc server is ready until this time
-        this._waitForRpc(expiry, this._rpcWaitDelay)
-          .then(available => {
-            if (available)
-              createHandler();
-            else {
+        const str = data.toString('utf8');
+        if (waitForPasswd && /^password:/i.test(str)) { // write password
+          waitForPasswd = false;
+          cli.stdin.write(password + '\r\n');
+        } else if ((!waitForPasswd || !waitForMnem) && this._badPasswordPatt.test(str)) { // check for bad password
+          started = true;
+          resolve(false);
+          cli.kill('SIGINT');
+        } else if (mnemonic && waitForMnem && !waitForPasswd && /^mnemonic:/i.test(str)) { // Optionally write mnemonic
+          waitForMnem = false;
+          cli.stdin.write(mnemonic + '\r\n');
+        } else {
+          started = true;
+          const expiry = unixTime() + this._rpcStartExpirySeconds; // Wait rpc server is ready until this time
+          this._waitForRpc(expiry, this._rpcWaitDelay)
+            .then(available => {
+              if (available && !waitForPasswd)
+                createHandler();
+              else {
+                createHandler(new Error('failed to start rpc server'));
+                cli.kill('SIGINT');
+              }
+            })
+            .catch(() => {
               createHandler(new Error('failed to start rpc server'));
               cli.kill('SIGINT');
-            }
-          })
-          .catch(() => {
-            createHandler(new Error('failed to start rpc server'));
-            cli.kill('SIGINT');
-          });
+            });
+        }
       });
       cli.stderr.on('data', data => {
         const str = data.toString('utf8');

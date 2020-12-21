@@ -86,7 +86,8 @@ export class FakeSpawn {
         on: stderrOn
       },
       stdin: {
-        write() {}
+        write() {},
+        setEncoding() {}
       },
       kill: () => {
         this.killed = true;
