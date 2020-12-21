@@ -726,23 +726,54 @@ class CloudChains {
   }
 
   /**
-   * Changes the password and re-encrypts the stored mnemonic. Fails if the old
-   * and new passwords don't match or if there's an error.
-   * @param oldPassword
-   * @param newPassword
-   * @return {boolean}
+   * Change the wallet password using the CloudChains CLI param --changepassword
+   * @param oldpw {string} Old password
+   * @param newpw {string} New password
+   * @returns {Promise<boolean>}
    */
-  changePassword(oldPassword, newPassword) {
-    const currentPassword = this.getStoredPassword();
-    const currentSalt = this.getStoredSalt();
-
-    const checkOldPassword = pbkdf2(oldPassword, currentSalt);
-    if (currentPassword !== checkOldPassword) {
-      logger.error('failed to change the password, passwords do not match');
-      throw new Error('The old password is incorrect.');
-    }
-
-    return this.saveWalletCredentials(newPassword, null);
+  changePassword(oldpw, newpw) {
+    return new Promise(resolve => {
+      let exiting = false;
+      let waitForPasswd = true;
+      let waitForNewPasswd = true;
+      const cli = this._spawn(this.getCCSPVFilePath(), ['--changepassword'], {detached: false, windowsHide: true});
+      cli.stdin.setEncoding('utf-8');
+      cli.stdout.on('data', data => {
+        if (exiting)
+          return;
+        const str = data.toString('utf8');
+        if (/password changed successfully/i.test(str)) {
+          exiting = true;
+          const changed = !waitForPasswd && !waitForNewPasswd;
+          if (changed)
+            this.saveWalletCredentials(newpw, null);
+          resolve(changed);
+          cli.kill('SIGINT');
+        } else if (/CHANGEPASSWORDFAILED/i.test(str)) {
+          exiting = true;
+          resolve(false);
+          cli.kill('SIGINT');
+        } else if (/^password:/i.test(str) && waitForPasswd && waitForNewPasswd) { // current password
+          waitForPasswd = false;
+          cli.stdin.write(oldpw + '\r\n');
+        } else if (/^password:/i.test(str) && !waitForPasswd && waitForNewPasswd) { // new password
+          waitForNewPasswd = false;
+          cli.stdin.write(newpw + '\r\n');
+        }
+      });
+      cli.stderr.on('data', data => {
+        const str = data.toString('utf8');
+        logger.error('changepassword', str);
+        if (exiting)
+          return;
+        exiting = true;
+        resolve(false);
+        cli.kill('SIGINT');
+      });
+      cli.stdout.on('close', code => {
+        logger.info(`changepassword child process exited with code ${!code ? '0' : code}`);
+      });
+    });
   }
 
   /**
