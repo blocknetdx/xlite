@@ -113,7 +113,7 @@ let Sidebar = ({ activeView, wallets, balances, showSettings, setActiveView, set
       <div className={`lw-sidebar-settings-panel ${showSettings ? '' : 'hidden'}`}>
         <SidebarButton onClick={() => setShowSettings(false)} style={{color: '#a4afb7'}}><img alt={Localize.text('Dashboard icon', 'sidebar')} srcSet={`${publicPath}/images/icons/icon-back.png, ${publicPath}/images/icons/icon-back@2x.png 2x`} /> <Localize context={'universal'}>Back</Localize></SidebarButton>
         <SidebarButton onClick={() => showPreferencesModal()}><i className={'fas fa-cog'} /> <Localize context={'sidebar'}>Preferences</Localize></SidebarButton>
-        {/*<SidebarButton onClick={() => showSecurityModal()}><i className={'fas fa-shield-alt'} /> <Localize context={'sidebar'}>Security</Localize></SidebarButton>*/}
+        <SidebarButton onClick={() => showSecurityModal()}><i className={'fas fa-shield-alt'} /> <Localize context={'sidebar'}>Security</Localize></SidebarButton>
         <SidebarButton onClick={() => showBackupModal()}><i className={'fas fa-cloud-download-alt'} /> <Localize context={'sidebar'}>Backup</Localize></SidebarButton>
         <SidebarButton onClick={() => showAboutModal()}><i className={'fas fa-info-circle'} /> <Localize context={'sidebar'}>About</Localize></SidebarButton>
         <SidebarButton onClick={onGuidesClick}><i className={'fas fa-question-circle'} /> <Localize context={'sidebar'}>Setup guides</Localize></SidebarButton>

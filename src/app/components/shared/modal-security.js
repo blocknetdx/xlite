@@ -37,7 +37,7 @@ const SecurityModal = ({ cloudChains, hideSecurityModal }) => {
       return;
     }
     try {
-      if (!await cloudChains.changePassword(oldPassword, password, password)) {
+      if (!await cloudChains.changePassword(oldPassword, password)) {
         const title = Localize.text('Issue', 'security modal');
         const msg = Localize.text('Failed to change the password, is the CloudChains wallet daemon running?', 'security modal');
         await Alert.error(title, msg);

@@ -387,33 +387,82 @@ describe('CloudChains Test Suite', function() {
       const password = 'a';
       const salt = 'b';
       const cc = new CloudChains(ccFunc, storage);
+      const fakeSpawn = new FakeSpawn();
+      cc._spawn = fakeSpawn.spawn;
       cc.saveWalletCredentials(password, salt).should.be.equal(true);
-      // change password
-      const newPassword = 'z';
-      cc.changePassword(password, newPassword).should.be.equal(true);
-      const newSalt = cc.getStoredSalt();
-      const spw = pbkdf2(newPassword, newSalt);
-      cc.getStoredPassword().should.be.equal(spw);
+      {
+        // Should not change password on bad state (i.e. if skips stdin calls)
+        fakeSpawn.clear();
+        const newPassword = 'z';
+        const success = await new Promise((resolve, reject) => {
+          cc.changePassword(password, newPassword)
+            .then(resolve)
+            .catch(reject);
+          fakeSpawn.stdout('data', 'password changed successfully');
+        });
+        success.should.be.false();
+      }
+      {
+        // If the CLI successfully changes the password
+        fakeSpawn.clear();
+        const newPassword = 'z';
+        let success = await new Promise((resolve, reject) => {
+          cc.changePassword(password, newPassword)
+            .then(resolve)
+            .catch(reject);
+          fakeSpawn.stdout('data', 'password:'); // current pw
+          fakeSpawn.stdout('data', 'password:'); // new pw
+          fakeSpawn.stdout('data', 'password changed successfully');
+        });
+        success.should.be.true();
+        // Check that the CLI successfully changes the password on slightly different success msg
+        success = await new Promise((resolve, reject) => {
+          cc.changePassword(password, newPassword)
+            .then(resolve)
+            .catch(reject);
+          fakeSpawn.stdout('data', 'password:'); // current pw
+          fakeSpawn.stdout('data', 'password:'); // new pw
+          fakeSpawn.stdout('data', '[wallet] password changed successfully');
+        });
+        success.should.be.true();
+        const newSalt = cc.getStoredSalt();
+        const spw = pbkdf2(newPassword, newSalt);
+        cc.getStoredPassword().should.be.equal(spw);
+      }
     });
-    it('CloudChains.changePassword() should fail on mismatching old and new passwords', async function() {
+    it('CloudChains.changePassword() should fail on error', async function() {
       const password = 'a';
       const salt = 'b';
       const cc = new CloudChains(ccFunc, storage);
+      const fakeSpawn = new FakeSpawn();
+      cc._spawn = fakeSpawn.spawn;
       cc.saveWalletCredentials(password, salt).should.be.equal(true);
-      // change password
-      const newPassword = 'z';
-      should.throws(() => { cc.changePassword('z', newPassword); }, Error);
-      const spw = pbkdf2(password, salt);
-      cc.getStoredPassword().should.be.equal(spw); // should match old
-    });
-    it('CloudChains.changePassword() should fail on bad stored mnemonic', async function() {
-      const password = 'a';
-      const salt = 'b';
-      const cc = new CloudChains(ccFunc, storage);
-      cc.saveWalletCredentials(password, salt).should.be.equal(true);
-      // change password
-      const newPassword = 'z';
-      should.throws(() => { cc.changePassword('z', newPassword); }, Error);
+      { // Should not change password on error
+        fakeSpawn.clear();
+        const newPassword = 'z';
+        const success = await new Promise((resolve, reject) => {
+          cc.changePassword(password, newPassword).then(resolve).catch(reject);
+          fakeSpawn.stdout('data', 'password:'); // current pw
+          fakeSpawn.stdout('data', 'password:'); // new pw
+          fakeSpawn.stdout('data', 'Error(CHANGEPASSWORDFAILED)');
+        });
+        success.should.be.false();
+        const spw = pbkdf2(password, salt);
+        cc.getStoredPassword().should.be.equal(spw); // should match old
+      }
+      { // Should not change password on incomplete state (missing new password)
+        fakeSpawn.clear();
+        const newPassword = 'c';
+        const success = await new Promise((resolve, reject) => {
+          cc.changePassword(password, newPassword).then(resolve).catch(reject);
+          fakeSpawn.stdout('data', 'password:'); // current pw
+          // missing new password request here
+          fakeSpawn.stdout('data', 'password changed successfully');
+        });
+        success.should.be.false();
+        const spw = pbkdf2(password, salt);
+        cc.getStoredPassword().should.be.equal(spw); // should match old
+      }
     });
   });
 
