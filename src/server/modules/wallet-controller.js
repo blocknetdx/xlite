@@ -113,8 +113,11 @@ class WalletController {
    * @throws {Error} on fatal error
    */
   loadWallets() {
+    const disabledWallets = new Set(['DGB', 'BCH', 'RVN', 'POLIS', 'PHORE']); // TODO Enable wallets when supported
     // Create the wallet instances for all valid cloudchains wallets
     for (const conf of this._cloudChains.getWalletConfs()) {
+      if (disabledWallets.has(conf.ticker()))
+        continue;
       const token = this._manifest.getToken(conf.ticker());
       if (!token) {
         logger.info(`failed to load wallet for token: ${conf.ticker()}`);
