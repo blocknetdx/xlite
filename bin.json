@@ -1,5 +1,5 @@
 {
-  "linux": "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.5.7-lin.zip",
-  "mac": "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.5.7-mac.zip",
-  "win": "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.5.7-win.zip"
+  "linux": "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.5.9-lin.zip",
+  "mac": "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.5.9-mac.zip",
+  "win": "https://s3.us-east-2.amazonaws.com/devbuilds.blocknetprotocol.com/lw/cc-release-0.5.9-win.zip"
 }
