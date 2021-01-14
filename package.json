@@ -1,6 +1,6 @@
 {
   "name": "xlite",
-  "version": "0.9.18",
+  "version": "0.9.19",
   "description": "xlite",
   "private": true,
   "main": "./dist/server/index.js",
