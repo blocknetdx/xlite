@@ -20,9 +20,12 @@ build_linux:
   stage: build
   image: electronuserland/builder:latest
   script:
-    - "npm install --no-audit"
-    - "npm run download-binaries-linux"
-    - "npm run build-native-linux2"
+    - |
+      sha=$CI_COMMIT_SHORT_SHA commithash="${sha:0:5}"
+      sed -i -re "s#[\"]version[\"]: [\"](.*)[\"]#\"version\": \"\1-$commithash\"#" package.json
+      npm install --no-audit
+      npm run download-binaries-linux
+      npm run build-native-linux2
   artifacts:
     name: "XLite-$CI_COMMIT_REF_NAME-linux"
     paths:
@@ -32,9 +35,12 @@ build_win:
   stage: build
   image: electronuserland/builder:wine
   script:
-    - "npm install --no-audit"
-    - "npm run download-binaries-win"
-    - "npm run build-native-win"
+    - |
+      sha=$CI_COMMIT_SHORT_SHA commithash="${sha:0:5}"
+      sed -i -re "s#[\"]version[\"]: [\"](.*)[\"]#\"version\": \"\1-$commithash\"#" package.json
+      npm install --no-audit
+      npm run download-binaries-win
+      npm run build-native-win
   artifacts:
     name: "XLite-$CI_COMMIT_REF_NAME-win"
     paths:
@@ -45,10 +51,13 @@ build_mac:
   stage: build
   image: blocknetdx/devbuilds:blockdx-gitlab-mac
   script:
-    - "npm install --no-audit"
-    - "npm run download-binaries-mac"
-    - "chmod +x bin/mac/Cloudchains-SPV"
-    - "npm run build-native-mac"
+    - |
+      sha=$CI_COMMIT_SHORT_SHA commithash="${sha:0:5}"
+      sed -i -re "s#[\"]version[\"]: [\"](.*)[\"]#\"version\": \"\1-$commithash\"#" package.json
+      npm install --no-audit
+      npm run download-binaries-mac
+      chmod +x bin/mac/Cloudchains-SPV
+      npm run build-native-mac
   artifacts:
     name: "XLite-$CI_COMMIT_REF_NAME-mac"
     paths:
