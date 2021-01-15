@@ -123,7 +123,7 @@
     "appId": "co.blocknet.xlite",
     "productName": "XLite",
     "artifactName": "XLite-${version}-${os}.${ext}",
-    "copyright": "Copyright © 2020 Blocknet",
+    "copyright": "Copyright © 2020-2021 Blocknet",
     "directories": {
       "app": "temp",
       "output": "dist-native"
@@ -173,8 +173,8 @@
         "deb"
       ],
       "icon": "./src/static/images/linux/",
-      "synopsis": "Copyright © 2020 Blocknet",
-      "description": "Copyright © 2020 Blocknet",
+      "synopsis": "Copyright © 2020-2021 Blocknet",
+      "description": "Copyright © 2020-2021 Blocknet",
       "category": "Utility",
       "desktop": {
         "Name": "XLite"
