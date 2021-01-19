@@ -30,11 +30,11 @@ export default class Pricing {
     const res = await Promise.all([
       // 24 hour data
       request
-        .get(`https://chainapi-dev-cc.core.cloudchainsinc.com/api/prices_full?from_currencies=${ticker}&to_currencies=${currency}`)
+        .get(`https://chainapi-cc.core.cloudchainsinc.com/api/prices_full?from_currencies=${ticker}&to_currencies=${currency}`)
         .set('accept', 'application/json'),
       // historical data
       request
-        .get(`https://chainapi-dev-cc.core.cloudchainsinc.com/api/historiesday?from_currencies=${ticker}&to_currency=${currency}`)
+        .get(`https://chainapi-cc.core.cloudchainsinc.com/api/historiesday?from_currencies=${ticker}&to_currency=${currency}`)
         .set('accept', 'application/json'),
     ]);
 
