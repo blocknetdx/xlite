@@ -59,7 +59,10 @@ const mainjs = {
     sourceMapFilename: '[file].map', // string
     libraryTarget: 'umd'
   },
-  target: 'web'
+  target: 'web',
+  optimization: {
+    minimize: false
+  }
 };
 
 _.merge(errorjs, common);
