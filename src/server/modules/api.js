@@ -88,6 +88,12 @@ class Api {
   _contextMenu = null;
 
   /**
+   * @type {AppUpdater}
+   * @private
+   */
+  _autoUpdater = null;
+
+  /**
    * If true this will allow electron to open external links.
    * @type {boolean}
    * @private
@@ -110,7 +116,7 @@ class Api {
   constructor(storage, app, proc, err,
               cloudChains = null, confController = null,
               walletController = null, zoomController = null,
-              pricing = null, shutdown = null, contextMenu) {
+              pricing = null, shutdown = null, contextMenu, autoUpdater) {
     this._storage = storage;
     this._app = app;
     this._proc = proc;
@@ -122,6 +128,7 @@ class Api {
     this._pricing = pricing;
     this._shutdown = shutdown;
     this._contextMenu = contextMenu;
+    this._autoUpdater = autoUpdater;
     this._init();
   }
 
@@ -246,6 +253,16 @@ class Api {
       evt.returnValue = process.platform;
     });
     } // end zoomController
+
+    // Audo-updating
+    this._proc.on(apiConstants.general_downloadAvailableUpdate, () => {
+      logger.info('User confirmed download available update');
+      this._autoUpdater.downloadUpdate();
+    });
+    this._proc.on(apiConstants.general_restartInstallUpdate, () => {
+      logger.info('User confirmed install downloaded update');
+      this._autoUpdater.quitAndInstall();
+    });
   }
 
   _initContextMenu() {
