@@ -301,7 +301,7 @@ autoUpdater.on('update-downloaded', ({ version }) => {
 });
 autoUpdater.on('update-available', ({ version }) => {
   logger.info(`Version ${version} update available.`);
-  appWindow.send(apiConstants.general_onUpdateAvailable, version);
+  appWindow.getWindow().send(apiConstants.general_onUpdateAvailable, version);
 });
 autoUpdater.on('error', err => {
   logger.error(err.message + '\n' + err.stack);

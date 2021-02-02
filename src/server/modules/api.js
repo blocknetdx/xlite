@@ -259,8 +259,9 @@ class Api {
       logger.info('User confirmed download available update');
       this._autoUpdater.downloadUpdate();
     });
-    this._proc.on(apiConstants.general_restartInstallUpdate, () => {
+    this._proc.on(apiConstants.general_restartInstallUpdate, async () => {
       logger.info('User confirmed install downloaded update');
+      await this._shutdown.shutdown();
       this._autoUpdater.quitAndInstall();
     });
   }

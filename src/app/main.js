@@ -103,7 +103,7 @@ api.general_onShutdown(() => {
 api.general_onUpdateAvailable(async function(version) {
   const { isConfirmed } = await Alert.confirm(
     Localize.text('New update available!', 'universal'),
-    Localize.text('Xlite v{{version}} is now available. Would you like to download the update now?', 'universal', {version})
+    Localize.text('Xlite v{{version}} is available. Would you like to download the update now?', 'universal', {version})
   );
   if(isConfirmed) {
     api.general_downloadAvailableUpdate();
