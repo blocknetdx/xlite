@@ -100,6 +100,27 @@ api.general_onShutdown(() => {
   });
 });
 
+api.general_onUpdateAvailable(async function(version) {
+  const { isConfirmed } = await Alert.confirm(
+    Localize.text('New update available!', 'universal'),
+    Localize.text('Xlite v{{version}} is available. Would you like to download the update now?', 'universal', {version})
+  );
+  if(isConfirmed) {
+    api.general_downloadAvailableUpdate();
+  }
+});
+api.general_onUpdateDownloaded(async function(version) {
+  const { isConfirmed } = await Alert.confirm(
+    Localize.text('Update ready to install', 'universal'),
+    Localize.text('Xlite v{{version}} has been downloaded and will install on next restart. Would you like to restart now?', 'universal', {version}),
+    Localize.text('Yes, restart now', 'universal'),
+    Localize.text('No', 'universal')
+  );
+  if(isConfirmed) {
+    api.general_restartInstallUpdate();
+  }
+});
+
 // Add window event handlers
 window.addEventListener('paste', async function(e) {
   const type = $(e.target).attr('type');

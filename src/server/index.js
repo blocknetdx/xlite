@@ -17,6 +17,7 @@ import ZoomController from './modules/zoom-controller';
 import ConfController from './modules/conf-controller';
 import TokenManifest from '../app/modules/token-manifest';
 import WalletController from './modules/wallet-controller';
+const { autoUpdater } = require('electron-updater');
 
 import {app, ipcMain, Menu} from 'electron';
 import contextMenu from 'electron-context-menu';
@@ -241,6 +242,7 @@ app.on('ready', async () => {
     pricing,
     shutdownMgr,
     contextMenuController,
+    autoUpdater,
   );
 
   // Notify of fatal error
@@ -287,3 +289,33 @@ app.on('ready', async () => {
     });
   }
 });
+
+// Auto-updater setup
+
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
+
+autoUpdater.on('update-downloaded', ({ version }) => {
+  logger.info(`Version ${version} update downloaded.`);
+  appWindow.getWindow().send(apiConstants.general_onUpdateDownloaded, version);
+});
+autoUpdater.on('update-available', ({ version }) => {
+  logger.info(`Version ${version} update available.`);
+  appWindow.getWindow().send(apiConstants.general_onUpdateAvailable, version);
+});
+autoUpdater.on('error', err => {
+  logger.error(err.message + '\n' + err.stack);
+});
+const checkForUpdates = async function() {
+  if(!isDev) {
+    try {
+      logger.info('Check for updates');
+      await autoUpdater.checkForUpdates();
+    } catch(err) {
+      logger.error(err.message + '\n' + err.stack);
+    }
+  }
+};
+setTimeout(() => {
+  checkForUpdates();
+}, 10000);

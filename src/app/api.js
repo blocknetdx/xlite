@@ -34,6 +34,10 @@ export const apiConstants = {
   general_onZoomReset: 'general_onZoomReset',
   general_getPlatform: 'general_getPlatform',
   general_onShutdown: 'general_onShutdown',
+  general_onUpdateAvailable: 'general_onUpdateAvailable',
+  general_onUpdateDownloaded: 'general_onUpdateDownloaded',
+  general_downloadAvailableUpdate: 'general_downloadAvailableUpdate',
+  general_restartInstallUpdate: 'general_restartInstallUpdate',
 
   contextMenu_showCopyMenu: 'contextMenu_showCopyMenu',
   contextMenu_showPasteMenu: 'contextMenu_showPasteMenu',
@@ -180,6 +184,22 @@ const general_API = {
     ipcRenderer.on(apiConstants.general_onShutdown, () => {
       callback();
     });
+  },
+  [apiConstants.general_onUpdateAvailable]: callback => {
+    ipcRenderer.on(apiConstants.general_onUpdateAvailable, (evt, version) => {
+      callback(version);
+    });
+  },
+  [apiConstants.general_onUpdateDownloaded]: callback => {
+    ipcRenderer.on(apiConstants.general_onUpdateDownloaded, (evt, version) => {
+      callback(version);
+    });
+  },
+  [apiConstants.general_downloadAvailableUpdate]: () => {
+    ipcRenderer.send(apiConstants.general_downloadAvailableUpdate);
+  },
+  [apiConstants.general_restartInstallUpdate]: () => {
+    ipcRenderer.send(apiConstants.general_restartInstallUpdate);
   },
 };
 

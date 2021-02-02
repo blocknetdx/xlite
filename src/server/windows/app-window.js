@@ -7,7 +7,10 @@ import {storageKeys} from '../constants';
 
 import _ from 'lodash';
 import electron from 'electron';
+// import fs from 'fs-extra';
 import path from 'path';
+
+// const { version } = fs.readJsonSync(path.resolve(__dirname, '../../../package.json'));
 
 const openAppWindow = (file, storage, devtools) => {
   let { height, width } = electron.screen.getPrimaryDisplay().workAreaSize;
@@ -32,6 +35,8 @@ const openAppWindow = (file, storage, devtools) => {
   windowOptions.minHeight = MIN_WINDOW_HEIGHT;
   windowOptions.width = Math.floor(screenWidth);
   windowOptions.height = Math.floor(screenHeight);
+  windowOptions.title = 'XLite';
+  // windowOptions.title = `XLite ${version}`;
 
   return new BrowserWindow({
     filePath: file,
