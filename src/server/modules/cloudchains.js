@@ -626,9 +626,9 @@ class CloudChains {
       let started = false;
       let args;
       if(mnemonic) { // Create a wallet from a previous mnemonic
-        args = ['--createwalletmnemonic'];
+        args = ['--xliterpc', '--createwalletmnemonic'];
       } else { // Create a new wallet
-        args = ['--createdefaultwallet'];
+        args = ['--xliterpc', '--createdefaultwallet'];
       }
 
       // cloudchains daemon supports reading password/mnemonic from stdin. We
@@ -699,7 +699,7 @@ class CloudChains {
   enableAllWallets() {
     return new Promise(resolve => {
       let started = false;
-      const cli = this._spawn(this.getCCSPVFilePath(), ['--enablerpcandconfigure'], {detached: false, windowsHide: true});
+      const cli = this._spawn(this.getCCSPVFilePath(), ['--xliterpc', '--enablerpcandconfigure'], {detached: false, windowsHide: true});
       cli.stdout.on('data', data => {
         const str = data.toString('utf8');
         if(this._selectionPatt.test(str)) { // kill process when selection screen appears
