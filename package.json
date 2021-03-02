@@ -192,7 +192,8 @@
       "description": "Copyright © 2020-2021 Blocknet",
       "category": "Utility",
       "desktop": {
-        "Name": "XLite"
+        "Name": "XLite",
+        "StartupWMClass": "xlite"
       },
       "publish": {
         "provider": "github",
