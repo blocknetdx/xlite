@@ -238,7 +238,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
           const tb = new TransactionBuilder(wallet.token().xbinfo);
           tb.addRecipient(new Recipient({address: 'dummy', amount: avail, description }));
           tb.fundTransaction(coins, true);
-          avail -= tb.getFees();
+          avail = math.subtract(bignumber(avail), bignumber(tb.getFees())).toNumber();
           const multiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
           const alt = math.multiply(bignumber(avail), bignumber(multiplier));
           setInputAmount(avail.toFixed(MAX_DECIMAL_PLACE));
