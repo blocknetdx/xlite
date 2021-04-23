@@ -156,7 +156,7 @@ const Checkbox = ({ onChange }) => {
 
   return (
     <div className={'lw-checkbox'}>
-      <img src={`${publicPath}/images/icons/${checkboxImage}.svg`} onClick={onInputChange} />
+      <img src={`file://${publicPath}/images/icons/${checkboxImage}.svg`} onClick={onInputChange} />
     </div>
   );
 };

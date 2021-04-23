@@ -68,7 +68,7 @@
     "babel-loader": "^8.1.0",
     "colors": "^1.4.0",
     "cross-env": "^7.0.2",
-    "electron": "^10.1.5",
+    "electron": "^11.4.3",
     "electron-builder": "^22.9.1",
     "electron-mocha": "^9.1.0",
     "eslint": "^7.3.1",

@@ -17,7 +17,7 @@ const IconTrend = ({ negative = false }) => {
     }
   };
   return (
-    <img src={`${publicPath}/images/icons/icon-trend-${icon}.svg`}  style={style.container} />
+    <img src={`file://${publicPath}/images/icons/icon-trend-${icon}.svg`}  style={style.container} />
   );
 };
 IconTrend.propTypes = {

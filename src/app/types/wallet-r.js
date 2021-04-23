@@ -97,7 +97,7 @@ class Wallet {
     const tickerLower = ticker.toLowerCase();
     const imagePath1x = `${coinImageDir}/icon-${tickerLower}.png`;
     const imagePath2x = `${coinImageDir}/icon-${tickerLower}@2x.png`;
-    return `${imagePath1x}, ${imagePath2x} 2x`;
+    return `file://${imagePath1x}, file://${imagePath2x} 2x`;
   }
 
   /**

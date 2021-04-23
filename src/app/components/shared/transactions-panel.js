@@ -117,15 +117,15 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                              style={{marginRight: 10, height: 24, width: 'auto'}}
                              srcSet={(sent ?
                                  [
-                                   `${publicPath}/images/icons/icon-sent.png`,
-                                   `${publicPath}/images/icons/icon-sent@2x.png 2x`,
-                                   `${publicPath}/images/icons/icon-sent@3x.png 3x`,
+                                   `file://${publicPath}/images/icons/icon-sent.png`,
+                                   `file://${publicPath}/images/icons/icon-sent@2x.png 2x`,
+                                   `file://${publicPath}/images/icons/icon-sent@3x.png 3x`,
                                  ]
                                  :
                                  [
-                                   `${publicPath}/images/icons/icon-received.png`,
-                                   `${publicPath}/images/icons/icon-received@2x.png 2x`,
-                                   `${publicPath}/images/icons/icon-received@3x.png 3x`,
+                                   `file://${publicPath}/images/icons/icon-received.png`,
+                                   `file://${publicPath}/images/icons/icon-received@2x.png 2x`,
+                                   `file://${publicPath}/images/icons/icon-received@3x.png 3x`,
                                  ]
                              ).join(', ')} />
                       </Column>
