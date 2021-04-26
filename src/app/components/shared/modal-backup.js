@@ -11,12 +11,16 @@ import { Button } from './buttons';
 import { LoginInput } from './inputs';
 import Alert from '../../modules/alert';
 import CloudChains from '../../modules/cloudchains-r';
+import { checkPassword } from '../../util';
 
 const BackupModal = ({ hideBackupModal, cloudChains }) => {
 
   const [ hiddenPassword, setHiddenPassword ] = useState(true);
   const [ password, setPassword ] = useState('');
   const [ processing, setProcessing ] = useState(false);
+
+  const [ totalScore ] = checkPassword(password);
+  const validPassword = totalScore >= 9;
 
   const onCloseModal = () => {
     setPassword('');
@@ -90,7 +94,7 @@ const BackupModal = ({ hideBackupModal, cloudChains }) => {
                     readOnly={processing}
                     onChange={setPassword} />
         <div style={styles.spacer} />
-        <div style={styles.buttonContainer}><Button onClick={onDownloadFileClick}><Localize context={'backup-modal'}>Download backup file</Localize> <i className={'fas fa-download'} /></Button></div>
+        <div style={styles.buttonContainer}><Button onClick={onDownloadFileClick} disabled={!password.trim() || !validPassword}><Localize context={'backup-modal'}>Download backup file</Localize> <i className={'fas fa-download'} /></Button></div>
       </ModalBody>
     </Modal>
   );
