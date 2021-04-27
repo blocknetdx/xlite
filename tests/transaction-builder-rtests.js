@@ -1,4 +1,6 @@
-import 'should';
+/* global describe, it */
+
+import should from 'should';
 
 import './rtests';
 import {DUST_SATOSHIS} from '../src/app/constants'
@@ -11,9 +13,9 @@ describe('Transaction Builder Test Suite', function() {
   const defaultFeeInfo = new XBridgeInfo({ ticker: 'BLOCK', feeperbyte: 20, mintxfee: 10000, coin: 100000000 });
   const defaultRecipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
   const defaultUtxos = [
-    new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
-    new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 1.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
-    new RPCUnspent({ txId: '698fd974b4dbe3cc5092646da9d7d4cb02755f7c84968a1b6086e8a4656a4eba', vOut: 0, address: 'yH4uQ3L7jb4Pp3eHQemR6dftyaQrPMXbKz', amount: 1.00000000, scriptPubKey: '76a914dc578b8f1a2e7f73be7dc4845c1d255a9d4d795c88ac', spendable: true, confirmations: 2560 }),
+    new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+    new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 1.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
+    new RPCUnspent({ txId: '698fd974b4dbe3cc5092646da9d7d4cb02755f7c84968a1b6086e8a4656a4eba', vOut: 0, address: 'yH4uQ3L7jb4Pp3eHQemR6dftyaQrPMXbKz', amount: 1.12345678, scriptPubKey: '76a914dc578b8f1a2e7f73be7dc4845c1d255a9d4d795c88ac', spendable: true, confirmations: 2560 }),
   ];
 
   it('TransactionBuilder()', function() {
@@ -81,7 +83,7 @@ describe('Transaction Builder Test Suite', function() {
   });
   it('TransactionBuilder.getFees() single utxo', function() {
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
     ];
     const recipients = [
       new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: utxos[0].amount - 1, description: '' })
@@ -95,7 +97,7 @@ describe('Transaction Builder Test Suite', function() {
   });
   it('TransactionBuilder.getFees() exact utxo subtract fees', function() {
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
     ];
     const recipients = [
       new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: utxos[0].amount, description: '' })
@@ -117,9 +119,9 @@ describe('Transaction Builder Test Suite', function() {
     builder.isValid().should.be.true();
   });
   it('TransactionBuilder.fundTransaction() single input', function() {
-    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
+    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10.12345678, description: '' })];
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
     ];
     const builder = new TransactionBuilder(defaultFeeInfo);
     for (const r of recipients)
@@ -129,10 +131,10 @@ describe('Transaction Builder Test Suite', function() {
     builder.getInputs().should.be.eql([utxos[0]]); // expecting the larger input to be selected
   });
   it('TransactionBuilder.fundTransaction() multiple inputs', function() {
-    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
+    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10.12345678, description: '' })];
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
-      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 1.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 1.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
     ];
     const builder = new TransactionBuilder(defaultFeeInfo);
     for (const r of recipients)
@@ -143,7 +145,7 @@ describe('Transaction Builder Test Suite', function() {
   });
   it('TransactionBuilder.fundTransaction() subtract fees from recipients single utxo', function() {
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
     ];
     const totalAmount = utxos.map(utxo => utxo.amount).reduce((total, cur) => total + cur);
     const recipient1 = new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: totalAmount/2, description: '' });
@@ -164,8 +166,8 @@ describe('Transaction Builder Test Suite', function() {
   });
   it('TransactionBuilder.fundTransaction() subtract fees from recipients multiple utxos', function() {
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
-      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 1.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 15.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 1.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
     ];
     const totalAmount = utxos.map(utxo => utxo.amount).reduce((total, cur) => total + cur);
     const recipient1 = new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: totalAmount/2, description: '' });
@@ -185,11 +187,11 @@ describe('Transaction Builder Test Suite', function() {
       output.amount.should.be.equal(totalAmount/2 - feesPerRecipient); // make sure each recipient shares in fees
   });
   it('TransactionBuilder.fundTransaction() Algo A', function() {
-    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
+    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10.24691356, description: '' })];
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 1.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
-      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 5.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
-      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 2, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 5.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 1.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 5.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
+      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 2, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 5.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
     ];
     const builder = new TransactionBuilder(defaultFeeInfo);
     for (const r of recipients)
@@ -206,13 +208,13 @@ describe('Transaction Builder Test Suite', function() {
     inputs.should.be.eql(expected); // expecting all to be selected
   });
   it('TransactionBuilder.fundTransaction() Algo B', function() {
-    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
+    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10.12345678, description: '' })];
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 100.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
-      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 90.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: false, confirmations: 30 }),
-      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 2, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 50.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
-      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 3, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 9.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
-      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 4, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 5.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 100.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 90.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: false, confirmations: 30 }),
+      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 2, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 50.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
+      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 3, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 9.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
+      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 4, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 5.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
     ];
     const builder = new TransactionBuilder(defaultFeeInfo);
     for (const r of recipients)
@@ -237,11 +239,11 @@ describe('Transaction Builder Test Suite', function() {
     should.throws(() => { builder.fundTransaction([]); }, Error);
   });
   it('TransactionBuilder.fundTransaction() should fail on not enough inputs', function() {
-    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
+    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10.12345678, description: '' })];
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 1.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
-      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 2.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
-      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 2, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 3.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 1.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 2.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
+      new RPCUnspent({ txId: 'bcc2478da7e340fe9a80c1230ec5d4fad84b2cd10e1077a6f3573977acc56611', vOut: 2, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 3.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 30 }),
     ];
     const builder = new TransactionBuilder(defaultFeeInfo);
     for (const r of recipients)
@@ -249,9 +251,9 @@ describe('Transaction Builder Test Suite', function() {
     should.throws(() => { builder.fundTransaction(utxos); }, Error);
   });
   it('TransactionBuilder.fundTransaction() should succeed on exact match', function() {
-    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
+    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 11.12345678, description: '' })];
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 10.00010000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 11.1235678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
     ];
     const builder = new TransactionBuilder(defaultFeeInfo);
     for (const r of recipients)
@@ -262,9 +264,9 @@ describe('Transaction Builder Test Suite', function() {
     builder.getOutputs().should.eql(recipients);
   });
   it('TransactionBuilder.fundTransaction() should succeed on only 1 utxo with change', function() {
-    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
+    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10.12345678, description: '' })];
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 11.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 11.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
     ];
     const builder = new TransactionBuilder(defaultFeeInfo);
     for (const r of recipients)
@@ -277,9 +279,9 @@ describe('Transaction Builder Test Suite', function() {
     builder.getOutputs().should.eql(recipients);
   });
   it('TransactionBuilder.fundTransaction() should fail on non-spendable inputs', function() {
-    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
+    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10.12345678, description: '' })];
     const utxos = [
-      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 11.00000000, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: false, confirmations: 525 }),
+      new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 11.12345678, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: false, confirmations: 525 }),
     ];
     const builder = new TransactionBuilder(defaultFeeInfo);
     for (const r of recipients)
@@ -288,7 +290,7 @@ describe('Transaction Builder Test Suite', function() {
     builder.isValid().should.be.false();
   });
   it('TransactionBuilder.fundTransaction() should fail on dust inputs', function() {
-    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
+    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10.12345678, description: '' })];
     const utxos = [
       new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 0, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: DUST_SATOSHIS/defaultFeeInfo.coin, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
       new RPCUnspent({ txId: 'a8f44288f3a99972db939185deabfc2c716ba7e78cd99624657ba061d19600a0', vOut: 1, address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: DUST_SATOSHIS/defaultFeeInfo.coin, scriptPubKey: '76a914fef1b70a09539048b384163e2724c6bd1d2402ea88ac', spendable: true, confirmations: 525 }),
@@ -322,10 +324,10 @@ describe('Transaction Builder Test Suite', function() {
     builder.isDust(10000/feeInfo.coin).should.be.false();
   });
   it('TransactionBuilder._addChangeIfNecessary()', function() {
-    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10, description: '' })];
+    const recipients = [new Recipient({ address: 'yKjhThbgKHNh9iQYL2agreSAvw5tmJGkNW', amount: 10.12345678, description: '' })];
     const builder = new TransactionBuilder(defaultFeeInfo);
     const recipientsPlusChange = recipients.concat([new Recipient({ address: 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', amount: 20, description: '' })]);
-    builder._addChangeIfNecessary(120, 100, 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', recipients);
+    builder._addChangeIfNecessary(120.12345678, 100.12345678, 'yLDs4UKRQm7yeZXAGdQFLFcoouw3aAddYt', recipients);
     recipients.should.eql(recipientsPlusChange);
   });
   it('TransactionBuilder._addChangeIfNecessary() should fail if change is dust', function() {
