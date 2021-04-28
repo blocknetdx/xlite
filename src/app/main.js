@@ -229,6 +229,13 @@ function startupInit(walletController, confController, pricingController, confNe
   store.dispatch(appActions.setAppVersion((await api.general_getAppVersion())));
 
   const ccVersion = await api.cloudChains_getCCSPVVersion();
+
+  if(!ccVersion) {
+    return api.general_ccStartupError(true);
+  } else if(ccVersion === UNKNOWN_CC_VERSION) {
+    return api.general_ccStartupError(false);
+  }
+
   store.dispatch(appActions.setCCVersion(ccVersion));
 
   const cloudChains = new CloudChains(api, db, domStorage);
