@@ -231,3 +231,12 @@ export const truncate = (num = 0, decimalPlaces = 0, removeTrailing = false) => 
   const fixed = truncated.toFixed(decimalPlaces);
   return removeTrailing ? removeTrailingZeroes(fixed) : fixed;
 };
+
+/**
+ * @param srcSet {string}
+ * @returns {string}
+ */
+export const getSrcFromSrcSet = (srcSet = '') => {
+  const src = srcSet.split(/\s+/)[0] || '';
+  return src.replace(/,$/, '');
+};

@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Localize from './localize';
 import Wallet from '../../types/wallet-r';
+import { getSrcFromSrcSet } from '../../util';
 
 const AssetWithImage = ({ shortenName = false, style = {}, wallet }) => {
 
@@ -25,7 +26,7 @@ const AssetWithImage = ({ shortenName = false, style = {}, wallet }) => {
   };
 
   return (
-    <div style={{...styles.container, ...style}}><img alt={Localize.text('{{coin}} icon', 'universal', {coin: ticker})} style={styles.image} srcSet={wallet.imagePath} />{ shortenName ? ticker : wallet.name}</div>
+    <div style={{...styles.container, ...style}}><img alt={Localize.text('{{coin}} icon', 'universal', {coin: ticker})} style={styles.image} src={getSrcFromSrcSet(wallet.imagePath)} srcSet={wallet.imagePath} />{ shortenName ? ticker : wallet.name}</div>
   );
 };
 AssetWithImage.propTypes = {
