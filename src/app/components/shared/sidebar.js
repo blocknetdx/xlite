@@ -38,7 +38,7 @@ const SidebarFilterableList = ({ placeholder, items, onClick = () => {} }) => {
         {filteredItems
           .map(({ id, text, image }) => {
             return (
-              <button className={'lw-sidebar-filterable-list-item'} key={id} onClick={() => onClick(id)}><img alt={Localize.text('Coin logo', 'sidebar')} src={getSrcFromSrcSet(image)} />{text}</button>
+              <button className={'lw-sidebar-filterable-list-item'} key={id} onClick={() => onClick(id)}><img alt={Localize.text('Coin logo', 'sidebar')} src={getSrcFromSrcSet(image)} srcSet={image} />{text}</button>
             );
           })}
       </PerfectScrollbar>
