@@ -16,7 +16,7 @@ const ReceiveAllAddresses = ({ addresses = [], onBack, onClose, onApply }) => {
     <Modal disableCloseOnOutsideClick={true} onClose={onClose}>
       <ModalBody>
         <div className={'lw-modal-addresses-back'} onClick={onBack}>
-          <img alt={Localize.text('Dashboard icon', 'all-addresses')} srcSet={`${publicPath}/images/icons/icon-back.png, ${publicPath}/images/icons/icon-back@2x.png 2x`} />
+          <img alt={Localize.text('Dashboard icon', 'all-addresses')} src={`${publicPath}/images/icons/icon-back.png`} srcSet={`${publicPath}/images/icons/icon-back.png, ${publicPath}/images/icons/icon-back@2x.png 2x`} />
           <Localize context={'universal'}>back</Localize>
         </div>
         <div className={'lw-modal-addresses-header'}>Select address to receive funds</div>
