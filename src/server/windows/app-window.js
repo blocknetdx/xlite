@@ -9,6 +9,7 @@ import _ from 'lodash';
 import electron from 'electron';
 // import fs from 'fs-extra';
 import path from 'path';
+import { logger } from '../modules/logger';
 
 // const { version } = fs.readJsonSync(path.resolve(__dirname, '../../../package.json'));
 
@@ -38,8 +39,22 @@ const openAppWindow = (file, storage, devtools) => {
   windowOptions.title = 'XLite';
   // windowOptions.title = `XLite ${version}`;
 
+  const prepPath = (filepath = '') => {
+    try {
+    const splitPath = filepath.split(path.sep);
+    if(splitPath.length === 0) return filepath;
+    return [
+      splitPath[0],
+      ...splitPath.slice(1).map(str => encodeURI(str))
+    ].join(path.sep);
+    } catch(err) {
+      logger.error(err.message + '\n' + err.stack);
+      return filepath;
+    }
+  };
+
   return new BrowserWindow({
-    filePath: file,
+    filePath: prepPath(file),
     toggleDevTools: devtools,
     isMainWindow: true,
     windowOptions: windowOptions,
