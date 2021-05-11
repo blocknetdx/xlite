@@ -101,6 +101,12 @@ class Api {
   _allowOpenExternalLinks = false;
 
   /**
+   * @type {{text: function}}
+   * @private
+   */
+  _localize;
+
+  /**
    * Constructor
    * @param storage {SimpleStorage}
    * @param app {Electron.App}
@@ -116,7 +122,7 @@ class Api {
   constructor(storage, app, proc, err,
               cloudChains = null, confController = null,
               walletController = null, zoomController = null,
-              pricing = null, shutdown = null, contextMenu, autoUpdater) {
+              pricing = null, shutdown = null, contextMenu, autoUpdater, Localize) {
     this._storage = storage;
     this._app = app;
     this._proc = proc;
@@ -129,6 +135,7 @@ class Api {
     this._shutdown = shutdown;
     this._contextMenu = contextMenu;
     this._autoUpdater = autoUpdater;
+    this._localize = Localize;
     this._init();
   }
 
@@ -263,6 +270,34 @@ class Api {
       logger.info('User confirmed install downloaded update');
       await this._shutdown.shutdown();
       this._autoUpdater.quitAndInstall();
+    });
+    this._proc.on(apiConstants.general_ccStartupError, async (e, dependencyMissing) => {
+      if(process.platform === 'win32' && dependencyMissing) {
+        logger.info('VS 2010 dependency missing. Unable to run CC daemon. Shutting down.');
+        const url = 'https://www.microsoft.com/download/details.aspx?id=26999';
+        const { response } = await electron.dialog.showMessageBox({
+          type: 'warning',
+          message: this._localize.text('XLite currently depends on the Visual C++ 2010 redistributable package. You need to install this before you can run XLite. You can find it here:', 'universal') + '\n\n' + url,
+          buttons: [
+            this._localize.text('Open in browser', 'universal'),
+            this._localize.text('Close', 'universal'),
+          ],
+          cancelId: 1,
+        });
+        if(response === 0)
+          electron.shell.openExternal(url);
+      } else {
+        logger.info('Unable to run CC daemon. Shutting down.');
+        await electron.dialog.showMessageBox({
+          type: 'warning',
+          message: this._localize.text('Unable to start the CloudChains daemon. This is a fatal error. Please check the XLite logs for more information.'),
+          buttons: [
+            this._localize.text('Close', 'universal'),
+          ],
+        });
+      }
+      await this._shutdown.shutdown();
+      this._app.quit();
     });
   }
 

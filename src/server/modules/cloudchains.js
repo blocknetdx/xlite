@@ -425,8 +425,12 @@ class CloudChains {
         return;
       closed = true;
       if (err) {
+        const { code } = err;
         logger.error(err);
-        resolve(UNKNOWN_CC_VERSION);
+        if(code === 3221225781)
+          resolve('');
+        else
+          resolve(UNKNOWN_CC_VERSION);
       } else
         resolve(version);
     };
