@@ -35,8 +35,7 @@ process.on('unhandledRejection', err => {
 });
 
 logger.info(`Static assets ${publicPath}`);
-// const devtools = isDev && process.env.SHOWDEVTOOLS !== 'false' && process.env.SHOWDEVTOOLS !== '0';
-const devtools = true;
+const devtools = isDev && process.env.SHOWDEVTOOLS !== 'false' && process.env.SHOWDEVTOOLS !== '0';
 
 let appWindow;
 
