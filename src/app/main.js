@@ -193,7 +193,7 @@ function startupInit(walletController, confController, pricingController, confNe
     await walletController.waitForRpcAndFetch(slowLoad ? 12500 : 10000, store);
 
     // Watch for updates
-    walletController.pollUpdates(30000, () => { // every 30 sec
+    walletController.pollUpdates(120000, () => { // every 2 minutes
       const handler = ticker => {
         walletController.dispatchBalances(appActions.setBalances, store);
         walletController.dispatchTransactionsTicker(ticker, appActions.setTransactions, store);
