@@ -113,7 +113,7 @@ class WalletController {
    * @throws {Error} on fatal error
    */
   loadWallets() {
-    const disabledWallets = new Set(['DGB', 'BCH', 'RVN', 'POLIS', 'PHORE']); // TODO Enable wallets when supported
+    const disabledWallets = new Set(['DGB', 'BCH', 'RVN', 'POLIS', 'PHORE', 'BAY', 'TBLOCK', 'TZC', 'XLQ', 'null']); // TODO Enable wallets when supported
     // Create the wallet instances for all valid cloudchains wallets
     for (const conf of this._cloudChains.getWalletConfs()) {
       if (disabledWallets.has(conf.ticker()))

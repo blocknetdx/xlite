@@ -421,6 +421,16 @@ class RPCController {
     }));
   }
 
+  async ccReloadConfig(token) {
+    try {
+      await this._makeRequest('reloadconfig', [token], {timeout: 3000});
+      return true;
+    } catch(err) {
+      logger.error(`ccReloadConfigError for ${token}: ${err.message}` + '\n' + err.stack);
+      return false;
+    }
+  }
+
   /**
    * Call the CloudChains RPC help method.
    * @return {Promise<Object>}
