@@ -10,6 +10,7 @@ import React from 'react';
 const Logo = ({ className = '' }) => {
   return (
     <img className={className}
+         src={`${publicPath}/images/logo.svg`}
          srcSet={`${publicPath}/images/logo.png, ${publicPath}/images/logo@2x.png 2x, ${publicPath}/images/logo@3x.png 3x`}
          alt={Localize.text('XLite logo', 'login')} />
   );

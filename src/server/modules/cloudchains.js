@@ -121,6 +121,11 @@ class CloudChains {
    * @private
    */
   _rpcStartExpirySeconds = 30;
+  /**
+   * @type {number}
+   * @private
+   */
+  _defaultAddressCount = 300;
 
   /**
    * Default path function for cloudchains installations.
@@ -425,8 +430,12 @@ class CloudChains {
         return;
       closed = true;
       if (err) {
+        const { code } = err;
         logger.error(err);
-        resolve(UNKNOWN_CC_VERSION);
+        if(code === 3221225781)
+          resolve('');
+        else
+          resolve(UNKNOWN_CC_VERSION);
       } else
         resolve(version);
     };
@@ -616,11 +625,18 @@ class CloudChains {
           .catch(reject);
       };
 
-      const createHandler = err => {
-        if (err)
+      const createHandler = async err => {
+        if (err) {
           reject(err);
-        else
+        } else {
+          if(mnemonic) {
+            // If it is a restore from mnemonic, up the address counts in the configs
+            const success = await this.setAllConfigAddressCounts();
+            if(!success)
+              logger.error('There was a problem setting all address config counts');
+          }
           resolveMnemonic();
+        }
       };
 
       let started = false;
@@ -723,6 +739,40 @@ class CloudChains {
         logger.info(`enableAllWallets child process exited with code ${!code ? '0' : code}`);
       });
     });
+  }
+
+  /**
+   * Sets the addressCount of all wallet config files
+   * @param addressCount {number} The number of addresses that should be checked for UTXOs and Transactions
+   * @returns {boolean} Success
+   */
+  async setAllConfigAddressCounts(addressCount = this._defaultAddressCount) {
+    try {
+      const ccSettingsDir = this.getSettingsDir();
+      const configFiles = fs.readdirSync(ccSettingsDir)
+        .filter(f => path.extname(f) === '.json') // Only list json files
+        .filter(f => !/master/.test(f)) // Ignore the master config
+        .map(f => path.join(ccSettingsDir, f));
+      for(const f of configFiles) {
+        try {
+          const contents = fs.readJsonSync(f);
+          fs.writeJsonSync(f, {
+            ...contents,
+            addressCount
+          }, {spaces: 4});
+        } catch(err) {
+          logger.error(err.message + '\n' + err.stack);
+        }
+      }
+      const tokens = [...this._cloudChainsConfs.keys()];
+      for(const token of tokens) { // Tell the CC daemon to reload each of the configs
+        await this._rpc.ccReloadConfig(token);
+      }
+      return true;
+    } catch(err) {
+      logger.error(err.message + '\n' + err.stack);
+      return false;
+    }
   }
 
   /**

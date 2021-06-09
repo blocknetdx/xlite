@@ -6,6 +6,7 @@ import React from 'react';
 import $ from 'jquery';
 import Localize from './localize';
 import Wallet from '../../types/wallet-r';
+import { getSrcFromSrcSet } from '../../util';
 
 const SelectWalletDropdown = ({ selected = '', style = {}, wallets, onSelect }) => {
 
@@ -17,7 +18,7 @@ const SelectWalletDropdown = ({ selected = '', style = {}, wallets, onSelect }) 
   return (
     <div className={'dropdown'} style={style}>
       <a href={'#'} ref={node => node ? $(node).dropdown() : null} className={'lw-coin-select'} data-toggle={'dropdown'}>
-        {wallet && <img alt={Localize.text('Coin icon', 'receive-modal')} srcSet={wallet.imagePath} />}
+        {wallet && <img alt={Localize.text('Coin icon', 'receive-modal')} src={getSrcFromSrcSet(wallet.imagePath)} srcSet={wallet.imagePath} />}
         <div>{wallet && `${wallet.name} (${wallet.ticker})`}</div>
         <i className={'fas fa-caret-down'} />
       </a>
@@ -31,7 +32,7 @@ const SelectWalletDropdown = ({ selected = '', style = {}, wallets, onSelect }) 
               };
               return (
                 <button key={w.ticker} className="dropdown-item lw-coin-select-item" type="button" onClick={onClick}>
-                  <img alt={Localize.text('Coin icon', 'receive-modal')} srcSet={w.imagePath} />
+                  <img alt={Localize.text('Coin icon', 'receive-modal')} src={getSrcFromSrcSet(w.imagePath)} srcSet={w.imagePath} />
                   <div>{`${w.name} (${w.ticker})`}</div>
                 </button>
               );

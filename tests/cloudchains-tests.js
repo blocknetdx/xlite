@@ -146,6 +146,7 @@ describe('CloudChains Test Suite', function() {
         "rpcEnabled": false,
         "addressCount": 20
       }));
+      fs.writeFileSync(path.join(settingsDir, '.DS_Store'), '');
       storage.clear();
     });
 
@@ -382,6 +383,33 @@ describe('CloudChains Test Suite', function() {
         success.should.be.true();
       }
 
+    });
+    it('CloudChains.setAllConfigAddressCounts()', async function() {
+      { // Check successful calls
+        const cc = new CloudChains(ccFunc, storage);
+        const addressCounts = [
+          [cc._defaultAddressCount, undefined], // check default address count
+          [333, 333] // check custom address count
+        ];
+        for(const [expected, addressCount] of addressCounts) {
+          const success = await cc.setAllConfigAddressCounts(addressCount);
+          success.should.be.true();
+          const configFiles = fs.readdirSync(settingsDir)
+            .filter(f => path.extname(f) === '.json')
+            .filter(f => !/master/.test(f)) // Ignore the master config
+            .map(f => path.join(settingsDir, f));
+          for(const f of configFiles) {
+            const data = fs.readJsonSync(f);
+            data.addressCount.should.equal(expected);
+          }
+        }
+      }
+      { // Check unsuccessful calls
+        const cc = new CloudChains(ccFunc, storage);
+        cc.getSettingsDir = () => '';
+        const success = await cc.setAllConfigAddressCounts();
+        success.should.be.false();
+      }
     });
     it('CloudChains.changePassword()', async function() {
       const password = 'a';

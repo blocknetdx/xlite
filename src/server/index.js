@@ -243,6 +243,7 @@ app.on('ready', async () => {
     shutdownMgr,
     contextMenuController,
     autoUpdater,
+    Localize,
   );
 
   // Notify of fatal error

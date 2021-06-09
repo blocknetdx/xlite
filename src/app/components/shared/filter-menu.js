@@ -5,6 +5,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Localize from './localize';
 import PerfectScrollbar from 'react-perfect-scrollbar';
+import { getSrcFromSrcSet } from '../../util';
 
 const FilterMenu = ({ items = [], active = false, onClick = () => {} }) => {
   return (
@@ -13,7 +14,7 @@ const FilterMenu = ({ items = [], active = false, onClick = () => {} }) => {
         {items
           .map(({ id, text, image }) => {
             return (
-              <button className={'lw-sidebar-filterable-list-item'} key={id} onClick={() => onClick(id)}><img alt={Localize.text('Coin logo', 'sidebar')} srcSet={image} />{text}</button>
+              <button className={'lw-sidebar-filterable-list-item'} key={id} onClick={() => onClick(id)}><img alt={Localize.text('Coin logo', 'sidebar')} src={getSrcFromSrcSet(image)} srcSet={image} />{text}</button>
             );
           })}
       </PerfectScrollbar>

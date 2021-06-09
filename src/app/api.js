@@ -38,6 +38,7 @@ export const apiConstants = {
   general_onUpdateDownloaded: 'general_onUpdateDownloaded',
   general_downloadAvailableUpdate: 'general_downloadAvailableUpdate',
   general_restartInstallUpdate: 'general_restartInstallUpdate',
+  general_ccStartupError: 'general_ccStartupError',
 
   contextMenu_showCopyMenu: 'contextMenu_showCopyMenu',
   contextMenu_showPasteMenu: 'contextMenu_showPasteMenu',
@@ -200,6 +201,9 @@ const general_API = {
   },
   [apiConstants.general_restartInstallUpdate]: () => {
     ipcRenderer.send(apiConstants.general_restartInstallUpdate);
+  },
+  [apiConstants.general_ccStartupError]: dependencyMissing => {
+    ipcRenderer.send(apiConstants.general_ccStartupError, dependencyMissing);
   },
 };
 

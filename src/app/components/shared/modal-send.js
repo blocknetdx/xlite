@@ -62,6 +62,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
   const [ fees, setFees ] = useState(0);
   const [ total, setTotal ] = useState(0);
   const [ alertShowing, setAlertShowing ] = useState(false);
+  const [ disableSubmit, setDisableSubmit ] = useState(false);
 
   const noWallets = !wallets || wallets.length === 0 || !balances || balances.size === 0;
 
@@ -238,7 +239,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
           const tb = new TransactionBuilder(wallet.token().xbinfo);
           tb.addRecipient(new Recipient({address: 'dummy', amount: avail, description }));
           tb.fundTransaction(coins, true);
-          avail -= tb.getFees();
+          avail = math.subtract(bignumber(avail), bignumber(tb.getFees())).toNumber();
           const multiplier = multiplierForCurrency(ticker, altCurrency, currencyMultipliers);
           const alt = math.multiply(bignumber(avail), bignumber(multiplier));
           setInputAmount(avail.toFixed(MAX_DECIMAL_PLACE));
@@ -302,9 +303,14 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
 
   const onSend = async function(e) {
     e.preventDefault();
+
+    setDisableSubmit(true);
+
     const bn = bignumber(inputAmount);
-    if (bn.toNumber() <= 0 || isNaN(bn.toNumber()))
+    if (bn.toNumber() <= 0 || isNaN(bn.toNumber())) {
+      setDisableSubmit(false);
       return; // TODO Warn user about problem with input amount
+    }
 
     try {
       const recipient = new Recipient({ address, amount: bn.toNumber(), description });
@@ -312,11 +318,14 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
       if (!res) {
         Alert.alert(Localize.text('Issue'), Localize.text('Failed to send the wallet transaction.'));
         setAlertShowing(true);
+        setDisableSubmit(false);
         throw new Error('Failed to send wallet transaction');
       }
+      setDisableSubmit(false);
       setTXID(res);
       setProgress(3);
     } catch(err) {
+      setDisableSubmit(false);
       handleError(err);
     }
   };
@@ -441,7 +450,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
             <div style={{flexGrow: 1}} />
 
             <Row style={{fontSize, marginBottom: defaultMarginBottom * 2}} justify={'center'}>
-              <Button type={'button'} onClick={progress === 1 ? onConfirm : onSend} disabled={!address || insufficient || inputAmountIsDust || (progress === 1 && confirmTimer > 0)}>
+              <Button type={'button'} onClick={progress === 1 ? onConfirm : onSend} disabled={!address || insufficient || inputAmountIsDust || (progress === 1 && confirmTimer > 0) || disableSubmit}>
                 {progress === 1 && confirmTimer ?
                   Localize.text('Wait {{time}}', 'sendModal', {time: confirmTimer})
                   :
