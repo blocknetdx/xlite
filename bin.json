@@ -1,5 +1,5 @@
 {
-  "linux": "https://s3.us-east-1.amazonaws.com/cloudchainsinc.com/downloads/cc-release-0.5.11-linux.zip",
-  "mac": "https://s3.us-east-1.amazonaws.com/cloudchainsinc.com/downloads/cc-release-0.5.11-osx.zip",
-  "win": "https://s3.us-east-1.amazonaws.com/cloudchainsinc.com/downloads/cc-release-0.5.11-windows.zip"
+  "linux": "https://s3.us-east-1.amazonaws.com/cloudchainsinc.com/downloads/cc-release-0.5.13-linux.zip",
+  "mac": "https://s3.us-east-1.amazonaws.com/cloudchainsinc.com/downloads/cc-release-0.5.13-osx.zip",
+  "win": "https://s3.us-east-1.amazonaws.com/cloudchainsinc.com/downloads/cc-release-0.5.13-windows.zip"
 }
