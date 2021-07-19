@@ -310,8 +310,13 @@ autoUpdater.on('error', err => {
 const checkForUpdates = async function() {
   if(!isDev) {
     try {
-      logger.info('Check for updates');
-      await autoUpdater.checkForUpdates();
+      const { version } = fs.readJsonSync(path.resolve(__dirname, '../../package.json'));
+      if(!/-/.test(version)) {
+        logger.info('Check for updates');
+        await autoUpdater.checkForUpdates();
+      } else {
+        logger.info('Test build. Not checking for updates.');
+      }
     } catch(err) {
       logger.error(err.message + '\n' + err.stack);
     }
