@@ -405,9 +405,6 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
                 onBlur={onAltInputAmountBlur}
                 required={true} />
             </Row>
-          </Row>
-
-          <Row>
             <Row style={{flexGrow: 1, flexBasis: 1}} justify={'space-between'}>
               <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Available</Localize>:</span> <span className={'lw-modal-description-value'}>{availableBalance}</span></div>
             </Row>
