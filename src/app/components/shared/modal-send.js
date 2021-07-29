@@ -383,7 +383,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
             </Row>
           </Row>
 
-          <Row style={{marginBottom: 2 * defaultMarginBottom}}>
+          <Row>
             <Row style={{minWidth: 50, minHeight: 40, flexGrow: 1, flexBasis: 1}} justify={'space-between'}>
               <CurrencyInput
                 inputStyle={{minWidth: 50}}
@@ -404,6 +404,12 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
                 onChange={e => onAltInputAmountChange(e.target.value)}
                 onBlur={onAltInputAmountBlur}
                 required={true} />
+            </Row>
+          </Row>
+
+          <Row style={{marginBottom: 2 * defaultMarginBottom}}>
+            <Row style={{flexGrow: 1, flexBasis: 1}} justify={'start'}>
+              <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Available</Localize>:</span> <span className={'lw-modal-description-value'}>{availableBalance}</span></div>
             </Row>
           </Row>
 
