@@ -375,6 +375,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
             <Row style={{flexGrow: 1, flexBasis: 1}} justify={'space-between'}>
               <div className={'lw-modal-field-label'}><Localize context={'sendModal'}>Amount</Localize>:</div>
               <a href={'#'} className={'lw-send-max-toggle'} onClick={onMaxClick}><Localize context={'sendModal'}>Send max</Localize> {maxSelected ? <i className={'fas fa-toggle-on'} /> : <i className={'fas fa-toggle-off'} />}</a>
+              <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Available</Localize>:</span> <span className={'lw-modal-description-value'}>{availableBalance}</span></div>
             </Row>
             <div style={{width: 40, minWidth: 40}} />
             <Row style={{flexGrow: 1, flexBasis: 1}} justify={'flex-end'}>
@@ -388,7 +389,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
               <CurrencyInput
                 inputStyle={{minWidth: 50}}
                 value={inputAmount}
-                placeholder={'0.00000000'}
+                placeholder={''}
                 currency={wallet ? wallet.ticker : ''}
                 onChange={e => onInputAmountChange(e.target.value)}
                 onBlur={onInputAmountBlur}
