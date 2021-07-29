@@ -407,6 +407,12 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
             </Row>
           </Row>
 
+          <Row>
+            <Row style={{flexGrow: 1, flexBasis: 1}} justify={'space-between'}>
+              <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Available</Localize>:</span> <span className={'lw-modal-description-value'}>{availableBalance}</span></div>
+            </Row>
+          </Row>
+
           <Row style={{fontSize, marginBottom: defaultMarginBottom * 2}}>
             <div style={{flexGrow: 1, minHeight: 10}}>
               <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Network fee</Localize>:</span> <span className={'lw-modal-description-value'}>{fees} {ticker}</span></div>
