@@ -250,6 +250,10 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
           setAltInputAmount(currencyLinter('0'));
           updateTotals(0);
         }
+      } else {
+        setInputAmount('');
+        setAltInputAmount(currencyLinter(''));
+        updateTotals(0);
       }
       setMaxSelected(!maxSelected);
     } catch(err) {
