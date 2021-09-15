@@ -236,7 +236,15 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
           let avail = _.isNumber(Number(availableBalance)) ? bignumber(availableBalance).toNumber() : 0;
           if (avail === 0)
             throw new Error('No coin');
+
           const tb = new TransactionBuilder(wallet.token().xbinfo);
+
+          // find non-spendable and dust inputs, remove from avail
+          const dust = coins
+            .filter(u => !u.spendable || tb.isDust(u.amount))
+            .reduce((a, b) => a + b.amount, 0);
+          avail = math.subtract(bignumber(avail), bignumber(dust)).toNumber();
+
           tb.addRecipient(new Recipient({address: 'dummy', amount: avail, description }));
           tb.fundTransaction(coins, true);
           avail = math.subtract(bignumber(avail), bignumber(tb.getFees())).toNumber();
