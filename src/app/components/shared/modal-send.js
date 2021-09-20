@@ -236,7 +236,15 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
           let avail = _.isNumber(Number(availableBalance)) ? bignumber(availableBalance).toNumber() : 0;
           if (avail === 0)
             throw new Error('No coin');
+
           const tb = new TransactionBuilder(wallet.token().xbinfo);
+
+          // find non-spendable and dust inputs, remove from avail
+          const dust = coins
+            .filter(u => !u.spendable || tb.isDust(u.amount))
+            .reduce((a, b) => a + b.amount, 0);
+          avail = math.subtract(bignumber(avail), bignumber(dust)).toNumber();
+
           tb.addRecipient(new Recipient({address: 'dummy', amount: avail, description }));
           tb.fundTransaction(coins, true);
           avail = math.subtract(bignumber(avail), bignumber(tb.getFees())).toNumber();
@@ -250,6 +258,10 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
           setAltInputAmount(currencyLinter('0'));
           updateTotals(0);
         }
+      } else {
+        setInputAmount('');
+        setAltInputAmount(currencyLinter(''));
+        updateTotals(0);
       }
       setMaxSelected(!maxSelected);
     } catch(err) {
@@ -383,7 +395,7 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
             </Row>
           </Row>
 
-          <Row style={{marginBottom: 2 * defaultMarginBottom}}>
+          <Row>
             <Row style={{minWidth: 50, minHeight: 40, flexGrow: 1, flexBasis: 1}} justify={'space-between'}>
               <CurrencyInput
                 inputStyle={{minWidth: 50}}
@@ -404,6 +416,12 @@ const SendModal = ({ activeWallet, wallets, altCurrency, currencyMultipliers, ba
                 onChange={e => onAltInputAmountChange(e.target.value)}
                 onBlur={onAltInputAmountBlur}
                 required={true} />
+            </Row>
+          </Row>
+
+          <Row style={{marginBottom: 2 * defaultMarginBottom}}>
+            <Row style={{flexGrow: 1, flexBasis: 1}} justify={'start'}>
+              <div><span className={'lw-modal-description-label'}><Localize context={'sendModal'}>Available</Localize>:</span> <span className={'lw-modal-description-value'}>{availableBalance}</span></div>
             </Row>
           </Row>
 
