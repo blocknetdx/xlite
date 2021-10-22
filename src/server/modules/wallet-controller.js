@@ -38,6 +38,12 @@ class WalletController {
   _storage = null;
 
   /**
+   * @type {boolean}
+   * @private
+   */
+  _debugMode = false;
+
+  /**
    * Default request for currency pricing information.
    * @param ticker
    * @param currencies
@@ -52,11 +58,13 @@ class WalletController {
    * @param cloudChains {CloudChains}
    * @param manifest {TokenManifest}
    * @param storage {SimpleStorage}
+   * @param debugMode {boolean}
    */
-  constructor(cloudChains, manifest, storage) {
+  constructor(cloudChains, manifest, storage, debugMode = false) {
     this._cloudChains = cloudChains;
     this._manifest = manifest;
     this._storage = storage;
+    this._debugMode = debugMode;
   }
 
   /**
@@ -123,7 +131,7 @@ class WalletController {
         logger.info(`failed to load wallet for token: ${conf.ticker()}`);
         continue;
       }
-      this._wallets.set(conf.ticker(), new Wallet(token, conf, this._storage));
+      this._wallets.set(conf.ticker(), new Wallet(token, conf, this._storage, this._debugMode));
     }
   }
 
