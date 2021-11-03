@@ -82,5 +82,12 @@
     "website": "https://polispay.org/",
     "explorer": "https://explorer.polispay.org/",
     "explorerTx": "https://explorer.polispay.org/tx/{{tx}}"
+  },
+  {
+    "ticker": "LBC",
+    "name": "LBRY Credits",
+    "website": "https://lbry.com/",
+    "explorer": "https://explorer.lbry.com/",
+    "explorerTx": "https://explorer.lbry.com/tx/{{tx}}"
   }
 ]
