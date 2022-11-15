@@ -56,7 +56,6 @@ build_mac:
       sed -i -re "s#[\"]version[\"]: [\"](.*)[\"]#\"version\": \"\1-$commithash\"#" package.json
       npm install --no-audit
       npm run download-binaries-mac
-      chmod +x bin/mac/Cloudchains-SPV
       npm run build-native-mac
   artifacts:
     name: "XLite-$CI_COMMIT_REF_NAME-mac"
