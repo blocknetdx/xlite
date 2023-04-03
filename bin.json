@@ -1,5 +1,5 @@
 {
-  "linux": "https://s3.us-east-1.amazonaws.com/cloudchainsinc.com/downloads/cc-release-0.5.14-linux.zip",
-  "mac": "https://s3.us-east-1.amazonaws.com/cloudchainsinc.com/downloads/cc-release-0.5.14-osx.zip",
-  "win": "https://s3.us-east-1.amazonaws.com/cloudchainsinc.com/downloads/cc-release-0.5.14-windows.zip"
+  "linux": "https://github.com/blocknetdx/cc-daemon/releases/download/v0.1.0-alpha/Cloudchains-SPV-linux.zip",
+  "mac": "https://github.com/blocknetdx/cc-daemon/releases/download/v0.1.0-alpha/Cloudchains-SPV-mac.zip",
+  "win": "https://github.com/blocknetdx/cc-daemon/releases/download/v0.1.0-alpha/Cloudchains-SPV-windows.exe.zip"
 }
