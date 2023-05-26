@@ -111,12 +111,19 @@ class Wallet {
   _websiteLink = '';
 
   /**
+   * @type {boolean}
+   * @private
+   */
+  _debugMode = false;
+
+  /**
    * Constructs a wallet
    * @param token {Token}
    * @param conf {CCWalletConf}
    * @param storage {Object}
+   * @param debugMode {boolean}
    */
-  constructor(token, conf, storage) {
+  constructor(token, conf, storage, debugMode = false) {
     this._token = token;
     this._conf = conf;
     this._storage = storage;
@@ -126,6 +133,7 @@ class Wallet {
     this._explorerLink = explorer;
     this._explorerTxLink = explorerTx;
     this._websiteLink = website;
+    this._debugMode = debugMode;
     this.initRpcIfEnabled();
   }
 
@@ -138,7 +146,7 @@ class Wallet {
       return;
     // Set the default port to the xbridge conf port settings if the
     // cloudchains conf port is invalid.
-    this.rpc = new RPCController(this._conf.rpcPort, this._conf.rpcUsername, this._conf.rpcPassword);
+    this.rpc = new RPCController(this._conf.rpcPort, this._conf.rpcUsername, this._conf.rpcPassword, this._debugMode);
   }
 
   /**

@@ -11,7 +11,7 @@ import path from 'path';
 export const logger = createLogger({
   format: format.combine(
     format.timestamp(),
-    format.json()
+    format.simple(),
   ),
   transports: [
     new transports.File({

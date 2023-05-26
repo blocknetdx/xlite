@@ -40,14 +40,22 @@ class RPCController {
   _password = '';
 
   /**
+   * @type {boolean}
+   * @private
+   */
+  _debugMode = false;
+
+  /**
    * @param port {number}
    * @param username {string}
    * @param password {string}
+   * @param debugMode {boolean}
    */
-  constructor(port, username, password) {
+  constructor(port, username, password, debugMode = false) {
     this._port = port;
     this._username = username;
     this._password = password;
+    this._debugMode = debugMode;
   }
 
   /**
@@ -68,13 +76,16 @@ class RPCController {
    */
   async _makeRequest(method, params = [], options = {timeout: HTTP_REQUEST_TIMEOUT}) {
     return new Promise((resolve, reject) => {
+      const requestBody = JSON.stringify({
+        method,
+        params
+      });
+      if(this._debugMode)
+        logger.info(`${method} request to port ${this._port} with body: ${requestBody}`);
       request
         .post(`http://127.0.0.1:${this._port}`)
         .auth(this._username, this._password)
-        .send(JSON.stringify({
-          method,
-          params
-        }))
+        .send(requestBody)
         .timeout(options.timeout)
         .then(res => {
           const { statusCode } = res;
