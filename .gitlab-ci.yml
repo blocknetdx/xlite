@@ -25,6 +25,7 @@ build_linux:
       sed -i -re "s#[\"]version[\"]: [\"](.*)[\"]#\"version\": \"\1-$commithash\"#" package.json
       npm install --no-audit
       npm run download-binaries-linux
+      chmod +x bin/linux/Cloudchains-SPV
       npm run build-native-linux2
   artifacts:
     name: "XLite-$CI_COMMIT_REF_NAME-linux"

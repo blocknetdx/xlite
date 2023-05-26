@@ -1,5 +1,5 @@
 const fs = require('fs-extra');
-const https = require('https');
+const { https } = require('follow-redirects');
 const path = require('path');
 const unzip = require('extract-zip');
 

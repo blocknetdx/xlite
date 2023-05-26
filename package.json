@@ -92,6 +92,7 @@
     "dexie": "^3.0.2",
     "electron-context-menu": "^2.0.1",
     "electron-is-dev": "^1.2.0",
+    "follow-redirects": "^1.15.2",
     "electron-updater": "^5.0.0",
     "fs-extra": "^9.0.1",
     "immutable": "^4.0.0-rc.12",
