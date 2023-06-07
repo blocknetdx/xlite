@@ -3,6 +3,7 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 import Localize from '../shared/localize';
 import IconArrowRight from '../shared/icon-arrow-right';
+import IconInfo from '../shared/icon-info';
 import {logger} from '../../modules/logger-r';
 import Logo from '../shared/logo';
 import CloudChains from '../../modules/cloudchains-r';
@@ -17,6 +18,7 @@ import { LoginInput } from '../shared/inputs';
 import { checkPassword, timeout } from '../../util';
 import Alert from '../../modules/alert';
 import ContextMenu from '../../modules/context-menu';
+
 
 const {api} = window;
 const {isDev} = api;
@@ -318,6 +320,17 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
 
   return (
     <div className={'lw-login-container'}>
+        <div className={'alert lw-beta-warning'}>
+          <div className="d-flex align-items-start">
+            <InfoIcon className="alert-icon me-2" />
+            <div>
+              <h4 className="alert-title">XLite Wallet is currently in beta.</h4>
+              <p className="alert-content">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquid pariatur, ipsum similique veniam.
+              </p>
+            </div>
+          </div>
+        </div>
       <div className={'lw-login-inner-container'}>
         <div className={'lw-login-image-container'}>
           <Logo className={'lw-login-image'} />
