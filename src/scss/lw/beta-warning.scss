@@ -1,6 +1,6 @@
 // lw/beta-warning.scss
 .lw-beta-warning {
-  width: 100%;
+  width: calc(100% - 40px);
   position: absolute;
   top: 0;
   margin-top: 20px;
@@ -12,13 +12,15 @@
   font-family: 'IBM Plex Sans', sans-serif;
   .alert-title {
     font-weight: 600;
+    font-size: 16px;
   }
   .alert-content {
     font-weight: 400;
+    margin: 0;
   }
   .alert-icon {
-    width: 20px;
-    height: 20px;
-    fill: #B42318;  // Assumes the info icon is an SVG
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
   }
 }

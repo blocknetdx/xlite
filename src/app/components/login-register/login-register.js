@@ -322,7 +322,7 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
     <div className={'lw-login-container'}>
         <div className={'alert lw-beta-warning'}>
           <div className="d-flex align-items-start">
-            <InfoIcon className="alert-icon me-2" />
+            <IconInfo className="alert-icon me-2" />
             <div>
               <h4 className="alert-title">XLite Wallet is currently in beta.</h4>
               <p className="alert-content">
