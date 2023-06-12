@@ -1,5 +1,5 @@
 {
-  "linux": "https://github.com/blocknetdx/xlite-daemon/releases/download/v0.1.1-alpha/Cloudchains-SPV-linux.zip",
-  "mac": "https://github.com/blocknetdx/xlite-daemon/releases/download/v0.1.1-alpha/Cloudchains-SPV-mac.zip",
-  "win": "https://github.com/blocknetdx/xlite-daemon/releases/download/v0.1.1-alpha/Cloudchains-SPV-windows.exe.zip"
+  "linux": "https://github.com/tryiou/xlite-daemon/releases/download/linux/Cloudchains-SPV.zip",
+  "mac": "https://github.com/tryiou/xlite-daemon/releases/download/mac/Cloudchains-SPV.zip",
+  "win": "https://github.com/tryiou/xlite-daemon/releases/download/windows/Cloudchains-SPV.zip"
 }
