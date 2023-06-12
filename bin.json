@@ -1,5 +1,5 @@
 {
   "linux": "https://github.com/tryiou/xlite-daemon/releases/download/linux/Cloudchains-SPV.zip",
-  "mac": "https://github.com/tryiou/xlite-daemon/releases/download/mac/Cloudchains-SPV.zip",
+  "mac": "https://github.com/tryiou/xlite-daemon/releases/download/macos/Cloudchains-SPV.zip",
   "win": "https://github.com/tryiou/xlite-daemon/releases/download/windows/Cloudchains-SPV.zip"
 }
