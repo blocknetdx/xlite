@@ -1,5 +1,5 @@
 {
-  "linux": "https://github.com/blocknetdx/cc-daemon/releases/download/v0.1.1-alpha/Cloudchains-SPV-linux.zip",
-  "mac": "https://github.com/blocknetdx/cc-daemon/releases/download/v0.1.1-alpha/Cloudchains-SPV-mac.zip",
-  "win": "https://github.com/blocknetdx/cc-daemon/releases/download/v0.1.1-alpha/Cloudchains-SPV-windows.exe.zip"
+  "linux": "https://github.com/blocknetdx/xlite-daemon/releases/download/0.5.12/xlite-daemon-linux-amd64.zip",
+  "mac": "https://github.com/blocknetdx/xlite-daemon/releases/download/0.5.12/xlite-daemon-macos-amd64.zip",
+  "win": "https://github.com/blocknetdx/xlite-daemon/releases/download/0.5.12/xlite-daemon-windows-amd64.zip"
 }
