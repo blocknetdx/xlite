@@ -3,7 +3,6 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 import Localize from '../shared/localize';
 import IconArrowRight from '../shared/icon-arrow-right';
-import IconInfo from '../shared/icon-info';
 import {logger} from '../../modules/logger-r';
 import Logo from '../shared/logo';
 import CloudChains from '../../modules/cloudchains-r';
@@ -322,11 +321,11 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
     <div className={'lw-login-container'}>
         <div className={'alert lw-beta-warning'}>
           <div className="d-flex align-items-start">
-            <IconInfo className="alert-icon me-2" />
+          <i className="fas fa-info-circle alert-icon"></i>
             <div>
               <h4 className="alert-title">XLite Wallet is currently in beta.</h4>
               <p className="alert-content">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquid pariatur, ipsum similique veniam.
+              XLite wallet is provided for experimental purposes only and is not intended for public use. The use of XLite for storing digital assets carries inherent risks, and any reliance on it is at your own discretion and risk. XLite is provided 'as is' without any warranties or representations, express or implied. It is your responsibility to ensure compliance with all applicable laws and regulations regarding the use of XLite in your jurisdiction. We disclaim any liability for damages or losses arising from the use or inability to use XLite. By using XLite, you acknowledge and agree to these terms.
               </p>
             </div>
           </div>
