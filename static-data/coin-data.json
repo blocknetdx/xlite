@@ -9,7 +9,7 @@
   {
     "ticker": "BLOCK",
     "name": "Blocknet",
-    "website": "https://blocknet.co/",
+    "website": "https://blocknet.org/",
     "explorer": "https://chainz.cryptoid.info/block/",
     "explorerTx": "https://chainz.cryptoid.info/block/tx.dws?{{tx}}.htm"
   },

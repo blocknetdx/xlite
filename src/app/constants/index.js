@@ -121,9 +121,9 @@ export const ccBinDirs = {
 };
 
 export const ccBinNames = {
-  win32: 'Cloudchains-SPV.exe',
-  darwin: 'Cloudchains-SPV',
-  linux: 'Cloudchains-SPV'
+  win32: 'xlite-daemon.exe',
+  darwin: 'xlite-daemon',
+  linux: 'xlite-daemon'
 };
 
 export const DEFAULT_MASTER_PORT = 9955;
