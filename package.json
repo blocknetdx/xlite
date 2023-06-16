@@ -45,13 +45,7 @@
     "type": "git",
     "url": "git+https://github.com/blocknetdx/xlite.git"
   },
-  "author": "Blocknet <contact@blocknet.co>",
-  "contributors": [
-    {
-      "name": "Ryan Burgett",
-      "email": "ryan@burgettdev.net"
-    }
-  ],
+  "author": "Blocknet <shorn@blocknet.org>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/blocknetdx/xlite/issues"
@@ -115,16 +109,16 @@
   },
   "build": {
     "asarUnpack": [
-      "**/bin/linux/Cloudchains-SPV",
-      "**/bin/mac/Cloudchains-SPV",
-      "**/bin/win/Cloudchains-SPV.exe",
+      "**/bin/linux/xlite-daemon",
+      "**/bin/mac/xlite-daemon",
+      "**/bin/win/xlite-daemon.exe",
       "**/blockchain-configuration-files/**/*"
     ],
     "electronVersion": "10.1.5",
     "appId": "co.blocknet.xlite",
     "productName": "XLite",
     "artifactName": "XLite-${version}-${os}.${ext}",
-    "copyright": "Copyright © 2020-2021 Blocknet",
+    "copyright": "Copyright © 2020-2023 Blocknet",
     "directories": {
       "app": "temp",
       "output": "dist-native"
@@ -189,8 +183,8 @@
         }
       ],
       "icon": "./src/static/images/linux/",
-      "synopsis": "Copyright © 2020-2021 Blocknet",
-      "description": "Copyright © 2020-2021 Blocknet",
+      "synopsis": "Copyright © 2020-2023 Blocknet",
+      "description": "Copyright © 2020-2023 Blocknet",
       "category": "Utility",
       "desktop": {
         "Name": "XLite",
