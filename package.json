@@ -27,7 +27,7 @@
     "clear-build-directory": "node ./build-scripts/clear-build-dir.js",
     "build-native": "npm run build && node ./native-build-scripts/01-copy-files.js && cd temp && npm install --production && cd .. && electron-builder --dir",
     "build-native-win": "npm run build && node ./native-build-scripts/01-copy-files.js win && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --ia32 --win nsis zip --publish never",
-    "build-native-mac": "npm run build && node ./native-build-scripts/01-copy-files.js mac && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --mac dir --publish never --no-sign"
+    "build-native-mac": "npm run build && node ./native-build-scripts/01-copy-files.js mac && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --mac dir --publish never --no-sign",
     "build-native-linux": "npm run build && node ./native-build-scripts/01-copy-files.js linux && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --linux appImage deb tar.gz --publish never",
     "build-native-linux2": "npm run build && node ./native-build-scripts/01-copy-files.js linux && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --linux appImage --publish never",
     "publish-native-win": "cross-env NODE_ENV=production npm run download-binaries-win && npm run build && node ./native-build-scripts/01-copy-files.js win && cd temp && npm install --no-audit --production && cd .. && electron-builder --win --publish always",
