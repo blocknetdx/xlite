@@ -4,7 +4,7 @@
 import { setShowWindowsLibraryDownloadModal } from './actions/app-actions';
 
 window.$ = require('jquery');
-require('popper.js');
+require('@popperjs/core');
 require('bootstrap');
 
 import './util/public-path-r'; // must be first

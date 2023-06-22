@@ -25,6 +25,11 @@ const common = {
       appDir
     ],
     extensions: ['.js', '.json', '.jsx'],
+    fallback: {
+      crypto: require.resolve('crypto-browserify'),
+      stream: require.resolve('stream-browserify'),
+      buffer: require.resolve('buffer')
+      }
   },
   watchOptions: {
     aggregateTimeout: 2000,
@@ -32,7 +37,7 @@ const common = {
     ignored: [
       /src\/(?!app)\/*/, // only rebuild changes to src/app
       'node_modules/**',
-    ],
+    ].join(',') // Convert the array to a comma-separated string
   },
   devtool: 'source-map',
   context: __dirname
@@ -75,3 +80,4 @@ module.exports = (env, argv) => {
   errorjs.mode = argv.mode;
   return [mainjs, errorjs];
 };
+
