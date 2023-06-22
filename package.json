@@ -30,6 +30,11 @@
     "build-native-mac": "npm run build && node ./native-build-scripts/01-copy-files.js mac && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --mac dir --publish never",
     "build-native-linux": "npm run build && node ./native-build-scripts/01-copy-files.js linux && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --linux appImage deb tar.gz --publish never",
     "build-native-linux2": "npm run build && node ./native-build-scripts/01-copy-files.js linux && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --linux appImage --publish never",
+
+    "build-native-win-artifact": "npm run build && node ./native-build-scripts/01-copy-files.js win && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --ia32 --win zip --publish never",
+    "build-native-mac-artifact": "npm run build && node ./native-build-scripts/01-copy-files.js mac && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --mac tar.gz --publish never",
+    "build-native-linux-artifact": "npm run build && node ./native-build-scripts/01-copy-files.js linux && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --linux tar.gz --publish never"
+   
     "publish-native-win": "cross-env NODE_ENV=production npm run download-binaries-win && npm run build && node ./native-build-scripts/01-copy-files.js win && cd temp && npm install --no-audit --production && cd .. && electron-builder --win --publish always",
     "publish-native-mac": "cross-env NODE_ENV=production npm run download-binaries-mac && npm run build && node ./native-build-scripts/01-copy-files.js mac && cd temp && npm install --no-audit --production && cd .. && electron-builder --publish always",
     "publish-native-linux": "cross-env NODE_ENV=production npm run download-binaries-linux && npm run build && node ./native-build-scripts/01-copy-files.js linux && cd temp && npm install --no-audit --production && cd .. && electron-builder --publish always",
