@@ -55,4 +55,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: artifacts-${{ matrix.os }}
-          path: bin/${{ matrix.os }}/
+          path: dist-native/
+
