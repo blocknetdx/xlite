@@ -33,21 +33,22 @@ jobs:
         
       - name: Download Binaries
         run: |
-          if startsWith('${{ matrix.os }}', 'ubuntu'); then
+          if [[ ${{ startsWith(matrix.os, 'ubuntu') }} == true ]]; then
             npm run download-binaries-linux
-          elif startsWith('${{ matrix.os }}', 'windows'); then
+          elif [[ ${{ startsWith(matrix.os, 'windows') }} == true ]]; then
             npm run download-binaries-win
-          elif startsWith('${{ matrix.os }}', 'macos'); then
+          elif [[ ${{ startsWith(matrix.os, 'macos') }} == true ]]; then
             npm run download-binaries-mac
           fi
+
           
       - name: Build Native
         run: |
-          if startsWith('${{ matrix.os }}', 'ubuntu'); then
+          if [[ ${{ startsWith(matrix.os, 'ubuntu') }} == true ]]; then
             npm run build-native-linux2
-          elif startsWith('${{ matrix.os }}', 'windows'); then
+          elif [[ ${{ startsWith(matrix.os, 'windows') }} == true ]]; then
             npm run build-native-win
-          elif startsWith('${{ matrix.os }}', 'macos'); then
+          elif [[ ${{ startsWith(matrix.os, 'macos') }} == true ]]; then
             npm run build-native-mac
           fi
 
