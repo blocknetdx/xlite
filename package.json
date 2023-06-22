@@ -100,7 +100,7 @@
     "lodash": "^4.17.21",
     "mathjs": "^10.4.1",
     "moment": "^2.29.1",
-    "popper.js": "^2.10.2",
+    "popper.js": "^1.16.1-lts",
     "prop-types": "^15.7.2",
     "qrcode": "^1.5.0",
     "react": "^17.0.2",
