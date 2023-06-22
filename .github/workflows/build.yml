@@ -30,24 +30,24 @@ jobs:
 
       - name: Install Dependencies
         run: npm install --no-audit
-
+        
       - name: Download Binaries
         run: |
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          if startsWith('${{ matrix.os }}', 'ubuntu'); then
             npm run download-binaries-linux
-          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+          elif startsWith('${{ matrix.os }}', 'windows'); then
             npm run download-binaries-win
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+          elif startsWith('${{ matrix.os }}', 'macos'); then
             npm run download-binaries-mac
           fi
-
+          
       - name: Build Native
         run: |
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          if startsWith('${{ matrix.os }}', 'ubuntu'); then
             npm run build-native-linux2
-          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+          elif startsWith('${{ matrix.os }}', 'windows'); then
             npm run build-native-win
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+          elif startsWith('${{ matrix.os }}', 'macos'); then
             npm run build-native-mac
           fi
 
