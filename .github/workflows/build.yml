@@ -44,7 +44,7 @@ jobs:
         run: npm run download-binaries-mac
 
       - name: Build Native Image
-        run: npm run pack-native
+        run: npm run build-native
 
       - name: Publish Artifact
         uses: actions/upload-artifact@v3
