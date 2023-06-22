@@ -45,15 +45,15 @@ jobs:
 
       - name: Build Native Image (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
-        run: npm run build-native-linux
+        run: npm run build-native-linux-artifact
 
       - name: Build Native Image (Windows)
         if: startsWith(matrix.os, 'windows')
-        run: npm run build-native-win
+        run: npm run build-native-win-artifact
 
       - name: Build Native Image (macOS)
         if: startsWith(matrix.os, 'macos')
-        run: npm run build-native-mac
+        run: npm run build-native-mac-artifact
         
 
       - name: Publish Artifact
