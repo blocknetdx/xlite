@@ -79,7 +79,7 @@
     "mocha": "^9.1.1",
     "node-sass": "^9.0.0",
     "nodemon": "^2.0.12",
-    "rmrf-promise": "^1.2.0",
+    "rmrf-promise": "^1.1.0",
     "should": "^13.2.3",
     "webpack": "^5.44.0",
     "webpack-cli": "^4.7.2",
