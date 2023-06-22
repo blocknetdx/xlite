@@ -29,7 +29,7 @@ const common = {
       crypto: require.resolve('crypto-browserify'),
       stream: require.resolve('stream-browserify'),
       buffer: require.resolve('buffer')
-      }
+    }
   },
   watchOptions: {
     aggregateTimeout: 2000,
@@ -80,4 +80,3 @@ module.exports = (env, argv) => {
   errorjs.mode = argv.mode;
   return [mainjs, errorjs];
 };
-
