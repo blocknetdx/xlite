@@ -1,0 +1,56 @@
+name: Build and Publish Artifacts
+on:
+  workflow_dispatch:
+#  push:
+#    branches:
+#      - main
+
+jobs:
+  build:
+    name: Build and Publish
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install Dependencies
+        run: npm install --no-audit
+
+      - name: Download Binaries
+        run: |
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            npm run download-binaries-linux
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            npm run download-binaries-win
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            npm run download-binaries-mac
+          fi
+
+      - name: Build Native
+        run: |
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            npm run build-native-linux2
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            npm run build-native-win
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            npm run build-native-mac
+          fi
+
+      - name: Publish Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts-${{ matrix.os }}
+          path: bin/${{ matrix.os }}/
