@@ -32,7 +32,7 @@
     "build-native-linux2": "npm run build && node ./native-build-scripts/01-copy-files.js linux && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --linux appImage --publish never",
 
     "build-native-win-artifact": "npm run build && node ./native-build-scripts/01-copy-files.js win && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --ia32 --win zip --publish never",
-    "build-native-mac-artifact": "npm run build && node ./native-build-scripts/01-copy-files.js mac && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --mac tar.gz --publish never",
+    "build-native-mac-artifact": "npm run build && node ./native-build-scripts/01-copy-files.js mac && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --mac tar.gz --publish never --no-sign",
     "build-native-linux-artifact": "npm run build && node ./native-build-scripts/01-copy-files.js linux && cd temp && npm install --no-audit --production && cd .. && electron-builder --dir --x64 --linux tar.gz --publish never"
    
     "publish-native-win": "cross-env NODE_ENV=production npm run download-binaries-win && npm run build && node ./native-build-scripts/01-copy-files.js win && cd temp && npm install --no-audit --production && cd .. && electron-builder --win --publish always",
