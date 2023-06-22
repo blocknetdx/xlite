@@ -43,8 +43,18 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: npm run download-binaries-mac
 
-      - name: Build Native Image
-        run: npm run build-native
+      - name: Build Native Image (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: npm run build-native-linux
+
+      - name: Build Native Image (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: npm run build-native-win
+
+      - name: Build Native Image (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: npm run build-native-mac
+        
 
       - name: Publish Artifact
         uses: actions/upload-artifact@v3
