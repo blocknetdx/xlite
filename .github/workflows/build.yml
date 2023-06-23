@@ -21,7 +21,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
         with:
-          ref: upgrade_deps
+          ref: dev
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
