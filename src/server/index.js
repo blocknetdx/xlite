@@ -5,7 +5,7 @@ import {publicPath} from './util/public-path'; // must be at top
 import Api from './modules/api';
 import {apiConstants} from '../app/api';
 import CloudChains from './modules/cloudchains';
-import {DATA_DIR, getLocaleData, storageKeys} from './constants';
+import {DATA_DIR, DEBUG_ENV, getLocaleData, storageKeys} from './constants';
 import {DEFAULT_LOCALE, DEFAULT_ZOOM_FACTOR} from '../app/constants';
 import Localize from '../app/components/shared/localize';
 import {logger} from './modules/logger';
@@ -25,6 +25,17 @@ import fs from 'fs-extra';
 import isDev from 'electron-is-dev';
 import path from 'path';
 import ContextMenu from './modules/context-menu';
+
+const debugArgPatt = new RegExp(`${DEBUG_ENV}=(\\w+)`);
+const foundArg = process.argv.find(str => debugArgPatt.test(str));
+let debug = false;
+if(foundArg && foundArg.match(debugArgPatt)[1] === 'true') {
+  logger.info(`Command line arg ${DEBUG_ENV} set to true`);
+  debug = true;
+} else if(process.env[DEBUG_ENV] && process.env[DEBUG_ENV] === 'true') {
+  logger.info(`Environment variable ${DEBUG_ENV} set to true`);
+  debug = true;
+}
 
 // Handle any uncaught exceptions
 process.on('uncaughtException', err => {
@@ -196,7 +207,7 @@ const startup = async () => {
   // Create the token manifest from the raw manifest data and fee information
   const tokenManifest = new TokenManifest(confController.getManifest(), confController.getXBridgeInfo());
   // Create the wallet controller
-  walletController = new WalletController(cloudChains, tokenManifest, storage);
+  walletController = new WalletController(cloudChains, tokenManifest, storage, debug);
 };
 
 // Start the application

@@ -25,6 +25,7 @@ build_linux:
       sed -i -re "s#[\"]version[\"]: [\"](.*)[\"]#\"version\": \"\1-$commithash\"#" package.json
       npm install --no-audit
       npm run download-binaries-linux
+      chmod +x bin/linux/xlite-daemon
       npm run build-native-linux2
   artifacts:
     name: "XLite-$CI_COMMIT_REF_NAME-linux"
@@ -56,7 +57,7 @@ build_mac:
       sed -i -re "s#[\"]version[\"]: [\"](.*)[\"]#\"version\": \"\1-$commithash\"#" package.json
       npm install --no-audit
       npm run download-binaries-mac
-      chmod +x bin/mac/Cloudchains-SPV
+      chmod +x bin/mac/xlite-daemon
       npm run build-native-mac
   artifacts:
     name: "XLite-$CI_COMMIT_REF_NAME-mac"

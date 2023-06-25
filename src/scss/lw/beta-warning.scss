@@ -1,0 +1,24 @@
+// lw/beta-warning.scss
+.lw-beta-warning {
+  width: calc(100% - 40px);
+  position: absolute;
+  top: 0;
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #FFFBFA;
+  border: 1px solid #FDA29B;
+  color: #B42318;
+  font-family: 'IBM Plex Sans', sans-serif;
+  .alert-title {
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .alert-content {
+    font-weight: 400;
+    margin: 0;
+  }
+  .alert-icon {
+    margin-right: 8px;
+  }
+}
