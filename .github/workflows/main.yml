@@ -1,6 +1,10 @@
 name: Build and Publish Artifacts
 on:
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build'
+        required: true
 #  push:
 #    branches:
 #      - main
