@@ -33,8 +33,7 @@ jobs:
           node-version: 18.16.1
 
       - name: Install Dependencies
-        # run: npm install --no-audit
-        run: npm ci
+        run: npm install --no-audit
 
       - name: Download Binaries (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
