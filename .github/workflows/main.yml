@@ -25,16 +25,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
         with:
-          ref: dev
+          ref: ${{ github.event.inputs.branch }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 20.3.1
+          node-version: 18.16.1
 
       - name: Install Dependencies
-        run: npm install --no-audit
-        
+        # run: npm install --no-audit
+        run: npm ci
+
       - name: Download Binaries (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: npm run download-binaries-linux
@@ -58,7 +59,7 @@ jobs:
       - name: Build Native Image (macOS)
         if: startsWith(matrix.os, 'macos')
         run: npm run build-native-mac-artifact
-        
+
 
       - name: Publish Artifact
         uses: actions/upload-artifact@v3
