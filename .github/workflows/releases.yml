@@ -5,6 +5,10 @@ on:
       branch:
         description: 'Branch to build'
         required: true
+      tag:
+        description: 'version tag "1.0.4"'
+        required: false
+        default: '1.0.4'
       is_beta:
         description: 'Is it a beta release?'
         required: false
@@ -54,18 +58,22 @@ jobs:
 
       - name: Build Native Image (Windows)
         if: startsWith(matrix.os, 'windows')
-        run: npm run build-native-win-artifact
+        run: |
+          npm run build-native-win-artifact
+          del dist-native\XLite-${{ github.event.inputs.tag }}-win-x64.exe.blockmap
 
       - name: Build Native Image (macOS)
         if: startsWith(matrix.os, 'macos')
-        run: npm run build-native-mac-artifact
-
+        run: |
+          npm run build-native-mac-artifact
+          rm dist-native/XLite-${{ github.event.inputs.tag }}-mac.dmg.blockmap 
+          
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist-native/XLite-1.0.4-*
-          tag: 1.05
+          file: dist-native/XLite-${{ github.event.inputs.tag }}-*
+          tag: ${{ github.event.inputs.tag }}
           overwrite: true
           prerelease: true
           file_glob: true
