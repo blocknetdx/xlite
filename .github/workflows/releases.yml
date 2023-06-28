@@ -93,6 +93,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: dist-native/XLite-${{ github.event.inputs.tag }}-*
+          release_name: "Xlite ${{ github.event.inputs.tag }}"
           tag: ${{ github.event.inputs.tag }}
           overwrite: true
           prerelease: true
