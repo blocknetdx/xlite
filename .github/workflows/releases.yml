@@ -72,7 +72,7 @@ jobs:
       - name: Generate MD5 Checksums (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
-          find dist-native -name "XLite-1.0.4-*" -exec sh -c 'md5sum "$0" | awk "{print \$1}" > "dist-native/$(basename "$0")-md5-checksum.txt"' {} \;
+          find dist-native -name "XLite-${{ github.event.inputs.tag }}-*" -exec sh -c 'md5sum "$0" | awk "{print \$1}" > "dist-native/$(basename "$0")-md5-checksum.txt"' {} \;
 
       - name: Generate MD5 Checksums (macOS)
         if: startsWith(matrix.os, 'macos')
