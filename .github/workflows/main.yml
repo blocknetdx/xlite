@@ -61,8 +61,22 @@ jobs:
         run: npm run build-native-mac-artifact
 
 
+      # - name: Publish Artifact
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: XLite-${{ github.event.inputs.is_beta == 'true' && '1.0.5-beta' || '1.0.5' }}-${{ matrix.os }}
+      #     path: dist-native/XLite-${{ github.event.inputs.is_beta == 'true' && '1.0.5-beta' || '1.0.5' }}-*
+
       - name: Publish Artifact
+        if: github.event.inputs.is_beta == 'true'
         uses: actions/upload-artifact@v3
         with:
-          name: XLite-${{ github.event.inputs.is_beta == 'true' && '1.0.5-beta' || '1.0.5' }}-${{ matrix.os }}
-          path: dist-native/XLite-${{ github.event.inputs.is_beta == 'true' && '1.0.5-beta' || '1.0.5' }}-*
+          name: XLite-1.0.5-beta-${{ matrix.os }}
+          path: dist-native/XLite-1.0.5-beta-*
+
+      - name: Publish Artifact
+        if: github.event.inputs.is_beta == 'false'
+        uses: actions/upload-artifact@v3
+        with:
+          name: XLite-1.0.5-${{ matrix.os }}
+          path: dist-native/XLite-1.0.5-*
