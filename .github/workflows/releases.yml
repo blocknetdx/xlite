@@ -51,17 +51,18 @@ jobs:
       - name: Download Binaries (macOS)
         if: startsWith(matrix.os, 'macos')
         run: npm run download-binaries-mac
-
+        
       - name: Build Native Image (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
-        run: npm run build-native-linux-artifact
+        run: |
+          npm run build-native-linux-artifact
+          chmod +x dist-native/XLite-${{ github.event.inputs.tag }}-linux.AppImage
 
       - name: Build Native Image (Windows)
         if: startsWith(matrix.os, 'windows')
         run: |
           npm run build-native-win-artifact
           del dist-native\XLite-${{ github.event.inputs.tag }}-win-x64.exe.blockmap
-
           
       - name: Build Native Image (macOS)
         if: startsWith(matrix.os, 'macos')
