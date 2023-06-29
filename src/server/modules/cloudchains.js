@@ -125,7 +125,7 @@ class CloudChains {
    * @type {number}
    * @private
    */
-  _defaultAddressCount = 50;
+  _defaultAddressCount = 30;
 
   /**
    * Default path function for cloudchains installations.
