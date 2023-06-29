@@ -321,7 +321,7 @@ class CloudChains {
   loadConfs(manifest = null) {
     const settingsDir = this.getSettingsDir();
     let success = true;
-    const defaultAddressCount = 0;
+    const defaultAddressCount = 1;
     const confs = fs.readdirSync(settingsDir)
       .map(f => {
         if (!this._reConfFile.test(f))
