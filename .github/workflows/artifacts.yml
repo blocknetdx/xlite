@@ -63,5 +63,5 @@ jobs:
       - name: Publish Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: XLite-1.0.4-${{ matrix.os }}
-          path: dist-native/XLite-1.0.4-*
+          name: XLite-1.0.5-beta-${{ matrix.os }}
+          path: dist-native/XLite-1.0.5-beta-*

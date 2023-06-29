@@ -6,9 +6,9 @@ on:
         description: 'Branch to build'
         required: true
       tag:
-        description: 'version tag "1.0.4"'
+        description: 'version tag "1.0.5"'
         required: false
-        default: '1.0.4'
+        default: '1.0.5-beta'
       # is_beta:
       #   description: 'Is it a beta release?'
       #   required: false
