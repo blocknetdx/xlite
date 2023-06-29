@@ -125,7 +125,7 @@ class CloudChains {
    * @type {number}
    * @private
    */
-  _defaultAddressCount = 300;
+  _defaultAddressCount = 50;
 
   /**
    * Default path function for cloudchains installations.
@@ -321,7 +321,7 @@ class CloudChains {
   loadConfs(manifest = null) {
     const settingsDir = this.getSettingsDir();
     let success = true;
-    const defaultAddressCount = 40;
+    const defaultAddressCount = 0;
     const confs = fs.readdirSync(settingsDir)
       .map(f => {
         if (!this._reConfFile.test(f))
