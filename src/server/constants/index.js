@@ -8,6 +8,8 @@ import {app} from 'electron';
 import path from 'path';
 import fs from 'fs-extra';
 
+export const DEBUG_ENV = 'XL_DEBUG';
+
 export const DATA_DIR = app ? app.getPath('userData') : '';
 
 export const getLocaleData = locale => {

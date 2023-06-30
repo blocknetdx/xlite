@@ -18,6 +18,7 @@ import { checkPassword, timeout } from '../../util';
 import Alert from '../../modules/alert';
 import ContextMenu from '../../modules/context-menu';
 
+
 const {api} = window;
 const {isDev} = api;
 
@@ -318,6 +319,17 @@ const LoginRegister = ({ cloudChains, startupInit, setCCWalletStarted }) => {
 
   return (
     <div className={'lw-login-container'}>
+        <div className={'alert lw-beta-warning'}>
+          <div className="d-flex align-items-start">
+          <i className="fas fa-info-circle alert-icon"></i>
+            <div>
+              <h4 className="alert-title">XLite Wallet is currently in beta.</h4>
+              <p className="alert-content">
+              XLite wallet is provided for experimental purposes only and is not intended for public use. The use of XLite for storing digital assets carries inherent risks, and any reliance on it is at your own discretion and risk. XLite is provided 'as is' without any warranties or representations, express or implied. It is your responsibility to ensure compliance with all applicable laws and regulations regarding the use of XLite in your jurisdiction. We disclaim any liability for damages or losses arising from the use or inability to use XLite. By using XLite, you acknowledge and agree to these terms.
+              </p>
+            </div>
+          </div>
+        </div>
       <div className={'lw-login-inner-container'}>
         <div className={'lw-login-image-container'}>
           <Logo className={'lw-login-image'} />

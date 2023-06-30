@@ -8,7 +8,6 @@ $lw-navbar-inner-height: $lw-navbar-height - $lw-navbar-vert-padding - $lw-navba
 $lw-navbar-text-color: $lw-text-primary;
 
 .lw-navbar-container {
-
   background-color: $lw-navbar-background;
   height: $lw-navbar-height;
   min-height: $lw-navbar-height;
@@ -22,11 +21,16 @@ $lw-navbar-text-color: $lw-text-primary;
   flex-wrap: nowrap;
   justify-content: space-between;
 
+  .logo-badge-container {
+    display: flex;
+    align-items: center;
+  }
+
   .lw-navbar-logo {
     display: block;
     height: $lw-navbar-inner-height - 10;
     width: auto;
-    margin-top: 5px;
+    margin-right: 5px;
   }
 
   button.lw-button {

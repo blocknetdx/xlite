@@ -21,7 +21,7 @@ const GuidesModal = ({ hideGuidesModal }) => {
     <Modal onClose={hideGuidesModal}>
       <ModalHeader><Localize context={'guides-modal'}>Setup Guides</Localize></ModalHeader>
       <ModalBody>
-        <p style={styles.paragraph}>{Localize.text('Learn more at:', 'guidesModal')} <CopyableLink className={'lw-modal-copyable-link'} href={'https://docs.blocknet.co/'}>{'docs.blocknet.co'}</CopyableLink></p>
+        <p style={styles.paragraph}>{Localize.text('Learn more at:', 'guidesModal')} <CopyableLink className={'lw-modal-copyable-link'} href={'https://docs.blocknet.org/'}>{'docs.blocknet.org'}</CopyableLink></p>
       </ModalBody>
     </Modal>
   );

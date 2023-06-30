@@ -9,6 +9,7 @@ import Localize from './localize';
 import Logo from './logo';
 import IconSend from './icon-send';
 import IconReceive from './icon-receive';
+import BetaBadge from './beta-badge';
 import * as appActions from '../../actions/app-actions';
 
 const Spacer = () => {
@@ -30,10 +31,13 @@ let Navbar = ({ windowWidth, showReceiveModal, showSendModal }) => {
 
   return (
     <div className={'lw-navbar-container'}>
-      <Logo className={'lw-navbar-logo'} />
-      <Spacer />
-      <Button style={styles.button} title={Localize.text('Send', 'navbar')} onClick={showSendModal}>{showButtonText ? Localize.text('Send', 'navbar') + ' ' : null}<IconSend className={'navbar-button-svg-icon'} /></Button>
-      <Button style={styles.button} title={Localize.text('Receive', 'navbar')} onClick={showReceiveModal}>{showButtonText ? Localize.text('Receive', 'navbar') + ' ' : null}<IconReceive className={'navbar-button-svg-icon'} /></Button>
+      <div className='logo-badge-container'>
+        <Logo className={'lw-navbar-logo'} />
+        <BetaBadge />
+      </div>
+        <Spacer />
+        <Button style={styles.button} title={Localize.text('Send', 'navbar')} onClick={showSendModal}>{showButtonText ? Localize.text('Send', 'navbar') + ' ' : null}<IconSend className={'navbar-button-svg-icon'} /></Button>
+        <Button style={styles.button} title={Localize.text('Receive', 'navbar')} onClick={showReceiveModal}>{showButtonText ? Localize.text('Receive', 'navbar') + ' ' : null}<IconReceive className={'navbar-button-svg-icon'} /></Button>
     </div>
   );
 };
