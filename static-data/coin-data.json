@@ -73,8 +73,8 @@
     "ticker": "PIVX",
     "name": "PivX",
     "website": "http://www.pivx.org/",
-    "explorer": "https://explorer.pivx.org/",
-    "explorerTx": "https://explorer.pivx.link/tx/{{tx}}"
+    "explorer": "https://zkbitcoin.com/",
+    "explorerTx": "http://zkbitcoin.com/tx/{{tx}}"
   },
   {
     "ticker": "POLIS",
