@@ -30,7 +30,7 @@ jobs:
       - run: npm install --no-audit
       - run: |
           npm run download-binaries-linux
-          chmod +x bin/linux/xlite-daemon
+          chmod +x bin/linux/xlite-daemon*
       - run: npm run build-native-linux
       
       - uses: actions/upload-artifact@v3
@@ -65,7 +65,7 @@ jobs:
       - run: npm install --no-audit
       - run: |
           npm run download-binaries-mac
-          chmod +x bin/mac/xlite-daemon
+          chmod +x bin/mac/xlite-daemon*
       - run: npm run build-native-mac
 
       - uses: actions/upload-artifact@v3

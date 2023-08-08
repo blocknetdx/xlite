@@ -121,9 +121,9 @@ export const ccBinDirs = {
 };
 
 export const ccBinNames = {
-  win32: 'xlite-daemon.exe',
-  darwin: 'xlite-daemon',
-  linux: 'xlite-daemon'
+  win32: 'xlite-daemon-win64.exe',
+  darwin: 'xlite-daemon-osx64',
+  linux: 'xlite-daemon-linux64'
 };
 
 export const DEFAULT_MASTER_PORT = 9955;
