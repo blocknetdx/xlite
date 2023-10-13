@@ -112,9 +112,9 @@
   },
   "build": {
     "asarUnpack": [
-      "**/bin/linux/xlite-daemon",
-      "**/bin/mac/xlite-daemon",
-      "**/bin/win/xlite-daemon.exe",
+      "**/bin/linux/xlite-daemon-linux64",
+      "**/bin/mac/xlite-daemon-osx64",
+      "**/bin/win/xlite-daemon-win64.exe",
       "**/blockchain-configuration-files/**/*"
     ],
     "electronVersion": "25.2.0",
