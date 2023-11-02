@@ -30,7 +30,7 @@ class TokenManifest {
       infos.set(info.ticker, info);
     for (const t of this._manifest) {
       const token = new Token(t);
-      token.xbinfo = infos.get(token.ticker);
+      token.xbinfo = infos.get(token.ticker) || {};
       if (token.ticker === 'BLOCK')
         token.xbinfo.rpcport = 41419; // default BLOCK port to ensure no clash with DX
       this._tokens.set(token.ticker, token);
@@ -43,9 +43,10 @@ class TokenManifest {
    * @return Token
    */
   getToken(ticker) {
+    console.log(ticker, this._tokens.has(ticker), this._tokens.get(ticker));
     if (!this._tokens.has(ticker))
       return null;
-    return this._tokens.get(ticker);
+    return this._tokens.get(ticker) ;
   }
 
 }

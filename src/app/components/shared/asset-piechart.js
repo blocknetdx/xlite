@@ -319,6 +319,8 @@ export const chartColorForTicker = (ticker) => {
       return '#002352';
     case 'DOGE':
       return '#C3A634';
+    case 'LBC':
+      return '#46aa9e';
     case 'LTC':
       return '#BFBBBB';
     case 'PHR':
