@@ -68,3 +68,4 @@ package-lock.json
 /temp
 .DS_Store
 /bin
+.history/
