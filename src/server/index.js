@@ -37,6 +37,11 @@ if(foundArg && foundArg.match(debugArgPatt)[1] === 'true') {
   debug = true;
 }
 
+// enforce electron launch param on linux
+if(process.platform === 'linux') {
+  app.commandLine.appendSwitch('--in-process-gpu');
+}
+
 // Handle any uncaught exceptions
 process.on('uncaughtException', err => {
   logger.error('', err);
