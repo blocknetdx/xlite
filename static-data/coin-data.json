@@ -75,12 +75,5 @@
     "website": "http://www.pivx.org/",
     "explorer": "https://zkbitcoin.com/",
     "explorerTx": "http://zkbitcoin.com/tx/{{tx}}"
-  },
-  {
-    "ticker": "POLIS",
-    "name": "Polis",
-    "website": "https://polispay.org/",
-    "explorer": "https://explorer.polispay.org/",
-    "explorerTx": "https://explorer.polispay.org/tx/{{tx}}"
   }
 ]

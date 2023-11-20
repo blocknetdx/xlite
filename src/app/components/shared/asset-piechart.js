@@ -325,8 +325,6 @@ export const chartColorForTicker = (ticker) => {
       return '#00d188';
     case 'PIVX':
       return '#7d67a8';
-    case 'POLIS':
-      return '#088AC8';
     case 'RVN':
       return '#384182';
     case 'SYS':
@@ -346,7 +344,6 @@ const data = [
   new AssetPieChartData('LTC', 'Litecoin', 'USD', 3000, chartColorForTicker('LTC')),
   new AssetPieChartData('PHR', 'Phore', 'USD', 3000, chartColorForTicker('PHR')),
   new AssetPieChartData('PIVX', 'Pivx', 'USD', 3000, chartColorForTicker('PIVX')),
-  new AssetPieChartData('POLIS', 'Polis', 'USD', 3000, chartColorForTicker('POLIS')),
   new AssetPieChartData('RVN', 'Ravencoin', 'USD', 3000, chartColorForTicker('RVN')),
   new AssetPieChartData('SYS', 'Syscoin', 'USD', 3000, chartColorForTicker('SYS')),
 ];

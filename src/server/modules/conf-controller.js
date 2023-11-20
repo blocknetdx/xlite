@@ -62,8 +62,10 @@ class ConfController {
    * @return {Promise<boolean>}
    */
   async init(manifestFilesDir) {
+    /* force xlite to use pre packaged manifest folder
     if (this.getManifest().length !== 0 && this.getXBridgeInfo().length !== 0)
       return true; // no init required
+    */
 
     try {
       if (!await fs.pathExists(manifestFilesDir)) {
