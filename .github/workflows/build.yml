@@ -40,7 +40,7 @@ jobs:
             dist-native/*.tar.gz
             dist-native/*.AppImage
             dist-native/*.deb
-            dist-native/latest-*.yml
+            dist-native/latest*.yml
 
       - uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/v')
@@ -52,7 +52,7 @@ jobs:
             dist-native/*.tar.gz
             dist-native/*.AppImage
             dist-native/*.deb
-            dist-native/latest-*.yml
+            dist-native/latest*.yml
 
   build_mac:
     runs-on: macos-13
@@ -82,7 +82,7 @@ jobs:
             dist-native/*.dmg
             dist-native/*.dmg.blockmap
             dist-native/*.zip
-            dist-native/latest-*.yml
+            dist-native/latest*.yml
 
       - uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/v')
@@ -94,7 +94,7 @@ jobs:
             dist-native/*.dmg
             dist-native/*.dmg.blockmap
             dist-native/*.zip
-            dist-native/latest-*.yml
+            dist-native/latest*.yml
 
   build_win:
     runs-on: windows-2022
@@ -109,7 +109,6 @@ jobs:
       - run: npm install --no-audit
       - run: npm run download-binaries-win
       - run: npm run build-native-win
-      - run: Move-Item -Path "dist-native/latest.yml" -Destination "dist-native/latest-win.yml"
       
       - uses: actions/upload-artifact@v3
         with:
@@ -118,7 +117,7 @@ jobs:
             dist-native/*.exe
             dist-native/*.exe.blockmap
             dist-native/*.zip
-            dist-native/latest-*.yml
+            dist-native/latest*.yml
 
       - uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/v')
@@ -130,4 +129,4 @@ jobs:
             dist-native/*.exe
             dist-native/*.exe.blockmap
             dist-native/*.zip
-            dist-native/latest-*.yml
+            dist-native/latest*.yml
