@@ -132,7 +132,7 @@ const TransactionsPanel = ({ selectable = false, coinSpecificTransactions = fals
                       </Column>
                       {!brief ?
                         <div style={{flexGrow: 1}}>
-                          <div className={'lw-table-top-label'}>{moment(new Date(t.time * 1000)).format('MMM D YYYY')}</div>
+                          <div className={'lw-table-top-label'}>{moment(new Date(t.time * 1000)).format('MMM D YYYY HH:mm:ss')}</div>
                           <div className={'lw-table-bottom-label'}>{sent ? Localize.text('Sent', 'transactions') : Localize.text('Received', 'transactions')}</div>
                         </div>
                         :
