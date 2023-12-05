@@ -1,7 +1,7 @@
 // Copyright (c) 2020 The Blocknet developers
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
-import React, {useState, useEffect} from 'react';
+import React, {useMemo, useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {Card, CardBody, CardFooter, CardHeader} from './card';
 import TransactionsHeader from './transactions-panel-header';
@@ -25,7 +25,9 @@ const TransactionsPanelTable = ({
 
   const [transactions, setTransactions] = useState([]);
   const walletLookup = new Map(wallets.map(t => [t.ticker, t]));
-  const sortedWallets = activeWallet ? [wallets.find(w => w.ticker === activeWallet)] : wallets.sort(walletSorter(balances));
+  const sortedWallets = useMemo(() => activeWallet
+  ? [wallets.find(w => w.ticker === activeWallet)]
+  : wallets.sort(walletSorter(balances)), [wallets, balances, activeWallet]);
 
   // ToDo: enable Select, Label, and Date columns when available
   const hiddenFeature = true;
