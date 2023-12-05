@@ -311,8 +311,8 @@ export const chartColorForTicker = (ticker) => {
       return '#101341';
     case 'BTC':
       return '#F7931A';
-    // case 'BCH':
-    //   return '#8DC351';
+    case 'BCH':
+      return '#8DC351';
     case 'DASH':
       return '#008DE4';
     case 'DGB':
@@ -348,6 +348,7 @@ const data = [
   new AssetPieChartData('PIVX', 'Pivx', 'USD', 3000, chartColorForTicker('PIVX')),
   new AssetPieChartData('RVN', 'Ravencoin', 'USD', 3000, chartColorForTicker('RVN')),
   new AssetPieChartData('SYS', 'Syscoin', 'USD', 3000, chartColorForTicker('SYS')),
+  new AssetPieChartData('UNO', 'Unobtanium', 'USD', 3000, chartColorForTicker('UNO')),
 ];
 export const chartSampleData = data;
 
