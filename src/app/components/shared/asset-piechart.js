@@ -311,8 +311,8 @@ export const chartColorForTicker = (ticker) => {
       return '#101341';
     case 'BTC':
       return '#F7931A';
-    case 'BCH':
-      return '#8DC351';
+    // case 'BCH':
+    //   return '#8DC351';
     case 'DASH':
       return '#008DE4';
     case 'DGB':
@@ -329,6 +329,8 @@ export const chartColorForTicker = (ticker) => {
       return '#384182';
     case 'SYS':
       return '#0089CF';
+    case 'UNO':
+      return '#8DC351';
     default:
       return '#666';
   }
