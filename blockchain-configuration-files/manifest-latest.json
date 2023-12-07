@@ -187,5 +187,22 @@
     ],
     "xbridge_conf": "syscoin--v4.0.3.conf",
     "wallet_conf": "syscoin--v4.0.3.conf"
+  },
+  {
+    "blockchain": "Unobtanium",
+    "ticker": "UNO",
+    "ver_id": "unobtanium--v0.11.0",
+    "ver_name": "Unobtanium",
+    "conf_name": "unobtanium.conf",
+    "dir_name_linux": "unobtanium",
+    "dir_name_mac": "Unobtanium",
+    "dir_name_win": "Unobtanium",
+    "repo_url": "https://github.com/unobtanium-official/Unobtanium",
+    "versions": [
+      "v0.11.0",
+      "v0.11.5"
+    ],
+    "xbridge_conf": "unobtanium--v0.11.0.conf",
+    "wallet_conf": "unobtanium--v0.11.0.conf"
   }
 ]
