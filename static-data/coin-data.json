@@ -77,10 +77,10 @@
     "explorerTx": "http://zkbitcoin.com/tx/{{tx}}"
   },
   {
-    "ticker": "POLIS",
-    "name": "Polis",
-    "website": "https://polispay.org/",
-    "explorer": "https://explorer.polispay.org/",
-    "explorerTx": "https://explorer.polispay.org/tx/{{tx}}"
+    "ticker": "UNO",
+    "name": "Unobtanium",
+    "website": "https://www.unobtanium.uno/",
+    "explorer": "https://chainz.cryptoid.info/uno/",
+    "explorerTx": "https://chainz.cryptoid.info/uno/tx.dws?{{tx}}.htm"
   }
 ]

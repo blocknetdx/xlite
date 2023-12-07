@@ -208,9 +208,11 @@ function startupInit(walletController, confController, pricingController, confNe
         .then(prices => store.dispatch(appActions.setPricing(prices)));
     });
 
+    /* disable aws manifest update
     // Update the manifest if necessary
     if (confNeedsManifestUpdate)
       confController.updateManifest();
+    */
   };
 } // end startupInit
 
