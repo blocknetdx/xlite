@@ -1,14 +1,14 @@
 {
   "linux": {
-    "url": "https://github.com/tryiou/xlite-daemon/releases/download/v0.5.13/xlite-daemon-linux64",
-    "hash": "9ab2228d813510cc2c5fe2d438ac036844fae57484df98e5ac5b874a00167214"
+    "url": "https://github.com/blocknetdx/xlite-daemon/releases/download/v0.5.13/xlite-daemon-linux64",
+    "hash": "3b74ccd13fa167e14248322d31e80553370fe297c58309b4192da63787bf0934"
   },
   "mac": {
-    "url": "https://github.com/tryiou/xlite-daemon/releases/download/v0.5.13/xlite-daemon-osx64",
-    "hash": "1a63d0dc51c697017476981958afb1441cc3840218295a9931ad450166be4427"
+    "url": "https://github.com/blocknetdx/xlite-daemon/releases/download/v0.5.13/xlite-daemon-osx64",
+    "hash": "b24b6b7bc1c3bb868a18456bc783b5dec9a24ef7a60fbed2c64c99331ee1e323"
   },
   "win": {
-    "url": "https://github.com/tryiou/xlite-daemon/releases/download/v0.5.13/xlite-daemon-win64.exe",
-    "hash": "2ec6c29ed6626b586a07e0951bd1c8b2668037a524be5c183ed157038a656e00"
+    "url": "https://github.com/blocknetdx/xlite-daemon/releases/download/v0.5.13/xlite-daemon-win64.exe",
+    "hash": "5b4a0713dfcbd903cefe400b5e38898b9c14f4c69a7a270bbb654de3a85c4189"
   }
 }
