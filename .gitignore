@@ -69,3 +69,5 @@ package-lock.json
 .DS_Store
 /bin
 .history/
+.aider*
+.vscode*

@@ -1,12 +1,12 @@
 // Copyright (c) 2020 The Blocknet developers
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
+
 import PropTypes from 'prop-types';
 import React from 'react';
-import $ from 'jquery';
+import { Dropdown as BootstrapDropdown } from 'react-bootstrap';
 
 export class DropdownItem {
-
   /**
    * @type {string}
    */
@@ -21,42 +21,40 @@ export class DropdownItem {
     this.text = text;
     this.value = value;
   }
-
 }
 
 export const Dropdown = ({ items = [], placeholder = '', value = '', style = {}, onSelect }) => {
-
-  const selectedItem = items.find(i => i.value === value);
+  const selectedItem = items.find(i => i.value === value) || null;
 
   return (
-    <div className={'dropdown'} style={style}>
-      <a href={'#'} ref={node => node ? $(node).dropdown() : null} className={'lw-coin-select'} data-toggle={'dropdown'}>
-        <div>{selectedItem ? selectedItem.text : placeholder}</div>
-        <i className={'fas fa-caret-down'} />
-      </a>
-      <div className={'dropdown-menu'}>
-        {items
-          .filter(i => i.value !== value)
-          .map(i => {
-            const onClick = e => {
-              e.preventDefault();
-              onSelect(i.value);
-            };
-            return (
-              <button key={i.value} className="dropdown-item lw-coin-select-item" type="button" onClick={onClick}>
-                <div>{i.text}</div>
-              </button>
-            );
-          })
-        }
-      </div>
-    </div>
+    <BootstrapDropdown style={style}>
+      <BootstrapDropdown.Toggle variant="light" className="lw-coin-select">
+        {selectedItem ? selectedItem.text : placeholder}
+      </BootstrapDropdown.Toggle>
+
+      <BootstrapDropdown.Menu>
+        {items.filter(i => i.value !== value).length > 0 ? (
+          items
+            .filter(i => i.value !== value)
+            .map(i => (
+              <BootstrapDropdown.Item key={i.value} onClick={() => onSelect(i.value)}>
+                {i.text}
+              </BootstrapDropdown.Item>
+            ))
+        ) : (
+          <BootstrapDropdown.Item disabled>----</BootstrapDropdown.Item>
+        )}
+      </BootstrapDropdown.Menu>
+    </BootstrapDropdown>
   );
 };
+
 Dropdown.propTypes = {
   items: PropTypes.arrayOf(PropTypes.instanceOf(DropdownItem)),
   placeholder: PropTypes.string,
   value: PropTypes.string,
   style: PropTypes.object,
-  onSelect: PropTypes.func
+  onSelect: PropTypes.func.isRequired,
 };
+
+export default Dropdown;
