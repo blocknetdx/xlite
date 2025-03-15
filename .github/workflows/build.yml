@@ -33,7 +33,7 @@ jobs:
           chmod +x bin/linux/xlite-daemon*
       - run: npm run build-native-linux
       
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: artifacts-linux
           path: |
@@ -75,7 +75,7 @@ jobs:
           chmod +x bin/mac/xlite-daemon*
       - run: npm run build-native-mac
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: artifacts-mac
           path: |
@@ -110,7 +110,7 @@ jobs:
       - run: npm run download-binaries-win
       - run: npm run build-native-win
       
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: artifacts-win
           path: |
