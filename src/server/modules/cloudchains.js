@@ -11,13 +11,13 @@ import {unixTime} from '../../app/util';
 
 import _ from 'lodash';
 import electron from 'electron';
-import isDev from 'electron-is-dev';
 import fs from 'fs-extra';
 import path from 'path';
 import childProcess from 'child_process';
 import { v4 as uuidV4 } from 'uuid';
 import moment from 'moment';
 
+const isDev = process.env.ELECTRON_IS_DEV === 'true'; 
 /**
  * Manage CloudChains litewallet configuration.
  */

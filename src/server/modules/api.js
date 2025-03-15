@@ -11,9 +11,9 @@ import WalletController from './wallet-controller';
 
 import _ from 'lodash';
 import electron from 'electron';
-import isDev from 'electron-is-dev';
 import QRCode from 'qrcode';
 
+const isDev = process.env.ELECTRON_IS_DEV === 'true'; 
 /**
  * Manages the api link to the renderer process.
  * When updating the api here be sure to update:

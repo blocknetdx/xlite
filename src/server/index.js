@@ -20,12 +20,12 @@ import WalletController from './modules/wallet-controller';
 const { autoUpdater } = require('electron-updater');
 
 import {app, ipcMain, Menu} from 'electron';
-import contextMenu from 'electron-context-menu';
+// import contextMenu from 'electron-context-menu';
 import fs from 'fs-extra';
-import isDev from 'electron-is-dev';
 import path from 'path';
 import ContextMenu from './modules/context-menu';
 
+const isDev = process.env.ELECTRON_IS_DEV === 'true'; 
 const debugArgPatt = new RegExp(`${DEBUG_ENV}=(\\w+)`);
 const foundArg = process.argv.find(str => debugArgPatt.test(str));
 let debug = false;
@@ -94,7 +94,8 @@ if(!storage.getItem(storageKeys.ZOOM_FACTOR)) storage.setItem(storageKeys.ZOOM_F
 const zoomController = new ZoomController(storage);
 
 // Add a default context menu
-contextMenu();
+import('electron-context-menu').then(cm => cm.default());
+// contextMenu();
 
 // Set the default app-wide window menu
 const appMenu = Menu.buildFromTemplate(windowMenu(Localize, zoomController));
