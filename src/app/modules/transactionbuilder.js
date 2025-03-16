@@ -87,10 +87,12 @@ class TransactionBuilder {
    * @return {{"address": amount}}
    */
   getTxOutputs() {
-    const outputs = {};
-    for (const output of this._outputs)
-      outputs[output.address] = output.amount;
-    return outputs;
+
+    return this._outputs.slice();
+    // const outputs = {};
+    // for (const output of this._outputs)
+    //   outputs[output.address] = output.amount;
+    // return outputs;
   }
 
   /**
