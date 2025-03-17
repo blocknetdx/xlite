@@ -4,9 +4,9 @@
 import {DATA_DIR} from '../constants';
 
 import {createLogger, format, transports} from 'winston';
-import isDev from 'electron-is-dev';
 import path from 'path';
 
+const isDev = process.env.ELECTRON_IS_DEV === 'true'; 
 // A Winston logger instance for logging errors and other info
 export const logger = createLogger({
   format: format.combine(

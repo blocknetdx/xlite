@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const path = require('path');
-
+const webpack = require('webpack');
 const appDir = path.resolve(__dirname, 'src/app');
 const destDir = path.resolve(__dirname, 'dist/app');
 
@@ -28,6 +28,7 @@ const common = {
     fallback: {
       crypto: require.resolve('crypto-browserify'),
       stream: require.resolve('stream-browserify'),
+      vm: require.resolve('vm-browserify'),
       buffer: require.resolve('buffer')
     }
   },
@@ -40,7 +41,12 @@ const common = {
     ].join(',') // Convert the array to a comma-separated string
   },
   devtool: 'source-map',
-  context: __dirname
+  context: __dirname,
+  plugins: [
+    new webpack.ProvidePlugin({
+        process: 'process/browser',
+    })
+  ]
 };
 
 const errorjs = {

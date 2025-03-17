@@ -23,9 +23,9 @@ jobs:
       - uses: actions/checkout@v3
         if: github.event.pull_request.draft == false
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: lts/Iron
 
       - run: npm install --no-audit
       - run: |
@@ -33,7 +33,7 @@ jobs:
           chmod +x bin/linux/xlite-daemon*
       - run: npm run build-native-linux
       
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: artifacts-linux
           path: |
@@ -60,9 +60,9 @@ jobs:
       - uses: actions/checkout@v3
         if: github.event.pull_request.draft == false
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: lts/Iron
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -75,7 +75,7 @@ jobs:
           chmod +x bin/mac/xlite-daemon*
       - run: npm run build-native-mac
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: artifacts-mac
           path: |
@@ -102,15 +102,15 @@ jobs:
       - uses: actions/checkout@v3
         if: github.event.pull_request.draft == false
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: lts/Iron
 
       - run: npm install --no-audit
       - run: npm run download-binaries-win
       - run: npm run build-native-win
       
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: artifacts-win
           path: |

@@ -1,61 +1,60 @@
 // Copyright (c) 2020 The Blocknet developers
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
+
 import PropTypes from 'prop-types';
 import React from 'react';
-import $ from 'jquery';
+import { Dropdown } from 'react-bootstrap';
 import Localize from './localize';
 import Wallet from '../../types/wallet-r';
 import { getSrcFromSrcSet } from '../../util';
 
 const SelectWalletDropdown = ({ selected = '', style = {}, wallets, onSelect }) => {
-
-  const wallet = wallets && wallets.find(w => w.ticker === selected) || null;
-
-  const filteredWallets = !wallets ? [] : wallets
-    .filter(w => w.ticker !== selected);
+  const wallet = wallets?.find(w => w.ticker === selected) || null;
+  const filteredWallets = wallets?.filter(w => w.ticker !== selected) || [];
 
   return (
-    <div className={'dropdown'} style={style}>
-      <a href={'#'} ref={node => node ? $(node).dropdown() : null} className={'lw-coin-select'} data-toggle={'dropdown'}>
-        {wallet && <img alt={Localize.text('Coin icon', 'receive-modal')} src={getSrcFromSrcSet(wallet.imagePath)} srcSet={wallet.imagePath} />}
-        <div>{wallet && `${wallet.name} (${wallet.ticker})`}</div>
-        <i className={'fas fa-caret-down'} />
-      </a>
-      <div className={'dropdown-menu'}>
-        {wallets && filteredWallets.length > 0 ?
-          filteredWallets
-            .map(w => {
-              const onClick = e => {
-                e.preventDefault();
-                onSelect(w.ticker);
-              };
-              return (
-                <button key={w.ticker} className="dropdown-item lw-coin-select-item" type="button" onClick={onClick}>
-                  <img alt={Localize.text('Coin icon', 'receive-modal')} src={getSrcFromSrcSet(w.imagePath)} srcSet={w.imagePath} />
-                  <div>{`${w.name} (${w.ticker})`}</div>
-                </button>
-              );
-            })
-          :
-          wallets && filteredWallets.length === 0 ?
-            [
-              <button key={'empty-list-item'} className="dropdown-item lw-coin-select-item disabled" type="button">
-                <div>----</div>
-              </button>
-            ]
-            :
-            null
-        }
-      </div>
-    </div>
+    <Dropdown style={style}>
+      <Dropdown.Toggle variant="light" className="lw-coin-select">
+        {wallet && (
+          <img
+            alt={Localize.text('Coin icon', 'receive-modal')}
+            src={getSrcFromSrcSet(wallet.imagePath)}
+            srcSet={wallet.imagePath}
+            style={{ marginRight: '8px', width: '24px', height: '24px' }}
+          />
+        )}
+        {wallet ? `${wallet.name} (${wallet.ticker})` : Localize.text('Select Wallet', 'receive-modal')}
+      </Dropdown.Toggle>
+
+      <Dropdown.Menu>
+        {filteredWallets.length > 0 ? (
+          filteredWallets.map(w => (
+            <Dropdown.Item key={w.ticker} onClick={() => onSelect(w.ticker)}>
+              <img
+                alt={Localize.text('Coin icon', 'receive-modal')}
+                src={getSrcFromSrcSet(w.imagePath)}
+                srcSet={w.imagePath}
+                style={{ marginRight: '8px', width: '24px', height: '24px' }}
+              />
+              {`${w.name} (${w.ticker})`}
+            </Dropdown.Item>
+          ))
+        ) : (
+          <Dropdown.Item disabled>
+            ----
+          </Dropdown.Item>
+        )}
+      </Dropdown.Menu>
+    </Dropdown>
   );
 };
+
 SelectWalletDropdown.propTypes = {
   selected: PropTypes.string,
   wallets: PropTypes.arrayOf(PropTypes.instanceOf(Wallet)),
   style: PropTypes.object,
-  onSelect: PropTypes.func
+  onSelect: PropTypes.func.isRequired,
 };
 
 export default SelectWalletDropdown;

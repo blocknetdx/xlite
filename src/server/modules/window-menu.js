@@ -1,7 +1,7 @@
 // Copyright (c) 2020 The Blocknet developers
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
-import isDev from 'electron-is-dev';
+const isDev = process.env.ELECTRON_IS_DEV === 'true'; 
 
 const windowMenu = (Localize, zoomController) => {
 

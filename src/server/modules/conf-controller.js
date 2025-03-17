@@ -9,10 +9,10 @@ import XBridgeInfo from '../../app/types/xbridgeinfo';
 
 import _ from 'lodash';
 import fs from 'fs-extra';
-import isDev from 'electron-is-dev';
 import path from 'path';
 import request from 'superagent';
 
+const isDev = process.env.ELECTRON_IS_DEV === 'true'; 
 /**
  * Class for getting manifest and wallet data
  */

@@ -29,8 +29,8 @@ import { combineReducers, createStore } from 'redux';
 import {Map as IMap} from 'immutable';
 import { Provider } from 'react-redux';
 import React from 'react';
-import ReactDOM from 'react-dom';
-
+// import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 // Context bridge api
 const {api} = window;
 const {isDev} = api;
@@ -272,9 +272,11 @@ function startupInit(walletController, confController, pricingController, confNe
   store.dispatch(appActions.setActiveView(activeViews.LOGIN_REGISTER));
 })();
 
-ReactDOM.render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
-  document.getElementById('js-main')
-);
+
+const rootElement = document.getElementById('js-main');                                                                                                              
+const root = createRoot(rootElement);                                                                                                                                
+root.render(                                                                                                                                                         
+  <Provider store={store}>                                                                                                                                           
+    <App />                                                                                                                                                          
+  </Provider>                                                                                                                                                        
+);         
